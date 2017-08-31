@@ -15,22 +15,22 @@ int nested_comments = 0;
 %x COMMENT
 %%
   /* Special tokens. */
-"{"  {
+"["  {
     nested_blocks ++;
     return BLOCKOPEN;
 }
-"}" {
+"]" {
     nested_blocks --;
     if (nested_blocks < 0) {
         fprintf(stderr, "found `}` with no matching `{`!\n");
     }
     return BLOCKCLOSE;
 }
-"["  {
+"{"  {
     nested_lists ++;
     return LISTOPEN;
 }
-"]" {
+"}"  {
     nested_lists --;
     if (nested_lists < 0) {
         fprintf(stderr, "found `]` with no matching `[`!\n");
@@ -64,7 +64,7 @@ int nested_comments = 0;
     strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
     return T_STRING;
 }
-:[A-Za-z0-9\-_]+ {
+:[A-Za-z0-9][A-Za-z0-9\-_]* {
     /*:[^{}\[\]\" \t]+ {*/
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-1);

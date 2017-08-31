@@ -1292,10 +1292,10 @@ yyreduce:
             printf("Type error:\n");
             print_error(t->content.err);
             printf("Compilation aborted.\n");
+            free_error(t->content.err);
         } else {
             eval(root, &stack_top);
         }
-        free_error(t->content.err);
         free_type(t);
         free_node(root);
     }
