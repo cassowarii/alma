@@ -639,6 +639,9 @@ value_type *infer_type(node_t *nn) {
                 result = copy_type(e->type);
             } else {
                 result = error_type(error_msg("Unknown word `%s`", nn->content.n_str));
+                if (nn->content.n_str[0] == ':') {
+                    add_info(result->content.err, "\t(Did you try to start a :symbol with a non-alphanumeric character?)");
+                }
                 error_lineno(result->content.err, nn->line);
             }
             break;

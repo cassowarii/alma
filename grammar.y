@@ -148,7 +148,7 @@ list:
 
 definition:
     DEFINE T_WORD block {
-        $$ = node(N_DEFINE, $2, $3);
+        $$ = node(N_DEFINE, node_str($2, yylineno), $3);
     }
 
 %%
