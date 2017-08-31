@@ -104,7 +104,7 @@ sequence_list: sequence {
         if ($3 == NULL) {
             $$ = $1;
         } else {
-            $$ = node(N_SEQUENCE, $1, $3);
+            $$ = node(N_COMPOSED, $1, $3);
         }
     } | {
         $$ = NULL;
@@ -112,9 +112,9 @@ sequence_list: sequence {
 
 sequence:
     item {
-        $$ = node(N_ITEM, $1, NULL);
+        $$ = node(N_COMPOSED, $1, NULL);
     } | sequence item {
-        $$ = node(N_ITEM, $2, $1);
+        $$ = node(N_COMPOSED, $2, $1);
     } | definition {
         $$ = $1;
     }

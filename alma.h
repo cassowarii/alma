@@ -12,9 +12,9 @@ enum node_tag {
     N_INT,
     N_FLOAT,
     N_CHAR,
-    N_SEQUENCE,
-    N_ITEM,
+    N_COMPOSED,
     N_DEFINE,
+    N_ELEM,
 };
 
 typedef struct node_t {
@@ -24,6 +24,7 @@ typedef struct node_t {
         double n_float;
         char n_char;
         char *n_str;
+        struct elem_t *elem;
         struct {
             struct node_t* left;
             struct node_t* right;
@@ -228,6 +229,7 @@ node_t *left(node_t *node);
 node_t *right(node_t *node);
 
 node_t *_node_lineno(enum node_tag tag, node_t *nleft, node_t *nright, int line_num);
+node_t *node_elem (elem_t *val, int line_num);
 node_t *node_str (char *str, int line_num);
 node_t *node_word (char *name, int line_num);
 node_t *node_int (int val, int line_num);

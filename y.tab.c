@@ -1345,7 +1345,7 @@ yyreduce:
         if ((yyvsp[0].n) == NULL) {
             (yyval.n) = (yyvsp[-2].n);
         } else {
-            (yyval.n) = node(N_SEQUENCE, (yyvsp[-2].n), (yyvsp[0].n));
+            (yyval.n) = node(N_COMPOSED, (yyvsp[-2].n), (yyvsp[0].n));
         }
     }
 #line 1352 "y.tab.c" /* yacc.c:1646  */
@@ -1362,7 +1362,7 @@ yyreduce:
   case 8:
 #line 114 "grammar.y" /* yacc.c:1646  */
     {
-        (yyval.n) = node(N_ITEM, (yyvsp[0].n), NULL);
+        (yyval.n) = node(N_COMPOSED, (yyvsp[0].n), NULL);
     }
 #line 1368 "y.tab.c" /* yacc.c:1646  */
     break;
@@ -1370,7 +1370,7 @@ yyreduce:
   case 9:
 #line 116 "grammar.y" /* yacc.c:1646  */
     {
-        (yyval.n) = node(N_ITEM, (yyvsp[0].n), (yyvsp[-1].n));
+        (yyval.n) = node(N_COMPOSED, (yyvsp[0].n), (yyvsp[-1].n));
     }
 #line 1376 "y.tab.c" /* yacc.c:1646  */
     break;

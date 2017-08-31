@@ -4,8 +4,7 @@
 void eval(node_t *nn, elem_t **top) {
     if (nn != NULL) {
         switch (nn->tag) {
-            case N_SEQUENCE:
-            case N_ITEM:
+            case N_COMPOSED:
                 eval(left(nn), top);
                 eval(right(nn), top);
                 break;
@@ -33,6 +32,9 @@ void eval(node_t *nn, elem_t **top) {
             case N_CHAR:
                 //printf("char %c\n", nn->content.n_char);
                 push(elem_from(nn), top);
+                break;
+            case N_ELEM:
+                push(nn->content.elem, top);
                 break;
             case N_WORD:
                 //printf("WORD %s\n", nn->content.n_str);
@@ -141,57 +143,6 @@ void push(elem_t *new_elem, elem_t **top) {
     *top = new_elem;
 }
 
-node_t *_node_lineno(enum node_tag tag, node_t *nleft, node_t *nright, int line_num) {
-    node_t *n = new_node();
-    n->tag = tag;
-    n->line = line_num;
-    set_left(n, nleft);
-    set_right(n, nright);
-    return n;
-}
-
-// Returns the last-executed non-branching node which is a child of this node.
-node_t *last_node_in(node_t *nn) {
-    if (nn->tag == N_SEQUENCE || nn->tag == N_ITEM) {
-        if (right(nn) == NULL) {
-            return last_node_in(left(nn));
-        } else {
-            return last_node_in(right(nn));
-        }
-    } else {
-        return nn;
-    }
-}
-
-// Returns the first-executed non-branching node which is a child of this node.
-node_t *first_node_in(node_t *nn) {
-    if (nn->tag == N_SEQUENCE || nn->tag == N_ITEM) {
-        if (left(nn) == NULL) {
-            return last_node_in(right(nn));
-        } else {
-            return last_node_in(left(nn));
-        }
-    } else {
-        return nn;
-    }
-}
-
-node_t *left(node_t *node) {
-    return node->content.children.left;
-}
-
-void set_left(node_t *node, node_t *l) {
-    node->content.children.left = l;
-}
-
-node_t *right(node_t *node) {
-    return node->content.children.right;
-}
-
-void set_right(node_t *node, node_t *r) {
-    node->content.children.right = r;
-}
-
 unsigned int length(elem_t *e) {
     if (!is_list(e)) {
         fprintf(stderr, "Internal error: shouldn't call `length` on non-list data");
@@ -201,52 +152,6 @@ unsigned int length(elem_t *e) {
     } else {
         return e->content.list->height;
     }
-}
-
-node_t *new_node() {
-    node_t *n = malloc(sizeof(node_t));
-    n->line = -1;
-    return n;
-}
-
-node_t *node_str (char *str, int line_num) {
-    node_t *n = new_node();
-    n->tag = N_STRING;
-    n->content.n_str = str;
-    n->line = line_num;
-    return n;
-}
-
-node_t *node_word (char *name, int line_num) {
-    node_t *n = new_node();
-    n->tag = N_WORD;
-    n->content.n_str = name;
-    n->line = line_num;
-    return n;
-}
-
-node_t *node_int (int val, int line_num) {
-    node_t *n = new_node();
-    n->tag = N_INT;
-    n->content.n_int = val;
-    n->line = line_num;
-    return n;
-}
-
-node_t *node_float (double val, int line_num) {
-    node_t *n = new_node();
-    n->tag = N_FLOAT;
-    n->content.n_float = val;
-    n->line = line_num;
-    return n;
-}
-
-node_t *node_char (char val, int line_num) {
-    node_t *n = new_node();
-    n->tag = N_CHAR;
-    n->content.n_char = val;
-    n->line = line_num;
-    return n;
 }
 
 elem_t *elem_int (int val) {
@@ -515,9 +420,9 @@ void print_elem(elem_t *e) {
         if (all_chars) {
             print_string(e->content.list);
         } else {
-            printf("[ ");
+            printf("{ ");
             do_list(&e->content.list);
-            printf(" ]");
+            printf(" }");
         }
     } else {
         repr_elem(e);
@@ -612,7 +517,7 @@ void free_node(node_t *n) {
     if (n->tag == N_WORD || n->tag == N_STRING) {
         free(n->content.n_str);
     }
-    if (n->tag == N_SEQUENCE || n->tag == N_ITEM || n->tag == N_BLOCK || n->tag == N_LIST) {
+    if (n->tag == N_COMPOSED || n->tag == N_BLOCK || n->tag == N_LIST) {
         free_node(left(n));
         free_node(right(n));
     }

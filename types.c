@@ -551,8 +551,7 @@ value_type *infer_type(node_t *nn) {
         return func_type(X, X);
     }
     switch (nn->tag) {
-        case N_SEQUENCE:
-        case N_ITEM:
+        case N_COMPOSED:
             if (right(nn)) {
                 l = infer_type(left(nn));
                 if (l->tag == V_ERROR) {
@@ -589,7 +588,7 @@ value_type *infer_type(node_t *nn) {
                 result = l;
             }
             break;
-        case N_BLOCK:;
+        case N_BLOCK:
             X = stack_var();
             result = func_type(X, stack_of(infer_type(left(nn)), X));
             if (result->tag == V_ERROR) {
@@ -615,7 +614,7 @@ value_type *infer_type(node_t *nn) {
             result = func_type(X, stack_of(list, X));
             free_type(l);
             break;
-        case N_STRING:;
+        case N_STRING:
             X = stack_var();
             result = func_type(X, stack_of(list_of(vt_char), X));
             break;
@@ -627,6 +626,10 @@ value_type *infer_type(node_t *nn) {
         case N_CHAR:
             X = stack_var();
             result = func_type(X, stack_of(vt_char, X));
+            break;
+        case N_ELEM:
+            X = stack_var();
+            result = func_type(X, stack_of(nn->content.elem->type, X));
             break;
         case N_WORD:
 #ifdef TYPEDEBUG
@@ -640,7 +643,7 @@ value_type *infer_type(node_t *nn) {
             } else {
                 result = error_type(error_msg("Unknown word `%s`", nn->content.n_str));
                 if (nn->content.n_str[0] == ':') {
-                    add_info(result->content.err, "\t(Did you try to start a :symbol with a non-alphanumeric character?)");
+                    add_info(result->content.err, "(Did you try to start a :symbol with a non-alphanumeric character?)");
                 }
                 error_lineno(result->content.err, nn->line);
             }
