@@ -208,8 +208,12 @@ void vadd_info(error *e, char *fmt, va_list ap);
 void add_info(error *e, char *fmt, ...);
 void print_error(error *e);
 void error_concat(error *e, error *f);
+void free_error(error *e);
 
 node_t *node (enum node_tag tag, node_t *left, node_t *right);
+
+node_t *first_node_in(node_t *nn);
+node_t *last_node_in(node_t *nn);
 
 void set_left(node_t *node, node_t *l);
 void set_right(node_t *node, node_t *r);

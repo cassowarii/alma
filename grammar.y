@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
-#include "cloth.h"
+#include "alma.h"
 #define YYERROR_VERBOSE
 
 FILE *yyin;
@@ -82,6 +82,7 @@ program: section {
         } else {
             eval(root, &stack_top);
         }
+        free_error(t->content.err);
         free_type(t);
         free_node(root);
     }

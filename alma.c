@@ -1,4 +1,4 @@
-#include "cloth.h"
+#include "alma.h"
 #include "y.tab.h"
 
 void eval(node_t *nn, elem_t **top) {
@@ -143,6 +143,32 @@ node_t *node(enum node_tag tag, node_t *nleft, node_t *nright) {
     set_left(new_node, nleft);
     set_right(new_node, nright);
     return new_node;
+}
+
+// Returns the last-executed non-branching node which is a child of this node.
+node_t *last_node_in(node_t *nn) {
+    if (nn->tag == N_SEQUENCE || nn->tag == N_ITEM) {
+        if (right(nn) == NULL) {
+            return last_node_in(left(nn));
+        } else {
+            return last_node_in(right(nn));
+        }
+    } else {
+        return nn;
+    }
+}
+
+// Returns the first-executed non-branching node which is a child of this node.
+node_t *first_node_in(node_t *nn) {
+    if (nn->tag == N_SEQUENCE || nn->tag == N_ITEM) {
+        if (left(nn) == NULL) {
+            return last_node_in(right(nn));
+        } else {
+            return last_node_in(left(nn));
+        }
+    } else {
+        return nn;
+    }
 }
 
 node_t *left(node_t *node) {

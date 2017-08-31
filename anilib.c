@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <ctype.h>
-#include "cloth.h"
+#include "alma.h"
 
 elem_t *pop(elem_t **top) {
     elem_t *res = *top;

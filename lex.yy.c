@@ -512,7 +512,7 @@ char *yytext;
 #line 2 "lexer.l"
 #include <stdio.h>
 #include <string.h>
-#include "cloth.h"
+#include "alma.h"
 #include "y.tab.h"
 #define yyterminate() return END
 

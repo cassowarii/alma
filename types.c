@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "cloth.h"
+#include "alma.h"
 
 void do_print_type(value_type *t);
 void do_print_stack_type(stack_type *t);
@@ -284,7 +284,6 @@ value_type *unify(value_type *a, value_type *b) {
 #endif
         if (a != b) {
             if (v_occurs_in_v(a, b)) {
-                printf("Error: recursive unification!\n");
                 return error_type(error_msg("Error: recursive unification of ...\n"));
             }
             a->tag = V_UNIFIED;
@@ -300,12 +299,15 @@ value_type *unify(value_type *a, value_type *b) {
 #endif
         stack_type *s_in = unify_stack(a->content.func_type.in, b->content.func_type.in);
         if (s_in->tag == S_ERROR) {
-            // TODO free it maybe?
-            return error_type(s_in->content.err);
+            error *e = s_in->content.err;
+            free_stack_type(s_in);
+            return error_type(e);
         }
         stack_type *s_out = unify_stack(a->content.func_type.out, b->content.func_type.out);
         if (s_out->tag == S_ERROR) {
-            return error_type(s_out->content.err);
+            error *e = s_out->content.err;
+            free_stack_type(s_out);
+            return error_type(e);
         }
         return b;
     } else if (a->tag == V_LIST && b->tag == V_LIST) {
@@ -390,7 +392,9 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
         if (x->tag != V_ERROR) {
             return unify_stack(a->content.top_type.rest, b->content.top_type.rest);
         } else {
-            return error_stacktype(x->content.err);
+            error *e = x->content.err;
+            free_type(x);
+            return error_stacktype(e);
         }
     } else {
         char *sa = string_stack_type(a);
@@ -567,6 +571,8 @@ value_type *infer_type(node_t *nn) {
                     add_info(e, "\twith input stack of: <show block here> %s", sr);
                     error_concat(e, ok->content.err);
                     result = error_type(e);
+                    free_error(ok->content.err);
+                    free(ok);
                     free(sl);
                     free(sr);
                 }

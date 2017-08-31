@@ -1,4 +1,4 @@
-#include "cloth.h"
+#include "alma.h"
 #include <stdarg.h>
 #define INITIAL_ERROR_SIZE 4
 
@@ -49,4 +49,13 @@ void error_concat(error *e, error *f) {
     for (i = 0; i < f->size; i++) {
         add_info(e, f->errs[i]);
     }
+}
+
+void free_error(error *e) {
+    int i;
+    for (i = 0; i < e->size; i++) {
+        free(e->errs[i]);
+    }
+    free(e->errs);
+    free(e);
 }
