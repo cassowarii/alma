@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "uthash.h"
+#define node(x, y, z) _node_lineno((x), (y), (z), yylineno)
 
 enum node_tag {
     N_BLOCK,
@@ -13,6 +14,7 @@ enum node_tag {
     N_CHAR,
     N_SEQUENCE,
     N_ITEM,
+    N_DEFINE,
 };
 
 typedef struct node_t {
@@ -27,6 +29,7 @@ typedef struct node_t {
             struct node_t* right;
         } children;
     } content;
+    int line;
 } node_t;
 
 struct stack_type;
@@ -200,17 +203,21 @@ typedef struct error {
     int size;
     int maxsize;
     char **errs;
+    int line;
 } error;
 
 error *create_error();
 error *error_msg(char *msg, ...);
+void error_lineno(error *e, int line_num);
 void vadd_info(error *e, char *fmt, va_list ap);
 void add_info(error *e, char *fmt, ...);
 void print_error(error *e);
 void error_concat(error *e, error *f);
 void free_error(error *e);
 
-node_t *node (enum node_tag tag, node_t *left, node_t *right);
+//node_t *node (enum node_tag tag, node_t *left, node_t *right);
+
+node_t *new_node();
 
 node_t *first_node_in(node_t *nn);
 node_t *last_node_in(node_t *nn);
@@ -220,11 +227,12 @@ void set_right(node_t *node, node_t *r);
 node_t *left(node_t *node);
 node_t *right(node_t *node);
 
-node_t *node_str (char *str);
-node_t *node_word (char *name);
-node_t *node_int (int val);
-node_t *node_float (double val);
-node_t *node_char (char val);
+node_t *_node_lineno(enum node_tag tag, node_t *nleft, node_t *nright, int line_num);
+node_t *node_str (char *str, int line_num);
+node_t *node_word (char *name, int line_num);
+node_t *node_int (int val, int line_num);
+node_t *node_float (double val, int line_num);
+node_t *node_char (char val, int line_num);
 
 elem_t *elem_int (int val);
 elem_t *elem_float (double val);

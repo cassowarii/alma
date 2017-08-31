@@ -1,23 +1,25 @@
-map {+ 4} [1 2 3 4]
+map [+ 4] {1 2 3 4}
 
 + 4 5
-+ 5 #"A" (* should fail *)
-lower 5 (* should fail *)
+(* + 5 #"A" (* should fail *)
+lower 5 (* should fail *) *)
 lower #"w"
 
-cons 5 [1 2 3 4]
-(* cons "a" [1 2 3 4] (* should fail *) *)
+cons 5 {1 2 3 4}
+(* cons "a" {1 2 3 4} (* should fail *) *)
 
 (* outer not implemented yet
-   outer { + } [1 2 3] [2 3 4 5]
-   outer { cons } "asdf" ["blep" "blop" "blemp"] *)
+   outer [ + ] {1 2 3} {2 3 4 5}
+   outer [ cons ] "asdf" {"blep" "blop" "blemp"} *)
 
-apply { + 4 } 3
+apply [ + 4 ] 3
 
-apply { + } 4 5
+apply [ + ] 4 5
 
-print { [ {+} {*} {/} {-} ] }
+print [ { [+] [*] [/] [-] } ]
 
-print { [ 1 2 3 4 ] }
+print [ { 1 2 3 4 } ]
 
-(* map { apply } [ { + } { * } { / } { - } ] 4 5 *)
+(* map [ apply ] { [ + ] [ * ] [ / ] [ - ] } 4 5 *)
+
+list

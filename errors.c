@@ -7,6 +7,7 @@ error *create_error() {
     e->errs = calloc(INITIAL_ERROR_SIZE, sizeof(char*));
     e->size = 0;
     e->maxsize = INITIAL_ERROR_SIZE;
+    e->line = -1;
 }
 
 error *error_msg(char *fmt, ...) {
@@ -16,6 +17,10 @@ error *error_msg(char *fmt, ...) {
     vadd_info(e, fmt, ap);
     va_end(ap);
     return e;
+}
+
+void error_lineno(error *e, int line_num) {
+    e->line = line_num;
 }
 
 void add_info(error *e, char *fmt, ...) {

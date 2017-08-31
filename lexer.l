@@ -54,6 +54,11 @@ int nested_comments = 0;
 }
 <COMMENT>. { /* throw it into the trash ! */ }
 
+  /* The few keywords. */
+define {
+    return DEFINE;
+}
+
   /* Various literals. */
 #\"\\?.\" {
     yylval->c = yytext[2];

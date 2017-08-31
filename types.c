@@ -284,7 +284,7 @@ value_type *unify(value_type *a, value_type *b) {
 #endif
         if (a != b) {
             if (v_occurs_in_v(a, b)) {
-                return error_type(error_msg("Error: recursive unification of ...\n"));
+                return error_type(error_msg("Type error; recursive unification of ...\n"));
             }
             a->tag = V_UNIFIED;
             a->content.v = b;
@@ -359,7 +359,7 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
 #endif
         if (a != b) {
             if (s_occurs_in_s(a, b)) {
-                return error_stacktype(error_msg("recursive unification in ..."));
+                return error_stacktype(error_msg("Type error; recursive unification in ..."));
             }
             a->tag = S_UNIFIED;
             a->content.unif = b;
@@ -545,6 +545,11 @@ value_type *infer_type(node_t *nn) {
     lib_entry_t *e;
     value_type *l, *r, *result;
     stack_type *ok;
+    if (nn == NULL) {
+        // an empty node is the identity function...
+        X = stack_var();
+        return func_type(X, X);
+    }
     switch (nn->tag) {
         case N_SEQUENCE:
         case N_ITEM:
@@ -566,10 +571,11 @@ value_type *infer_type(node_t *nn) {
                 } else {
                     char *sl = string_type(l);
                     char *sr = string_type(r);
-                    error *e = error_msg("Couldn't compose functions:");
+                    error *e = error_msg("Type error; couldn't compose functions:");
                     add_info(e, "\tcouldn't match output stack of: <show block here> %s", sl);
                     add_info(e, "\twith input stack of: <show block here> %s", sr);
                     error_concat(e, ok->content.err);
+                    error_lineno(e, nn->line);
                     result = error_type(e);
                     free_error(ok->content.err);
                     free(ok);
@@ -587,7 +593,7 @@ value_type *infer_type(node_t *nn) {
             X = stack_var();
             result = func_type(X, stack_of(infer_type(left(nn)), X));
             if (result->tag == V_ERROR) {
-                add_info(result->content.err, "while evaluating a block starting at line blah");
+                add_info(result->content.err, "while evaluating a block starting at line %d", nn->line);
             }
             break;
         case N_LIST:
@@ -595,11 +601,17 @@ value_type *infer_type(node_t *nn) {
             l = infer_type(left(nn));
             if (l->tag == V_ERROR) {
                 result = l;
-                add_info(result->content.err, "while evaluating a list starting at line blah");
+                add_info(result->content.err, "while evaluating a list starting at line %d", nn->line);
                 break;
             }
             value_type *ltype = get_abstract_list_type(l->content.func_type.out);
-            value_type *list = list_of(ltype);
+            value_type *list;
+            if (ltype == NULL) {
+                r = type_var();
+                list = list_of(r);
+            } else {
+                list = list_of(ltype);
+            }
             result = func_type(X, stack_of(list, X));
             free_type(l);
             break;
@@ -626,7 +638,8 @@ value_type *infer_type(node_t *nn) {
                 //print_type(e->type);
                 result = copy_type(e->type);
             } else {
-                fprintf(stderr, "unimplemented word %s\n", nn->content.n_str);
+                result = error_type(error_msg("Unknown word `%s`", nn->content.n_str));
+                error_lineno(result->content.err, nn->line);
             }
             break;
         default:
@@ -783,25 +796,25 @@ void do_string_type(char **s, value_type *t) {
             break;
         case V_FUNC:
 #ifdef TYPEDEBUG
-            asprintf(&tmp, "%ld{ ", t->id);
-            rstrcat(s, tmp);
-#else
-            rstrcat(s, "{ ");
-#endif
-            do_string_stack_type(s, t->content.func_type.in);
-            rstrcat(s, " -> ");
-            do_string_stack_type(s, t->content.func_type.out);
-            rstrcat(s, " }");
-            break;
-        case V_LIST:
-#ifdef TYPEDEBUG
             asprintf(&tmp, "%ld[ ", t->id);
             rstrcat(s, tmp);
 #else
             rstrcat(s, "[ ");
 #endif
-            do_string_type(s, t->content.v);
+            do_string_stack_type(s, t->content.func_type.in);
+            rstrcat(s, " -> ");
+            do_string_stack_type(s, t->content.func_type.out);
             rstrcat(s, " ]");
+            break;
+        case V_LIST:
+#ifdef TYPEDEBUG
+            asprintf(&tmp, "%ld{ ", t->id);
+            rstrcat(s, tmp);
+#else
+            rstrcat(s, "{ ");
+#endif
+            do_string_type(s, t->content.v);
+            rstrcat(s, " }");
             break;
         case V_PRODUCT:
             do_string_type(s, t->content.prod_type.left);

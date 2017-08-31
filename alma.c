@@ -92,9 +92,13 @@ elem_t *elem_from(node_t *n) {
         eval(left(n), &inlist);
         elem->content.list = inlist;
         value_type *inner_type = get_list_type(elem->content.list);
-        if (inner_type->tag == V_ERROR) {
-            fprintf(stderr, "Error, type mismatch in list.\n");
-            return NULL;
+        if (inner_type == NULL) {
+            inner_type = type_var();
+        } else {
+            if (inner_type->tag == V_ERROR) {
+                fprintf(stderr, "Error, type mismatch in list. This should've been caught during compilation?\n");
+                return NULL;
+            }
         }
         elem->type = list_of(inner_type);
     } else if (n->tag == N_STRING) {
@@ -137,12 +141,13 @@ void push(elem_t *new_elem, elem_t **top) {
     *top = new_elem;
 }
 
-node_t *node(enum node_tag tag, node_t *nleft, node_t *nright) {
-    node_t *new_node = malloc(sizeof(node_t));
-    new_node->tag = tag;
-    set_left(new_node, nleft);
-    set_right(new_node, nright);
-    return new_node;
+node_t *_node_lineno(enum node_tag tag, node_t *nleft, node_t *nright, int line_num) {
+    node_t *n = new_node();
+    n->tag = tag;
+    n->line = line_num;
+    set_left(n, nleft);
+    set_right(n, nright);
+    return n;
 }
 
 // Returns the last-executed non-branching node which is a child of this node.
@@ -198,39 +203,50 @@ unsigned int length(elem_t *e) {
     }
 }
 
-node_t *node_str (char *str) {
-    node_t *new_node = malloc(sizeof(node_t));
-    new_node->tag = N_STRING;
-    new_node->content.n_str = str;
-    return new_node;
+node_t *new_node() {
+    node_t *n = malloc(sizeof(node_t));
+    n->line = -1;
+    return n;
 }
 
-node_t *node_word (char *name) {
-    node_t *new_node = malloc(sizeof(node_t));
-    new_node->tag = N_WORD;
-    new_node->content.n_str = name;
-    return new_node;
+node_t *node_str (char *str, int line_num) {
+    node_t *n = new_node();
+    n->tag = N_STRING;
+    n->content.n_str = str;
+    n->line = line_num;
+    return n;
 }
 
-node_t *node_int (int val) {
-    node_t *new_node = malloc(sizeof(node_t));
-    new_node->tag = N_INT;
-    new_node->content.n_int = val;
-    return new_node;
+node_t *node_word (char *name, int line_num) {
+    node_t *n = new_node();
+    n->tag = N_WORD;
+    n->content.n_str = name;
+    n->line = line_num;
+    return n;
 }
 
-node_t *node_float (double val){
-    node_t *new_node = malloc(sizeof(node_t));
-    new_node->tag = N_FLOAT;
-    new_node->content.n_float = val;
-    return new_node;
+node_t *node_int (int val, int line_num) {
+    node_t *n = new_node();
+    n->tag = N_INT;
+    n->content.n_int = val;
+    n->line = line_num;
+    return n;
 }
 
-node_t *node_char (char val) {
-    node_t *new_node = malloc(sizeof(node_t));
-    new_node->tag = N_CHAR;
-    new_node->content.n_char = val;
-    return new_node;
+node_t *node_float (double val, int line_num) {
+    node_t *n = new_node();
+    n->tag = N_FLOAT;
+    n->content.n_float = val;
+    n->line = line_num;
+    return n;
+}
+
+node_t *node_char (char val, int line_num) {
+    node_t *n = new_node();
+    n->tag = N_CHAR;
+    n->content.n_char = val;
+    n->line = line_num;
+    return n;
 }
 
 elem_t *elem_int (int val) {
@@ -481,6 +497,8 @@ int is_block(elem_t *e) {
     return 0;
 }
 
+/* TODO: fix this! it's a holdover from dynamic typing */
+/* also make it convert the elem to a string... */
 void print_elem(elem_t *e) {
     if (e->tag == E_LAZYSTRING) {
         printf("%s", e->content.e_str);
