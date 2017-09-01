@@ -59,6 +59,12 @@ int nested_comments = 0;
 define {
     return DEFINE;
 }
+true {
+    return TRUE;
+}
+false {
+    return FALSE;
+}
 
   /* Various literals. */
 #\"\\?.\" {

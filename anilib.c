@@ -267,7 +267,7 @@ value_type *type_if() {
     stack_type *Y = stack_var();
     stack_type *Z = stack_var();
     //value_type *a = type_var();
-    return func_type(stack_of(func_type(X, stack_of(vt_num, Y)),        // { { 'X → num 'Y }
+    return func_type(stack_of(func_type(X, stack_of(vt_bool, Y)),       // { { 'X → num 'Y }
                 stack_of(func_type(Y, Z), stack_of(func_type(Y, Z),     //   { 'Y → 'Z } { 'Y → 'Z }
                         X))), Z);                                       //   'X → 'Z }
 }
@@ -519,7 +519,7 @@ elem_t *word_select(elem_t **top) {
 value_type *type_EQUAL() {
     stack_type *X = stack_var();
     value_type *a = scalar_var();
-    return func_type(stack_of(a, stack_of(a, X)), stack_of(vt_num, X));
+    return func_type(stack_of(a, stack_of(a, X)), stack_of(vt_bool, X));
 }
 
 int compare_elems(elem_t *e_a, elem_t *e_b);
@@ -549,6 +549,8 @@ int compare_elems(elem_t *e_a, elem_t *e_b) {
             int a = e_a->content.e_int;
             int b = e_b->content.e_int;
             return a == b ? 1 : 0;
+        } else if (e_a->tag == E_BOOL) {
+            return (e_a->content.e_int == e_b->content.e_int);
         } else if (e_a->tag == E_FLOAT) {
             double a = e_a->content.e_float;
             double b = e_b->content.e_float;
@@ -621,6 +623,7 @@ lib_entry_t *construct(const char *name, value_type *type, Word *func) {
 }
 
 void add_lib_entry(library *l, lib_entry_t *entry) {
+    //printf("Adding lib entry: %s.\n", entry->name);
     HASH_ADD_KEYPTR (hh, l->table, entry->name, strlen(entry->name), entry);
 }
 

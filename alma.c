@@ -25,6 +25,10 @@ void eval(node_t *nn, elem_t **top) {
                 //printf("int %d\n", nn->content.n_int);
                 push(elem_from(nn), top);
                 break;
+            case N_BOOL:
+                //printf("int %d\n", nn->content.n_int);
+                push(elem_from(nn), top);
+                break;
             case N_FLOAT:
                 //printf("float %g\n", nn->content.n_float);
                 push(elem_from(nn), top);
@@ -84,6 +88,10 @@ elem_t *elem_from(node_t *n) {
     } else if (n->tag == N_INT) {
         elem->tag = E_INT;
         set_type(elem, vt_num);
+        elem->content.e_int = n->content.n_int;
+    } else if (n->tag == N_BOOL) {
+        elem->tag = E_BOOL;
+        set_type(elem, vt_bool);
         elem->content.e_int = n->content.n_int;
     } else if (n->tag == N_CHAR) {
         elem->tag = E_CHAR;
@@ -161,6 +169,14 @@ elem_t *elem_int (int val) {
     e->tag = E_INT;
     set_type(e, vt_num);
     e->content.e_int = val;
+    return e;
+}
+
+elem_t *elem_bool (int val) {
+    elem_t *e = new_elem();
+    e->tag = E_BOOL;
+    set_type(e, vt_num);
+    e->content.e_int = (val != 0);
     return e;
 }
 
@@ -335,6 +351,7 @@ elem_t *copy_elem(elem_t *e) {
         case E_CHAR:
             clone->content.e_char = e->content.e_char;
             break;
+        case E_BOOL:
         case E_INT:
             clone->content.e_int = e->content.e_int;
             break;
@@ -430,6 +447,13 @@ void _do_string_elem_optquotes(char **s, elem_t *e, int quote_strings) {
         case E_INT:
             asprintf(&tmp, "%d", e->content.e_int);
             rstrcat(s, tmp);
+            break;
+        case E_BOOL:
+            if (e->content.e_int) {
+                rstrcat(s, "true");
+            } else {
+                rstrcat(s, "false");
+            }
             break;
         case E_FLOAT:
             asprintf(&tmp, "%g", e->content.e_float);

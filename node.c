@@ -55,6 +55,14 @@ node_t *node_int (int val, int line_num) {
     return n;
 }
 
+node_t *node_bool (int val, int line_num) {
+    node_t *n = new_node();
+    n->tag = N_BOOL;
+    n->content.n_int = val;
+    n->line = line_num;
+    return n;
+}
+
 node_t *node_float (double val, int line_num) {
     node_t *n = new_node();
     n->tag = N_FLOAT;
@@ -152,6 +160,9 @@ void do_string_node(char **s, node_t *n) {
             asprintf(&tmp, "%d", n->content.n_int);
             rstrcat(s, tmp);
             break;
+        case N_BOOL:
+            rstrcat(s, n->content.n_int ? "true" : "false");
+            break;
         case N_FLOAT:
             asprintf(&tmp, "%g", n->content.n_float);
             rstrcat(s, tmp);
@@ -183,7 +194,7 @@ node_t *copy_node(node_t *n) {
     } else if (n->tag == N_COMPOSED || n->tag == N_BLOCK || n->tag == N_LIST || n->tag == N_DEFINE) {
         set_left(n2, copy_node(left(n)));
         set_right(n2, copy_node(right(n)));
-    } else if (n->tag == N_INT) {
+    } else if (n->tag == N_INT || n->tag == N_BOOL) {
         n2->content.n_int = n->content.n_int;
     } else if (n->tag == N_FLOAT) {
         n2->content.n_float = n->content.n_float;

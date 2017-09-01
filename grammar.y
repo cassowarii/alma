@@ -52,6 +52,8 @@ int main(int argc, char **argv) {
 %token SEPARATOR
 %token END 0 "end-of-file"
 %token DEFINE "define"
+%token TRUE "true"
+%token FALSE "false"
 %union
 {
     int i;
@@ -136,6 +138,10 @@ item:
         $$ = node_float($1, yylineno);
     } | T_CHAR {
         $$ = node_char($1, yylineno);
+    } | TRUE {
+        $$ = node_bool(1, yylineno);
+    } | FALSE {
+        $$ = node_bool(0, yylineno);
     }
 
 block:
@@ -155,10 +161,10 @@ definition:
         def->type = infer_type($3);
         if (def->type->tag != V_ERROR) {
             def->impl.node = $3;
-            add_lib_entry(&lib, def);
         } else {
             add_info(def->type->content.err, "in definition of function %s", $2);
         }
+        add_lib_entry(&lib, def);
         $$ = NULL;
     }
 

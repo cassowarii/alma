@@ -10,6 +10,7 @@ enum node_tag {
     N_WORD,
     N_STRING,
     N_INT,
+    N_BOOL,
     N_FLOAT,
     N_CHAR,
     N_COMPOSED,
@@ -73,6 +74,7 @@ typedef struct value_type {
 } value_type;
 
 value_type *vt_num;
+value_type *vt_bool;
 value_type *vt_char;
 
 // tag for types of stacks
@@ -108,6 +110,7 @@ typedef struct type_mapping {
 enum elem_tag {
     E_CHAR,
     E_INT,
+    E_BOOL,
     E_FLOAT,
     E_LIST,
     E_PRODUCT,
@@ -242,6 +245,7 @@ node_t *node_elem (elem_t *val, int line_num);
 node_t *node_str (char *str, int line_num);
 node_t *node_word (char *name, int line_num);
 node_t *node_int (int val, int line_num);
+node_t *node_bool (int val, int line_num);
 node_t *node_float (double val, int line_num);
 node_t *node_char (char val, int line_num);
 

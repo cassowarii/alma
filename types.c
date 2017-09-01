@@ -583,7 +583,9 @@ value_type *infer_type(node_t *nn) {
                     free_type(l);
                     break;
                 }
-                ok = unify_stack(l->content.func_type.out, r->content.func_type.in);
+                stack_type *out = copy_stack_type(l->content.func_type.out);
+                stack_type *in = copy_stack_type(r->content.func_type.in);
+                ok = unify_stack(out, in);
                 if (ok->tag != S_ERROR) {
                     result = func_type(l->content.func_type.in, r->content.func_type.out);
                 } else {
@@ -650,6 +652,10 @@ value_type *infer_type(node_t *nn) {
             X = stack_var();
             result = func_type(X, stack_of(vt_char, X));
             break;
+        case N_BOOL:
+            X = stack_var();
+            result = func_type(X, stack_of(vt_bool, X));
+            break;
         case N_ELEM:
             X = stack_var();
             result = func_type(X, stack_of(nn->content.elem->type, X));
@@ -661,8 +667,11 @@ value_type *infer_type(node_t *nn) {
             e = NULL;
             HASH_FIND_STR (lib.table, nn->content.n_str, e);
             if (e) {
-                //print_type(e->type);
-                result = copy_type(e->type);
+                if (e->type->tag != V_ERROR) {
+                    result = copy_type(e->type);
+                } else {
+                    result = e->type;
+                }
             } else {
                 result = error_type(error_msg("Unknown word `%s`", nn->content.n_str));
                 if (nn->content.n_str[0] == ':') {
@@ -762,6 +771,7 @@ void init_types() {
     //printf("INITIALIZING TYPES\n");
     vt_num = base_type("num");
     vt_char = base_type("char");
+    vt_bool = base_type("bool");
     /*stack_type *X = named_stack_var('X');
     print_type(func_type(stack_of(vt_num, stack_of(vt_num, X)), stack_of(vt_num, X)));
     value_type *a = named_type_var('a');

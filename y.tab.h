@@ -52,11 +52,13 @@ extern int yydebug;
     BLOCKCLOSE = 261,
     SEPARATOR = 262,
     DEFINE = 263,
-    T_WORD = 264,
-    T_INTEGER = 265,
-    T_CHAR = 266,
-    T_STRING = 267,
-    T_FLOAT = 268
+    TRUE = 264,
+    FALSE = 265,
+    T_WORD = 266,
+    T_INTEGER = 267,
+    T_CHAR = 268,
+    T_STRING = 269,
+    T_FLOAT = 270
   };
 #endif
 /* Tokens.  */
@@ -67,18 +69,20 @@ extern int yydebug;
 #define BLOCKCLOSE 261
 #define SEPARATOR 262
 #define DEFINE 263
-#define T_WORD 264
-#define T_INTEGER 265
-#define T_CHAR 266
-#define T_STRING 267
-#define T_FLOAT 268
+#define TRUE 264
+#define FALSE 265
+#define T_WORD 266
+#define T_INTEGER 267
+#define T_CHAR 268
+#define T_STRING 269
+#define T_FLOAT 270
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 56 "grammar.y" /* yacc.c:1909  */
+#line 58 "grammar.y" /* yacc.c:1909  */
 
     int i;
     char c;
@@ -86,7 +90,7 @@ union YYSTYPE
     double d;
     struct node_t *n;
 
-#line 90 "y.tab.h" /* yacc.c:1909  */
+#line 94 "y.tab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
