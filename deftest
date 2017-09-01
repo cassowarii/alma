@@ -30,9 +30,15 @@ define bi [
     dip [apply]     (* b c ... *)
 ]
 
+define keep2 [ bi [ ] [apply] ]
+
+print "Keep2 type; "
+print typeof [keep2]
+
+print "Bi type; "
 print typeof [bi]
 
-keep [print] add3 4 5 6
+keep2 [print] add3 4 5 6
 list
 
 3 4

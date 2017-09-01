@@ -528,7 +528,7 @@ void free_elem(elem_t *e) {
          * something in the AST of the actual program, & thus will
          * be freed at the end of evaluation. so we don't want to
          * double-free it! :O */
-        if (node_copied(e->content.block)) {
+        if (e->content.block != NULL && node_copied(e->content.block)) {
             free_node(e->content.block);
         }
     }
