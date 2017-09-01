@@ -76,7 +76,7 @@ define {
     strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
     return T_STRING;
 }
-[0-9]+                  yylval->i=atoi(yytext); return T_INTEGER;
+-?[0-9]+                  yylval->i=atoi(yytext); return T_INTEGER;
 [0-9]+\.[0-9]+([Ee][0-9]+)? {
     yylval->d = atof(yytext);
     return T_FLOAT;

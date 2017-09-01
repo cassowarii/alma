@@ -34,6 +34,19 @@ elem_t *word_print(elem_t **top) {
     elem_t *e = pop(top);
     print_elem(e);
     free_elem(e);
+    return NULL;
+}
+
+value_type *type_println() {
+    stack_type *X = stack_var();
+    value_type *a = type_var();
+    return func_type(stack_of(a, X), X);
+}
+
+elem_t *word_println(elem_t **top) {
+    elem_t *e = pop(top);
+    print_elem(e);
+    free_elem(e);
     printf("\n");
     return NULL;
 }
@@ -247,6 +260,33 @@ elem_t *word_typeof(elem_t **top) {
     free_elem(e_a);
     free(s);
     return str;
+}
+
+value_type *type_if() {
+    stack_type *X = stack_var();
+    stack_type *Y = stack_var();
+    stack_type *Z = stack_var();
+    //value_type *a = type_var();
+    return func_type(stack_of(func_type(X, stack_of(vt_num, Y)),        // { { 'X → num 'Y }
+                stack_of(func_type(Y, Z), stack_of(func_type(Y, Z),     //   { 'Y → 'Z } { 'Y → 'Z }
+                        X))), Z);                                       //   'X → 'Z }
+}
+
+elem_t *word_if(elem_t **top) {
+    elem_t *ifpart = pop(top);
+    elem_t *thenpart = pop(top);
+    elem_t *elsepart = pop(top);
+    eval(ifpart->content.block, top);
+    free_elem(ifpart);
+    elem_t *cond = pop(top);
+    if (truthy(cond)) {
+        eval(thenpart->content.block, top);
+    } else {
+        eval(elsepart->content.block, top);
+    }
+    free_elem(thenpart);
+    free_elem(elsepart);
+    return NULL;
 }
 
 value_type *type_PLUS() {
@@ -570,6 +610,7 @@ void init_library(library *l) {
     l->table = NULL;
     add_lib_entry(l, construct("pop",       type_pop(),      &word_pop));
     add_lib_entry(l, construct("print",     type_print(),    &word_print));
+    add_lib_entry(l, construct("println",   type_println(),  &word_println));
     add_lib_entry(l, construct("list",      type_list(),     &word_list));
     add_lib_entry(l, construct("copy",      type_copy(),     &word_copy));
     add_lib_entry(l, construct("swap",      type_swap(),     &word_swap));
@@ -578,6 +619,7 @@ void init_library(library *l) {
     add_lib_entry(l, construct("apply",     type_apply(),    &word_apply));
     add_lib_entry(l, construct("curry",     type_curry(),    &word_curry));
     add_lib_entry(l, construct("typeof",    type_typeof(),   &word_typeof));
+    add_lib_entry(l, construct("if",        type_if(),       &word_if));
     add_lib_entry(l, construct("dip",       type_dip(),      &word_dip));
     add_lib_entry(l, construct("pair",      type_pair(),     &word_pair));
     add_lib_entry(l, construct("cons",      type_cons(),     &word_cons));
