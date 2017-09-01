@@ -10,4 +10,4 @@ print typeof split
 
 print typeof { [map [map [lower]]] [map [typeof]] }
 
-print typeof { 1 #"A" 2 3 4 }
+(* shouldn't work: print typeof { 1 #"A" 2 3 4 } *)
