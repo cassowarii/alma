@@ -180,6 +180,14 @@ elem_t *elem_char (char val) {
     return e;
 }
 
+elem_t *elem_str (char *val) {
+    elem_t *e = new_elem();
+    e->tag = E_LIST;
+    set_type(e, list_of(vt_char));
+    e->content.list = list_from_string(val);
+    return e;
+}
+
 elem_t *elem_list (elem_t *content) {
     elem_t *e = new_elem();
     e->tag = E_LIST;
@@ -398,10 +406,20 @@ int is_block(elem_t *e) {
     return 0;
 }
 
+void _do_string_elem_optquotes(char **s, elem_t *e, int quote_strings);
 void do_string_list(char **s, elem_t *e);
 void do_string_node(char **s, node_t *t);
 
 void do_string_elem(char **s, elem_t *e) {
+    _do_string_elem_optquotes(s, e, 1);
+}
+
+// Called for top layer of recursion (don't quote strings, for printing)
+void do_string_elem_top(char **s, elem_t *e) {
+    _do_string_elem_optquotes(s, e, 0);
+}
+
+void _do_string_elem_optquotes(char **s, elem_t *e, int quote_strings) {
     if (e == NULL) return;
     char *tmp = NULL;
     switch(e->tag) {
@@ -418,10 +436,19 @@ void do_string_elem(char **s, elem_t *e) {
             rstrcat(s, tmp);
             break;
         case E_LIST:
-            rstrcat(s, "{ ");
-            do_string_list(s, e->content.list);
-            // use the extra space do_string_list puts on the end!!
-            rstrcat(s, "}");
+            if (e->type->content.v == vt_char) {
+                if (quote_strings) {
+                    rstrcat(s, "\"");
+                }
+                do_string_list(s, e->content.list);
+                if (quote_strings) {
+                    rstrcat(s, "\"");
+                }
+            } else {
+                rstrcat(s, "{ ");
+                do_string_list(s, e->content.list);
+                rstrcat(s, " }");
+            }
             break;
         case E_PRODUCT:
             do_string_elem(s, e->content.product.left);
@@ -441,15 +468,22 @@ void do_string_elem(char **s, elem_t *e) {
 
 void do_string_list(char **s, elem_t *e) {
     if (e == NULL) return;
-    do_string_elem(s, e);
-    rstrcat(s, " ");
-    do_string_list(s, e->next);
+    if (e->type != vt_char) {
+        do_string_elem(s, e);
+        if (e->next != NULL) {
+            rstrcat(s, " ");
+            do_string_list(s, e->next);
+        }
+    } else {
+        rstrcat(s, &e->content.e_char);
+        do_string_list(s, e->next);
+    }
 }
 
 char *string_elem(elem_t *e) {
     char *s = malloc(1);
     strcpy(s, "\0");
-    do_string_elem(&s, e);
+    do_string_elem_top(&s, e);
     return s;
 }
 

@@ -507,7 +507,7 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "\"end-of-file\"", "error", "$undefined", "\"{\"", "\"}\"", "\"[\"",
-  "\"]\"", "SEPARATOR", "\"'define'\"", "\"word\"", "\"integer\"",
+  "\"]\"", "SEPARATOR", "\"define\"", "\"word\"", "\"integer\"",
   "\"character\"", "\"string\"", "\"float\"", "$accept", "program",
   "sequence_list", "sequence", "item", "block", "list", "definition", YY_NULLPTR
 };
@@ -1458,15 +1458,19 @@ yyreduce:
         lib_entry_t *def = create_entry();
         def->name = (yyvsp[-1].s);
         def->type = infer_type((yyvsp[0].n));
-        def->impl.node = (yyvsp[0].n);
-        add_lib_entry(&lib, def);
+        if (def->type->tag != V_ERROR) {
+            def->impl.node = (yyvsp[0].n);
+            add_lib_entry(&lib, def);
+        } else {
+            add_info(def->type->content.err, "in definition of function %s", (yyvsp[-1].s));
+        }
         (yyval.n) = NULL;
     }
-#line 1466 "y.tab.c" /* yacc.c:1646  */
+#line 1470 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1470 "y.tab.c" /* yacc.c:1646  */
+#line 1474 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1694,5 +1698,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 161 "grammar.y" /* yacc.c:1906  */
+#line 165 "grammar.y" /* yacc.c:1906  */
 

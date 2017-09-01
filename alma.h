@@ -251,6 +251,7 @@ int node_copied(node_t *n);
 elem_t *elem_int (int val);
 elem_t *elem_float (double val);
 elem_t *elem_char (char val);
+elem_t *elem_str (char *val);
 elem_t *elem_list (elem_t *content);
 elem_t *elem_product (elem_t *l, elem_t *r);
 

@@ -220,6 +220,21 @@ elem_t *word_curry(elem_t **top) {
     return e;
 }
 
+value_type *type_typeof() {
+    stack_type *X = stack_var();
+    value_type *a = type_var();
+    return func_type(stack_of(a, X), stack_of(list_of(vt_char), X));
+}
+
+elem_t *word_typeof(elem_t **top) {
+    elem_t *e_a = pop(top);
+    char *s = string_type(e_a->type);
+    elem_t *str = elem_str(s);
+    free_elem(e_a);
+    free(s);
+    return str;
+}
+
 value_type *type_PLUS() {
     stack_type *X = stack_var();
     return func_type(stack_of(vt_num, stack_of(vt_num, X)), stack_of(vt_num, X));
@@ -548,6 +563,7 @@ void init_library(library *l) {
     add_lib_entry(l, construct("outer",     type_outer(),    &word_outer));
     add_lib_entry(l, construct("apply",     type_apply(),    &word_apply));
     add_lib_entry(l, construct("curry",     type_curry(),    &word_curry));
+    add_lib_entry(l, construct("typeof",    type_typeof(),   &word_typeof));
     add_lib_entry(l, construct("dip",       type_dip(),      &word_dip));
     add_lib_entry(l, construct("pair",      type_pair(),     &word_pair));
     add_lib_entry(l, construct("cons",      type_cons(),     &word_cons));

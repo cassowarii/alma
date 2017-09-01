@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 %token BLOCKCLOSE "]"
 %token SEPARATOR
 %token END 0 "end-of-file"
-%token DEFINE "'define'"
+%token DEFINE "define"
 %union
 {
     int i;
@@ -153,8 +153,12 @@ definition:
         lib_entry_t *def = create_entry();
         def->name = $2;
         def->type = infer_type($3);
-        def->impl.node = $3;
-        add_lib_entry(&lib, def);
+        if (def->type->tag != V_ERROR) {
+            def->impl.node = $3;
+            add_lib_entry(&lib, def);
+        } else {
+            add_info(def->type->content.err, "in definition of function %s", $2);
+        }
         $$ = NULL;
     }
 
