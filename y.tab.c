@@ -102,12 +102,11 @@ int main(int argc, char **argv) {
     init_library(&lib);
     yyparse();
     if (yyin) fclose(yyin);
-    free_elems_below(stack_top);
     return 0;
 }
 
 
-#line 111 "y.tab.c" /* yacc.c:339  */
+#line 110 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -179,7 +178,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 58 "grammar.y" /* yacc.c:355  */
+#line 57 "grammar.y" /* yacc.c:355  */
 
     int i;
     char c;
@@ -187,7 +186,7 @@ union YYSTYPE
     double d;
     struct node_t *n;
 
-#line 191 "y.tab.c" /* yacc.c:355  */
+#line 190 "y.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -201,7 +200,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 205 "y.tab.c" /* yacc.c:358  */
+#line 204 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -500,7 +499,7 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    78,    78,   101,   103,   105,   107,   113,   118,   120,
+       0,    77,    77,   101,   103,   105,   107,   113,   118,   120,
      122,   127,   129,   131,   133,   135,   137,   139,   141,   143,
      148,   153,   158
 };
@@ -1294,7 +1293,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 78 "grammar.y" /* yacc.c:1646  */
+#line 77 "grammar.y" /* yacc.c:1646  */
     {
         node_t *root = (yyvsp[0].n);
         if (root != NULL) {
@@ -1314,6 +1313,7 @@ yyreduce:
                 eval(root, &stack_top);
             }
             free_type(t);
+            free_elems_below(stack_top);
             free_node(root);
         }
     }

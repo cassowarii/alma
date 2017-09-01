@@ -37,7 +37,6 @@ int main(int argc, char **argv) {
     init_library(&lib);
     yyparse();
     if (yyin) fclose(yyin);
-    free_elems_below(stack_top);
     return 0;
 }
 
@@ -94,6 +93,7 @@ program: sequence_list {
                 eval(root, &stack_top);
             }
             free_type(t);
+            free_elems_below(stack_top);
             free_node(root);
         }
     }

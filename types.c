@@ -583,11 +583,11 @@ value_type *infer_type(node_t *nn) {
                     free_type(l);
                     break;
                 }
-                stack_type *out = copy_stack_type(l->content.func_type.out);
+                /*stack_type *out = copy_stack_type(l->content.func_type.out);
                 out->refs++;
                 stack_type *in = copy_stack_type(r->content.func_type.in);
-                in->refs++;
-                ok = unify_stack(out, in);
+                in->refs++;*/
+                ok = unify_stack(l->content.func_type.out, r->content.func_type.in);
                 if (ok->tag != S_ERROR) {
                     result = func_type(l->content.func_type.in, r->content.func_type.out);
                 } else {
@@ -608,8 +608,8 @@ value_type *infer_type(node_t *nn) {
                     free(sl);
                     free(sr);
                 }
-                free_stack_type(out);
-                free_stack_type(in);
+                /*free_stack_type(out);
+                free_stack_type(in);*/
                 free_type(l);
                 free_type(r);
             } else {

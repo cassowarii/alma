@@ -1,1 +1,1 @@
-[ { apply { + 4 } #"a" } ]
+print apply [ + 4 ] #"a"
