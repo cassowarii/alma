@@ -45,13 +45,13 @@ int main(int argc, char **argv) {
 
 %define api.pure
 
-%token LISTOPEN '['
-%token LISTCLOSE ']'
-%token BLOCKOPEN '{'
-%token BLOCKCLOSE '}'
+%token LISTOPEN "{"
+%token LISTCLOSE "}"
+%token BLOCKOPEN "["
+%token BLOCKCLOSE "]"
 %token SEPARATOR
 %token END 0 "end-of-file"
-%token DEFINE "define"
+%token DEFINE "'define'"
 %union
 {
     int i;
@@ -60,11 +60,11 @@ int main(int argc, char **argv) {
     double d;
     struct node_t *n;
 }
-%token <s> T_WORD
-%token <i> T_INTEGER
-%token <c> T_CHAR
-%token <s> T_STRING
-%token <d> T_FLOAT
+%token <s> T_WORD "word"
+%token <i> T_INTEGER "integer"
+%token <c> T_CHAR "character"
+%token <s> T_STRING "string"
+%token <d> T_FLOAT "float"
 %type <n> sequence_list
 %type <n> sequence
 %type <n> item
@@ -150,7 +150,12 @@ list:
 
 definition:
     DEFINE T_WORD block {
-        $$ = node(N_DEFINE, node_str($2, yylineno), $3);
+        lib_entry_t *def = create_entry();
+        def->name = $2;
+        def->type = infer_type($3);
+        def->impl.node = $3;
+        add_lib_entry(&lib, def);
+        $$ = NULL;
     }
 
 %%

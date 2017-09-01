@@ -229,8 +229,12 @@ elem_t *apply(lib_entry_t *e, elem_t **top) {
         return NULL;
     }
     free_type(type);*/
-    elem_t *result = (*e->func)(top);
-    return result;
+    if (e->internal) {
+        elem_t *result = (*e->impl.func)(top);
+        return result;
+    } else {
+        eval(e->impl.node, top);
+    }
     // Check types, and check that auto-zipped vectors are the same length
     /*for (i = 0; i < e->in_type_length; i++) {
         if (check_elem != NULL) {

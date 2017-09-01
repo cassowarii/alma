@@ -149,7 +149,11 @@ typedef struct lib_entry_t {
     UT_hash_handle hh;
     char *name;
     value_type *type;
-    Word *func;
+    int internal;       // is it implemented in C or in alma itself??
+    union {
+        Word *func;     // c implementation
+        node_t *node;   // Alma implementation
+    } impl;
 } lib_entry_t;
 
 lib_entry_t *create_entry();

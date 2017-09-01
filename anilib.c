@@ -520,7 +520,7 @@ lib_entry_t *create_entry() {
     lib_entry_t *e = malloc(sizeof(lib_entry_t));
     e->name = NULL;
     e->type = NULL;
-    e->func = NULL;
+    e->internal = 0;
 }
 
 lib_entry_t *construct(const char *name, value_type *type, Word *func) {
@@ -528,7 +528,8 @@ lib_entry_t *construct(const char *name, value_type *type, Word *func) {
     e->name = malloc((strlen(name) + 1) * sizeof(char));
     strcpy(e->name, name);
     e->type = type;
-    e->func = func;
+    e->impl.func = func;
+    e->internal = 1;
     return e;
 }
 
