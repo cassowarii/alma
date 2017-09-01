@@ -24,6 +24,11 @@ stack_type *new_stackvar() {
     return t;
 }
 
+void set_type (elem_t *e, value_type *t) {
+    e->type = t;
+    t->refs++;
+}
+
 value_type *base_type(const char *name) {
     value_type *t = new_typevar();
     t->tag = V_BASETYPE;
@@ -570,14 +575,18 @@ value_type *infer_type(node_t *nn) {
                 } else {
                     char *sl = string_type(l);
                     char *sr = string_type(r);
+                    char *wl = string_node(last_node_in(left(nn)));
+                    char *wr = string_node(first_node_in(right(nn)));
                     error *e = error_msg("Type error; couldn't compose functions:");
-                    add_info(e, "\tcouldn't match output stack of: <show block here> %s", sl);
-                    add_info(e, "\twith input stack of: <show block here> %s", sr);
+                    add_info(e, "\tcouldn't match output stack of %s\n\t\ttype: %s", wl, sl);
+                    add_info(e, "\twith input stack of %s\n\t\ttype: %s", wr, sr);
                     error_concat(e, ok->content.err);
                     error_lineno(e, nn->line);
                     result = error_type(e);
                     free_error(ok->content.err);
                     free(ok);
+                    free(wl);
+                    free(wr);
                     free(sl);
                     free(sr);
                 }
@@ -882,8 +891,10 @@ void do_string_stack_type(char **s, stack_type *t) {
 
 void free_type(value_type *t) {
     if (t == NULL) return;
+    //printf("Free type of tag %d @ %p.", t->tag, t);
     if (t->tag == V_BASETYPE) return;
     t->refs --;
+    //printf(" refs: %d\n", t->refs);
     if (t->refs <= 0) {
         switch(t->tag) {
             case V_VAR:

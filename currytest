@@ -5,4 +5,10 @@ print apply (* should print 7 *)
 {1 2 3 4 5}
 map [curry [+]]
 map [apply swap 4]
-print (* should print [5 6 7 8 9] *)
+print (* should print {5 6 7 8 9} *)
+
+{ [+] [-] [*] }
+map [curry [curry]]
+
+map [map swap {1 2 3 4}]
+print (* a 2D array of functions... *)

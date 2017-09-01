@@ -68,7 +68,7 @@ value_type *type_copy() {
 
 elem_t *word_copy(elem_t **top) {
     elem_t *elem = *top;
-    elem_t *clone = clone_elem(elem);
+    elem_t *clone = copy_elem(elem);
     return clone;
 }
 
@@ -188,9 +188,21 @@ value_type *type_curry() {
 elem_t *word_curry(elem_t **top) {
     elem_t *block = pop(top);
     elem_t *param = pop(top);
-    node_t *newnode = _node_lineno(N_COMPOSED, node_elem(param, -2), block->content.block, -2);
-    block->content.block = newnode;
-    return block;
+    node_t *funcnode = copy_node(block->content.block);
+    free_elem(block);
+    elem_t *newparam = copy_elem(param);
+    free_elem(param);
+    node_t *newnode = _node_lineno(N_COMPOSED, node_elem(newparam, -2), funcnode, -2);
+    newnode->flags |= NF_COPIED;
+    left(newnode)->flags |= NF_COPIED;
+    elem_t *e = new_elem();
+    e->tag = E_BLOCK;
+    e->content.block = newnode;
+    set_type(e, infer_type(e->content.block));
+    /*printf("BLOCK TYPE: <@ %p> ", block->type);
+    print_type(block->type);
+    printf("\t(w/ refs %d)\n", block->type->refs);*/
+    return e;
 }
 
 value_type *type_PLUS() {

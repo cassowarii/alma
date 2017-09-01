@@ -77,6 +77,8 @@ program: sequence_list {
         node_t *root = $1;
         if (root != NULL) {
             value_type *t = infer_type(root);
+            // TODO prevent stack from bottoming out by somehow stack-unifying program
+            // input with a zero stack
             if (t->tag == V_ERROR) {
                 if (t->content.err->line == -1) {
                     printf("Error in compilation at unknown line:\n");

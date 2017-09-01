@@ -34,7 +34,7 @@ void eval(node_t *nn, elem_t **top) {
                 push(elem_from(nn), top);
                 break;
             case N_ELEM:
-                push(nn->content.elem, top);
+                push(copy_elem(nn->content.elem), top);
                 break;
             case N_WORD:
                 //printf("WORD %s\n", nn->content.n_str);
@@ -75,18 +75,19 @@ elem_t *list_from(elem_t *n) {
 }
 
 elem_t *elem_from(node_t *n) {
+    if (n->tag == N_ELEM) { return n->content.elem; }
     elem_t *elem = new_elem();
     if (n->tag == N_FLOAT) {
         elem->tag = E_FLOAT;
-        elem->type = vt_num;
+        set_type(elem, vt_num);
         elem->content.e_float = n->content.n_float;
     } else if (n->tag == N_INT) {
         elem->tag = E_INT;
-        elem->type = vt_num;
+        set_type(elem, vt_num);
         elem->content.e_int = n->content.n_int;
     } else if (n->tag == N_CHAR) {
         elem->tag = E_CHAR;
-        elem->type = vt_char;
+        set_type(elem, vt_char);
         elem->content.e_char = n->content.n_char;
     } else if (n->tag == N_LIST) {
         elem->tag = E_LIST;
@@ -102,16 +103,16 @@ elem_t *elem_from(node_t *n) {
                 return NULL;
             }
         }
-        elem->type = list_of(inner_type);
+        set_type(elem, list_of(inner_type));
     } else if (n->tag == N_STRING) {
         elem->content.list = list_from_string(n->content.n_str);
         elem->tag = E_LIST;
-        elem->type = list_of(vt_char);
+        set_type(elem, list_of(vt_char));
         //elem->content.e_str = n->content.n_str;
     } else if (n->tag == N_BLOCK) {
         elem->tag = E_BLOCK;
         elem->content.block = left(n);
-        elem->type = infer_type(elem->content.block);
+        set_type(elem, infer_type(elem->content.block));
     } else {
         printf("Unimplemented element type %d.\n", n->tag);
         elem->tag = E_INT;
@@ -143,6 +144,7 @@ void push(elem_t *new_elem, elem_t **top) {
     *top = new_elem;
 }
 
+// TODO I think this is old and busted as well maybe
 unsigned int length(elem_t *e) {
     if (!is_list(e)) {
         fprintf(stderr, "Internal error: shouldn't call `length` on non-list data");
@@ -157,7 +159,7 @@ unsigned int length(elem_t *e) {
 elem_t *elem_int (int val) {
     elem_t *e = new_elem();
     e->tag = E_INT;
-    e->type = vt_num;
+    set_type(e, vt_num);
     e->content.e_int = val;
     return e;
 }
@@ -165,7 +167,7 @@ elem_t *elem_int (int val) {
 elem_t *elem_float (double val) {
     elem_t *e = new_elem();
     e->tag = E_FLOAT;
-    e->type = vt_num;
+    set_type(e, vt_num);
     e->content.e_float = val;
     return e;
 }
@@ -173,7 +175,7 @@ elem_t *elem_float (double val) {
 elem_t *elem_char (char val) {
     elem_t *e = new_elem();
     e->tag = E_CHAR;
-    e->type = vt_char;
+    set_type(e, vt_char);
     e->content.e_char = val;
     return e;
 }
@@ -187,13 +189,13 @@ elem_t *elem_list (elem_t *content) {
         fprintf(stderr, "Error, type mismatch in list");
         return NULL;
     }
-    e->type = list_of(inner_type);
+    set_type(e, list_of(inner_type));
     return e;
 }
 
 elem_t *elem_product (elem_t *l, elem_t *r) {
     elem_t *e = new_elem();
-    e->type = product_type(l->type, r->type);
+    set_type(e, product_type(l->type, r->type));
     e->tag = E_PRODUCT;
     e->content.product.left = l;
     e->content.product.right = r;
@@ -290,7 +292,7 @@ elem_t *apply(lib_entry_t *e, elem_t **top) {
                 // otherwise normal: create a copy for each arglist
                 int i;
                 for (i = 0; i < zip_height; i++) {
-                    push(clone_elem(arg_elem), &stacks[i]);
+                    push(copy_elem(arg_elem), &stacks[i]);
                 }
             }
             arg_elem = arg_elem->prev;
@@ -314,7 +316,7 @@ elem_t *apply(lib_entry_t *e, elem_t **top) {
     return NULL;
 }
 
-elem_t *clone_elem(elem_t *e) {
+elem_t *copy_elem(elem_t *e) {
     elem_t *clone = new_elem();
     clone->tag = e->tag;
     switch(e->tag) {
@@ -328,11 +330,7 @@ elem_t *clone_elem(elem_t *e) {
             clone->content.e_float = e->content.e_float;
             break;
         case E_BLOCK:
-            // clone nodes...
-            break;
-        case E_LAZYSTRING:
-            clone->content.e_str = malloc(sizeof(char)*strlen(e->content.e_str));
-            strcpy(clone->content.e_str, e->content.e_str);
+            clone->content.block = copy_node(e->content.block);
             break;
         case E_LIST:
             clone->content.list = copy_list(e->content.list);
@@ -340,13 +338,14 @@ elem_t *clone_elem(elem_t *e) {
         default:
             fprintf(stderr, "don't know how to clone an element of type %d!\n", e->tag);
     }
+    set_type(clone, copy_type(e->type));
     return clone;
 }
 
 elem_t *copy_list(elem_t *l) {
     if (l == NULL) return l;
     elem_t *list = copy_list(l->next);
-    elem_t *head_of_list = clone_elem(l);
+    elem_t *head_of_list = copy_elem(l);
     push(head_of_list, &list);
     return list;
 }
@@ -363,9 +362,6 @@ int truthy(elem_t *e) {
     }
     if (e->tag == E_LIST) {
         return length(e) != 0;
-    }
-    if (e->tag == E_LAZYSTRING) {
-        return strlen(e->content.e_str) != 0;
     }
     return 1;
 }
@@ -385,10 +381,6 @@ int is_scalar(elem_t *e) {
 }
 
 int is_list(elem_t *e) {
-    if (e->tag == E_LAZYSTRING) {
-        e->tag = E_LIST;
-        e->content.list = list_from_string(e->content.e_str);
-    }
     if (e->tag == E_LIST) {
         return 1;
     }
@@ -405,9 +397,7 @@ int is_block(elem_t *e) {
 /* TODO: fix this! it's a holdover from dynamic typing */
 /* also make it convert the elem to a string... */
 void print_elem(elem_t *e) {
-    if (e->tag == E_LAZYSTRING) {
-        printf("%s", e->content.e_str);
-    } else if (e->tag == E_LIST) {
+    if (e->tag == E_LIST) {
         int all_chars = 1;
         elem_t *check = e->content.list;
         while (check) {
@@ -467,11 +457,10 @@ void repr_elem(elem_t *e) {
             repr_elem(e->content.product.right);
             printf(")");
             break;
-        case E_LAZYSTRING:
-            printf("\"%s\"", e->content.e_str);
-            break;
-        case E_BLOCK:
-            printf("{ ... }");
+        case E_BLOCK:;
+            char *tmp = string_node(e->content.block);
+            printf("[ %s ]", tmp);
+            free(tmp);
             break;
     }
 }
@@ -493,9 +482,7 @@ void free_elems_below(elem_t *e) {
 
 void free_elem(elem_t *e) {
     if (e == NULL) return;
-    if (e->tag == E_LAZYSTRING) {
-        free(e->content.e_str);
-    }
+    //printf("Freeing elem --\n");
     if (e->tag == E_LIST) {
         free_elems_below(e->content.list);
     }
@@ -504,18 +491,27 @@ void free_elem(elem_t *e) {
         free_elem(e->content.product.right);
     }
     if (e->tag == E_BLOCK) {
-        // maybe don't do this, since it gets freed
-        // at the end anyway
-        //free_node(e->content.block);
+        /* if a node was copied, it can be freed when its elem
+         * is popped off. if it wasn't copied, it corresponds to
+         * something in the AST of the actual program, & thus will
+         * be freed at the end of evaluation. so we don't want to
+         * double-free it! :O */
+        if (node_copied(e->content.block)) {
+            free_node(e->content.block);
+        }
     }
     free_type(e->type);
     free(e);
+    ///printf("-- elem freed.");
 }
 
 void free_node(node_t *n) {
     if (n == NULL) return;
     if (n->tag == N_WORD || n->tag == N_STRING) {
         free(n->content.n_str);
+    }
+    if (n->tag == N_ELEM) {
+        free_elem(n->content.elem);
     }
     if (n->tag == N_COMPOSED || n->tag == N_BLOCK || n->tag == N_LIST) {
         free_node(left(n));

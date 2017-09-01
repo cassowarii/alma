@@ -19,6 +19,7 @@ void set_right(node_t *node, node_t *r) {
 node_t *new_node() {
     node_t *n = malloc(sizeof(node_t));
     n->line = -1;
+    n->flags = 0;
     return n;
 }
 
@@ -103,4 +104,96 @@ node_t *first_node_in(node_t *nn) {
     } else {
         return nn;
     }
+}
+
+void do_string_node(char **s, node_t *t);
+
+char *string_node(node_t *n) {
+    char *s = malloc(1);
+    strcpy(s, "\0");
+    do_string_node(&s, n);
+    return s;
+}
+
+void do_string_node(char **s, node_t *n) {
+    if (n == NULL) return;
+    char *tmp = NULL;
+    switch(n->tag) {
+        case N_COMPOSED:
+            if (right(n) != NULL) {
+                do_string_node(s, right(n));
+                if (left(n) != NULL) {
+                    rstrcat(s, " ");
+                }
+            }
+            if (left(n) != NULL) {
+                do_string_node(s, left(n));
+            }
+            break;
+        case N_BLOCK:
+            rstrcat(s, "[ ");
+            do_string_node(s, left(n));
+            rstrcat(s, " ]");
+            break;
+        case N_LIST:
+            rstrcat(s, "{ ");
+            do_string_node(s, left(n));
+            rstrcat(s, " }");
+            break;
+        case N_WORD:
+            rstrcat(s, n->content.n_str);
+            break;
+        case N_STRING:
+            asprintf(&tmp, "\"%s\"", n->content.n_str);
+            rstrcat(s, tmp);
+            break;
+        case N_INT:
+            asprintf(&tmp, "%d", n->content.n_int);
+            rstrcat(s, tmp);
+            break;
+        case N_FLOAT:
+            asprintf(&tmp, "%g", n->content.n_float);
+            rstrcat(s, tmp);
+            break;
+        case N_CHAR:
+            asprintf(&tmp, "#\"%c\"", n->content.n_char);
+            rstrcat(s, tmp);
+            break;
+        case N_DEFINE:
+            rstrcat(s, "<define something-or-other>");
+            break;
+        case N_ELEM:
+            rstrcat(s, "<some elem>");
+            break;
+        default:
+            printf("???");
+    }
+    free(tmp);
+}
+
+node_t *copy_node(node_t *n) {
+    if (n == NULL) return NULL;
+    node_t *n2 = new_node();
+    n2->tag = n->tag;
+    n2->flags |= NF_COPIED;
+    if (n->tag == N_WORD || n->tag == N_STRING) {
+        n2->content.n_str = malloc(strlen(n->content.n_str)+1);
+        strcpy(n2->content.n_str, n->content.n_str);
+    } else if (n->tag == N_COMPOSED || n->tag == N_BLOCK || n->tag == N_LIST || n->tag == N_DEFINE) {
+        set_left(n2, copy_node(left(n)));
+        set_right(n2, copy_node(right(n)));
+    } else if (n->tag == N_INT) {
+        n2->content.n_int = n->content.n_int;
+    } else if (n->tag == N_FLOAT) {
+        n2->content.n_float = n->content.n_float;
+    } else if (n->tag == N_CHAR) {
+        n2->content.n_char = n->content.n_char;
+    } else if (n->tag == N_ELEM) {
+        n2->content.elem = copy_elem(n->content.elem);
+    }
+    return n2;
+}
+
+int node_copied(node_t *n) {
+    return (n->flags & NF_COPIED) > 0;
 }

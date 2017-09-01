@@ -17,6 +17,10 @@ enum node_tag {
     N_ELEM,
 };
 
+enum node_flags {
+    NF_COPIED = 1,
+};
+
 typedef struct node_t {
     enum node_tag tag;
     union {
@@ -30,6 +34,7 @@ typedef struct node_t {
             struct node_t* right;
         } children;
     } content;
+    int flags;
     int line;
 } node_t;
 
@@ -101,7 +106,6 @@ typedef struct type_mapping {
 } type_mapping;
 
 enum elem_tag {
-    E_LAZYSTRING,
     E_CHAR,
     E_INT,
     E_FLOAT,
@@ -162,7 +166,7 @@ void add_lib_entry(library *l, lib_entry_t *entry);
 
 library lib;
 
-elem_t *clone_elem(elem_t *e);
+elem_t *copy_elem(elem_t *e);
 elem_t *copy_list(elem_t *l);
 
 // 0, empty list, empty string = false; everything else = true
@@ -223,6 +227,8 @@ node_t *new_node();
 node_t *first_node_in(node_t *nn);
 node_t *last_node_in(node_t *nn);
 
+char *string_node(node_t *n);
+
 void set_left(node_t *node, node_t *l);
 void set_right(node_t *node, node_t *r);
 node_t *left(node_t *node);
@@ -235,6 +241,9 @@ node_t *node_word (char *name, int line_num);
 node_t *node_int (int val, int line_num);
 node_t *node_float (double val, int line_num);
 node_t *node_char (char val, int line_num);
+
+node_t *copy_node(node_t *n);
+int node_copied(node_t *n);
 
 elem_t *elem_int (int val);
 elem_t *elem_float (double val);
@@ -259,6 +268,7 @@ elem_t *word_list(elem_t **top);
 void do_list(elem_t **top);
 
 /* -- Types -- */
+void set_type (elem_t *e, value_type *t);
 value_type *base_type(const char *name);
 value_type *list_of(value_type *what);
 value_type *func_type(stack_type *from, stack_type *to);
