@@ -394,75 +394,65 @@ int is_block(elem_t *e) {
     return 0;
 }
 
-/* TODO: fix this! it's a holdover from dynamic typing */
-/* also make it convert the elem to a string... */
-void print_elem(elem_t *e) {
-    if (e->tag == E_LIST) {
-        int all_chars = 1;
-        elem_t *check = e->content.list;
-        while (check) {
-            if (check->tag != E_CHAR) {
-                all_chars = 0;
-                break;
-            }
-            check = check->next;
-        }
-        if (all_chars) {
-            print_string(e->content.list);
-        } else {
-            printf("{ ");
-            do_list(&e->content.list);
-            printf(" }");
-        }
-    } else {
-        repr_elem(e);
-    }
-}
+void do_string_list(char **s, elem_t *e);
+void do_string_node(char **s, node_t *t);
 
-void repr_elem(elem_t *e) {
-    switch (e->tag) {
+void do_string_elem(char **s, elem_t *e) {
+    if (e == NULL) return;
+    char *tmp = NULL;
+    switch(e->tag) {
         case E_CHAR:
-            printf("#\"%c\"", e->content.e_char);
-            break;
-        case E_FLOAT:
-            printf("%g", e->content.e_float);
+            asprintf(&tmp, "#\"%c\"", e->content.e_char);
+            rstrcat(s, tmp);
             break;
         case E_INT:
-            printf("%d", e->content.e_int);
+            asprintf(&tmp, "%d", e->content.e_int);
+            rstrcat(s, tmp);
             break;
-        case E_LIST:;
-            int all_chars = 1;
-            elem_t *check = e->content.list;
-            while (check) {
-                if (check->tag != E_CHAR) {
-                    all_chars = 0;
-                    break;
-                }
-                check = check->next;
-            }
-            if (all_chars) {
-                printf("\"");
-                print_string(e->content.list);
-                printf("\"");
-            } else {
-                printf("[ ");
-                do_list(&e->content.list);
-                printf(" ]");
-            }
+        case E_FLOAT:
+            asprintf(&tmp, "%g", e->content.e_float);
+            rstrcat(s, tmp);
+            break;
+        case E_LIST:
+            rstrcat(s, "{ ");
+            do_string_list(s, e->content.list);
+            // use the extra space do_string_list puts on the end!!
+            rstrcat(s, "}");
             break;
         case E_PRODUCT:
-            printf("(");
-            repr_elem(e->content.product.left);
-            printf(", ");
-            repr_elem(e->content.product.right);
-            printf(")");
+            do_string_elem(s, e->content.product.left);
+            rstrcat(s, " * ");
+            do_string_elem(s, e->content.product.right);
             break;
-        case E_BLOCK:;
-            char *tmp = string_node(e->content.block);
-            printf("[ %s ]", tmp);
-            free(tmp);
+        case E_BLOCK:
+            rstrcat(s, "[ ");
+            do_string_node(s, e->content.block);
+            rstrcat(s, " ]");
             break;
+        default:
+            printf("???");
     }
+    free(tmp);
+}
+
+void do_string_list(char **s, elem_t *e) {
+    if (e == NULL) return;
+    do_string_elem(s, e);
+    rstrcat(s, " ");
+    do_string_list(s, e->next);
+}
+
+char *string_elem(elem_t *e) {
+    char *s = malloc(1);
+    strcpy(s, "\0");
+    do_string_elem(&s, e);
+    return s;
+}
+
+void print_elem(elem_t *e) {
+    char *p = string_elem(e);
+    printf("%s", p);
+    free(p);
 }
 
 void print_string(elem_t *e) {

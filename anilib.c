@@ -52,7 +52,7 @@ elem_t *word_list(elem_t **top) {
 void do_list(elem_t **top) {
     elem_t *elem = *top;
     while (elem) {
-        repr_elem(elem);
+        print_elem(elem);
         if (elem->next != NULL) {
             printf(" ; ");
         }
@@ -182,7 +182,7 @@ value_type *type_curry() {
     stack_type *Z = stack_var();
     value_type *a = type_var();
     return func_type(stack_of(func_type(stack_of(a, X), Y),     // { { 'a X → 'Y }
-                stack_of(a, Z)), stack_of(func_type(X, Y), Z)); //   'a 'Z → { 'X → 'Y } 'Z
+                stack_of(a, Z)), stack_of(func_type(X, Y), Z)); //   'a 'Z → { 'X → 'Y } 'Z }
 }
 
 elem_t *word_curry(elem_t **top) {
@@ -246,8 +246,9 @@ value_type *type_MINUS() {
 }
 
 elem_t *word_MINUS(elem_t **top) {
-    elem_t *e_a = pop(top);
+    // kind of goes backwards so that apply [ - 1 ] 5 => 4
     elem_t *e_b = pop(top);
+    elem_t *e_a = pop(top);
     if (e_a->tag == E_INT && e_b->tag == E_INT) {
         int a = e_a->content.e_int;
         int b = e_b->content.e_int;
@@ -316,8 +317,9 @@ value_type *type_FLDIV() {
 }
 
 elem_t *word_FLDIV(elem_t **top) {
-    elem_t *e_a = pop(top);
+    // backwards!!
     elem_t *e_b = pop(top);
+    elem_t *e_a = pop(top);
     double a;
     if (e_a->tag == E_INT) {
         a = (double)e_a->content.e_int;
@@ -342,8 +344,9 @@ value_type *type_INTDIV() {
 }
 
 elem_t *word_INTDIV(elem_t **top) {
-    elem_t *e_a = pop(top);
+    // BACKWARDS
     elem_t *e_b = pop(top);
+    elem_t *e_a = pop(top);
     if (e_a->tag == E_INT && e_b->tag == E_INT) {
         int a = e_a->content.e_int;
         int b = e_b->content.e_int;
@@ -377,8 +380,9 @@ value_type *type_MOD() {
 }
 
 elem_t *word_MOD(elem_t **top) {
-    elem_t *e_a = pop(top);
+    // BACKWARDS!!
     elem_t *e_b = pop(top);
+    elem_t *e_a = pop(top);
     if (e_a->tag == E_INT && e_b->tag == E_INT) {
         int a = e_a->content.e_int;
         int b = e_b->content.e_int;

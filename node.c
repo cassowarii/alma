@@ -107,6 +107,7 @@ node_t *first_node_in(node_t *nn) {
 }
 
 void do_string_node(char **s, node_t *t);
+void do_string_elem(char **s, elem_t *e);
 
 char *string_node(node_t *n) {
     char *s = malloc(1);
@@ -163,7 +164,7 @@ void do_string_node(char **s, node_t *n) {
             rstrcat(s, "<define something-or-other>");
             break;
         case N_ELEM:
-            rstrcat(s, "<some elem>");
+            do_string_elem(s, n->content.elem);
             break;
         default:
             printf("???");
