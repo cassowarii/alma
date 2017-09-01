@@ -522,43 +522,61 @@ value_type *type_EQUAL() {
     return func_type(stack_of(a, stack_of(a, X)), stack_of(vt_num, X));
 }
 
+int compare_elems(elem_t *e_a, elem_t *e_b);
+int compare_lists(elem_t *e_a, elem_t *e_b);
+
 elem_t *word_EQUAL(elem_t **top) {
     elem_t *e_a = pop(top);
     elem_t *e_b = pop(top);
-    elem_t *result = NULL;
+    elem_t *result = elem_int(compare_elems(e_a, e_b));
+    return result;
+}
+
+int compare_elems(elem_t *e_a, elem_t *e_b) {
     if (e_a->tag == E_INT && e_b->tag == E_FLOAT) {
         int a = e_a->content.e_int;
         double b = e_b->content.e_float;
-        result = elem_int((double)a == b ? 1 : 0);
+        return (double)a == b ? 1 : 0;
     } else if (e_a->tag == E_FLOAT && e_b->tag == E_INT) {
         double a = e_a->content.e_float;
         int b = e_b->content.e_int;
-        result = elem_int(a == (double)b ? 1 : 0);
+        return a == (double)b ? 1 : 0;
     } else if (e_a->tag != e_b->tag) {
-        result = elem_int(0);
+        return 0;
     } else {
         // tags equal
         if (e_a->tag == E_INT) {
             int a = e_a->content.e_int;
             int b = e_b->content.e_int;
-            result = elem_int(a == b ? 1 : 0);
+            return a == b ? 1 : 0;
         } else if (e_a->tag == E_FLOAT) {
             double a = e_a->content.e_float;
             double b = e_b->content.e_float;
-            result = elem_int(a == b ? 1 : 0);
+            return a == b ? 1 : 0;
         } else if (e_a->tag == E_CHAR) {
             char a = e_a->content.e_char;
             char b = e_b->content.e_char;
-            result = elem_int(a == b ? 1 : 0);
+            return a == b ? 1 : 0;
+        } else if (e_a->tag == E_LIST) {
+            return compare_lists(e_a->content.list, e_b->content.list);
         } else if (e_a->tag == E_BLOCK) {
             fprintf(stderr, "block comparison unimplemented\n");
+            return 0;
         } else {
             fprintf(stderr, "unknown comparison type");
+            return 0;
         }
     }
-    free_elem(e_a);
-    free_elem(e_b);
-    return result;
+}
+
+int compare_lists(elem_t *e_a, elem_t *e_b) {
+    if (e_a == NULL && e_b == NULL) {
+        return 1;
+    } else if (e_a == NULL || e_b == NULL) {
+        return 0;
+    } else {
+        return compare_elems(e_a, e_b) && compare_lists(e_a->next, e_b->next);
+    }
 }
 
 value_type *type_upper() {
