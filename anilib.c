@@ -112,6 +112,20 @@ elem_t *word_cons(elem_t **top) {
     return e_l;
 }
 
+value_type *type_split() {
+    stack_type *X = stack_var();
+    value_type *a = type_var();
+    return func_type(stack_of(list_of(a), X), stack_of(a, stack_of(list_of(a), X)));
+}
+
+elem_t *word_split(elem_t **top) {
+    // TODO this needs to handle empty lists
+    elem_t *e_l = pop(top);
+    elem_t *e_a = pop(&e_l->content.list);
+    push(e_a, &e_l);
+    return e_l;
+}
+
 value_type *type_map() {
     stack_type *X = zero_stack();
     stack_type *Y = stack_var();
@@ -567,6 +581,7 @@ void init_library(library *l) {
     add_lib_entry(l, construct("dip",       type_dip(),      &word_dip));
     add_lib_entry(l, construct("pair",      type_pair(),     &word_pair));
     add_lib_entry(l, construct("cons",      type_cons(),     &word_cons));
+    add_lib_entry(l, construct("split",     type_split(),    &word_split));
     add_lib_entry(l, construct("+",         type_PLUS(),     &word_PLUS));
     add_lib_entry(l, construct("-",         type_MINUS(),    &word_MINUS));
     add_lib_entry(l, construct("*",         type_TIMES(),    &word_TIMES));

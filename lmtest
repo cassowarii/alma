@@ -1,0 +1,13 @@
+(* List-mismatching test. *)
+(* one of these has type of [ {char} → {char} ]; the other is [ 'a → {char} ].
+   we should be able to put these in a list together, with the most specific type
+   possible, but picking them apart should make them keep their original type. *)
+
+{ [map [lower]] [typeof] }
+print typeof copy
+print typeof split
+print typeof split
+
+print typeof { [map [map [lower]]] [map [typeof]] }
+
+print typeof { 1 #"A" 2 3 4 }

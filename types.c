@@ -429,15 +429,21 @@ value_type *get_list_type(elem_t *e) {
     if (e == NULL) return NULL;
     value_type *below_type = get_list_type(e->next);
     if (below_type == NULL) {
-        return e->type;
-    } else if (compare_types(below_type, e->type)) {
-        return below_type;
+        return copy_type(e->type);
     } else if (below_type->tag == V_ERROR) {
         // mismatch below -- throw error up the stack
         return below_type;
     } else {
-        // first mismatch
-        return error_type(error_msg("Mismatched types in list: %s and %s", string_type(below_type), string_type(e->type)));
+        value_type *check = copy_type(e->type);
+        value_type *u = unify(below_type, check);
+        free_type(check);
+        if (u->tag != V_ERROR) {
+            return below_type;
+        } else {
+            // first mismatch
+            value_type *err = error_type(error_msg("Mismatched types in list: %s and %s", string_type(below_type), string_type(e->type)));
+            return err;
+        }
     }
 }
 
@@ -446,21 +452,29 @@ value_type *get_list_type(elem_t *e) {
 // of blocks.
 // (Basically the same as get_list_type, but up
 // a level of abstraction.)
-value_type *get_abstract_list_type(stack_type *t) {
+value_type *get_abstract_list_type(stack_type *t, int line_num) {
     if (t == NULL) return NULL;
     while (t->tag == S_UNIFIED) { t = t->content.unif; }
     if (t->tag == S_VAR) return NULL;
-    value_type *below_type = get_abstract_list_type(t->content.top_type.rest);
+    value_type *below_type = get_abstract_list_type(t->content.top_type.rest, line_num);
     if (below_type == NULL) {
         return t->content.top_type.top;
-    } else if (compare_types(below_type, t->content.top_type.top)) {
-        return below_type;
-    } else if (below_type->tag == V_ERROR) {
-        // mismatch below -- throw error up the stack
-        return below_type;
     } else {
-        // first mismatch
-        return error_type(error_msg("Mismatched types in list: %s and %s", string_type(below_type), string_type(t->content.top_type.top)));
+        if (below_type->tag == V_ERROR) {
+            // mismatch below -- throw error up the stack
+            return below_type;
+        } else {
+            value_type *u = unify(below_type, t->content.top_type.top);
+            if (u->tag != V_ERROR) {
+                return below_type;
+            } else {
+                // first mismatch
+                error *e = error_msg("Mismatched types in list: %s and %s", string_type(below_type), string_type(t->content.top_type.top));
+                error_concat(e, u->content.err);
+                error_lineno(e, line_num);
+                return error_type(e);
+            }
+        }
     }
 }
 
@@ -612,7 +626,7 @@ value_type *infer_type(node_t *nn) {
                 add_info(result->content.err, "while evaluating a list starting at line %d", nn->line);
                 break;
             }
-            value_type *ltype = get_abstract_list_type(l->content.func_type.out);
+            value_type *ltype = get_abstract_list_type(l->content.func_type.out, nn->line);
             value_type *list;
             if (ltype == NULL) {
                 r = type_var();
@@ -823,13 +837,13 @@ void do_string_type(char **s, value_type *t) {
             break;
         case V_LIST:
 #ifdef TYPEDEBUG
-            asprintf(&tmp, "%ld{ ", t->id);
+            asprintf(&tmp, "%ld{", t->id);
             rstrcat(s, tmp);
 #else
-            rstrcat(s, "{ ");
+            rstrcat(s, "{");
 #endif
             do_string_type(s, t->content.v);
-            rstrcat(s, " }");
+            rstrcat(s, "}");
             break;
         case V_PRODUCT:
             do_string_type(s, t->content.prod_type.left);

@@ -381,8 +381,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 18
-#define YY_END_OF_BUFFER 19
+#define YY_NUM_RULES 19
+#define YY_END_OF_BUFFER 20
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -392,12 +392,12 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[55] =
     {   0,
-        0,    0,    0,    0,   19,   16,   17,    6,   18,   16,
-       16,   16,   14,   16,    5,    1,    2,   16,    3,    4,
-        9,   18,    9,    9,   16,   17,    0,   12,    0,    0,
-        7,    8,   16,   14,   13,   16,    7,    8,    0,   12,
-        0,    0,    0,   15,   13,   16,   11,   11,   16,   16,
-       15,   16,   10,    0
+        0,    0,    0,    0,   20,   17,   18,    6,   19,   17,
+       17,   17,   15,   17,    5,    1,    2,   17,    3,    4,
+        9,   10,    9,    9,   17,   18,    0,   13,    0,    0,
+        7,    8,   17,   15,   14,   17,    7,    8,    0,   13,
+        0,    0,    0,   16,   14,   17,   12,   12,   17,   17,
+       16,   17,   11,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -498,9 +498,10 @@ static yyconst flex_int16_t yy_chk[136] =
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static yyconst flex_int32_t yy_rule_can_match_eol[19] =
+static yyconst flex_int32_t yy_rule_can_match_eol[20] =
     {   0,
-0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,     };
+0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 
+        };
 
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
@@ -530,7 +531,7 @@ int nested_lists = 0;
 int nested_comments = 0;
 #define YY_NO_INPUT 1
 
-#line 534 "lex.yy.c"
+#line 535 "lex.yy.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -727,7 +728,7 @@ YY_DECL
 #line 16 "lexer.l"
 
   /* Special tokens. */
-#line 731 "lex.yy.c"
+#line 732 "lex.yy.c"
 
     yylval = yylval_param;
 
@@ -897,36 +898,42 @@ YY_RULE_SETUP
 #line 55 "lexer.l"
 { /* throw it into the trash ! */ }
 	YY_BREAK
-/* The few keywords. */
 case 10:
+/* rule 10 can match eol */
 YY_RULE_SETUP
-#line 58 "lexer.l"
+#line 56 "lexer.l"
+{ /* throw it into the trash ! */ }
+	YY_BREAK
+/* The few keywords. */
+case 11:
+YY_RULE_SETUP
+#line 59 "lexer.l"
 {
     return DEFINE;
 }
 	YY_BREAK
 /* Various literals. */
-case 11:
+case 12:
 YY_RULE_SETUP
-#line 63 "lexer.l"
+#line 64 "lexer.l"
 {
     yylval->c = yytext[2];
     return T_CHAR;
 }
 	YY_BREAK
-case 12:
-/* rule 12 can match eol */
+case 13:
+/* rule 13 can match eol */
 YY_RULE_SETUP
-#line 67 "lexer.l"
+#line 68 "lexer.l"
 {
     yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
     return T_STRING;
 }
 	YY_BREAK
-case 13:
+case 14:
 YY_RULE_SETUP
-#line 72 "lexer.l"
+#line 73 "lexer.l"
 {
     /*:[^{}\[\]\" \t]+ {*/
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
@@ -934,46 +941,46 @@ YY_RULE_SETUP
     return T_STRING;
 }
 	YY_BREAK
-case 14:
-YY_RULE_SETUP
-#line 78 "lexer.l"
-yylval->i=atoi(yytext); return T_INTEGER;
-	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 79 "lexer.l"
+yylval->i=atoi(yytext); return T_INTEGER;
+	YY_BREAK
+case 16:
+YY_RULE_SETUP
+#line 80 "lexer.l"
 {
     yylval->d = atof(yytext);
     return T_FLOAT;
 }
 	YY_BREAK
 /* Pretty much anything else is valid as something... */
-case 16:
+case 17:
 YY_RULE_SETUP
-#line 84 "lexer.l"
+#line 85 "lexer.l"
 {
     yylval->s=strdup(yytext);
     return T_WORD;
 }
 	YY_BREAK
 /* Ignored. */
-case 17:
+case 18:
 YY_RULE_SETUP
-#line 89 "lexer.l"
+#line 90 "lexer.l"
 /* skip whitespace */;
 	YY_BREAK
 /* End of file! */
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
-#line 91 "lexer.l"
+#line 92 "lexer.l"
 { return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
 	YY_BREAK
-case 18:
+case 19:
 YY_RULE_SETUP
-#line 92 "lexer.l"
+#line 93 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 977 "lex.yy.c"
+#line 984 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1940,7 +1947,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 92 "lexer.l"
+#line 93 "lexer.l"
 
 
 

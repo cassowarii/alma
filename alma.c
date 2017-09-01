@@ -475,7 +475,11 @@ void do_string_list(char **s, elem_t *e) {
             do_string_list(s, e->next);
         }
     } else {
-        rstrcat(s, &e->content.e_char);
+        //printf("CHAR: %d / %c\n", e->content.e_char, e->content.e_char);
+        char *tmp = NULL;
+        asprintf(&tmp, "%c", e->content.e_char);
+        rstrcat(s, tmp);
+        free(tmp);
         do_string_list(s, e->next);
     }
 }

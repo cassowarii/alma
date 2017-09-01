@@ -53,6 +53,7 @@ int nested_comments = 0;
     }
 }
 <COMMENT>. { /* throw it into the trash ! */ }
+<COMMENT>\n { /* throw it into the trash ! */ }
 
   /* The few keywords. */
 define {
