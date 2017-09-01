@@ -584,7 +584,9 @@ value_type *infer_type(node_t *nn) {
                     break;
                 }
                 stack_type *out = copy_stack_type(l->content.func_type.out);
+                out->refs++;
                 stack_type *in = copy_stack_type(r->content.func_type.in);
+                in->refs++;
                 ok = unify_stack(out, in);
                 if (ok->tag != S_ERROR) {
                     result = func_type(l->content.func_type.in, r->content.func_type.out);
@@ -606,6 +608,8 @@ value_type *infer_type(node_t *nn) {
                     free(sl);
                     free(sr);
                 }
+                free_stack_type(out);
+                free_stack_type(in);
                 free_type(l);
                 free_type(r);
             } else {
