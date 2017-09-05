@@ -76,7 +76,7 @@ void do_list(elem_t **top) {
 value_type *type_copy() {
     stack_type *X = stack_var();
     value_type *a = type_var();
-    return func_type(stack_of(a, X), stack_of(diverge(a), stack_of(diverge(a), X)));
+    return func_type(stack_of(a, X), stack_of(a, stack_of(a, X)));
 }
 
 elem_t *word_copy(elem_t **top) {
@@ -307,7 +307,7 @@ value_type *type_if() {
     stack_type *Y = stack_var();
     stack_type *Z = stack_var();
     //value_type *a = type_var();
-    return func_type(stack_of(func_type(X, stack_of(vt_bool, Y)),       // { { 'X → num 'Y }
+    return func_type(stack_of(func_type(X, stack_of(vt_bool, Y)),       // { { 'X → bool 'Y }
                 stack_of(func_type(Y, Z), stack_of(func_type(Y, Z),     //   { 'Y → 'Z } { 'Y → 'Z }
                         X))), Z);                                       //   'X → 'Z }
 }
@@ -326,6 +326,32 @@ elem_t *word_if(elem_t **top) {
     }
     free_elem(thenpart);
     free_elem(elsepart);
+    return NULL;
+}
+
+value_type *type_while() {
+    stack_type *X = stack_var();
+    stack_type *Y = stack_var();
+    stack_type *Z = stack_var();
+    //value_type *a = type_var();
+    return func_type(stack_of(func_type(X, stack_of(vt_bool, Y)),       // { { 'X → bool 'Y }
+                stack_of(func_type(Y, X), X)), X);                      //   { 'Y → 'X } 'X → 'X }
+}
+
+elem_t *word_while(elem_t **top) {
+    elem_t *ifpart = pop(top);
+    elem_t *thenpart = pop(top);
+    eval(ifpart->content.block, top);
+    elem_t *cond = pop(top);
+    while (truthy(cond)) {
+        free_elem(cond);
+        eval(thenpart->content.block, top);
+        eval(ifpart->content.block, top);
+        cond = pop(top);
+    }
+    free_elem(cond);
+    free_elem(ifpart);
+    free_elem(thenpart);
     return NULL;
 }
 
@@ -568,7 +594,7 @@ int compare_lists(elem_t *e_a, elem_t *e_b);
 elem_t *word_EQUAL(elem_t **top) {
     elem_t *e_a = pop(top);
     elem_t *e_b = pop(top);
-    elem_t *result = elem_int(compare_elems(e_a, e_b));
+    elem_t *result = elem_bool(compare_elems(e_a, e_b));
     return result;
 }
 
@@ -684,6 +710,7 @@ void init_library(library *l) {
     add_lib_entry(l, construct("curry",     type_curry(),    &word_curry));
     add_lib_entry(l, construct("typeof",    type_typeof(),   &word_typeof));
     add_lib_entry(l, construct("if",        type_if(),       &word_if));
+    add_lib_entry(l, construct("while",     type_while(),    &word_while));
     add_lib_entry(l, construct("dip",       type_dip(),      &word_dip));
     add_lib_entry(l, construct("pair",      type_pair(),     &word_pair));
     add_lib_entry(l, construct("unpair",    type_unpair(),   &word_unpair));

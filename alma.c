@@ -392,6 +392,9 @@ int truthy(elem_t *e) {
     if (e->tag == E_LIST) {
         return length(e) != 0;
     }
+    if (e->tag == E_BOOL) {
+        return e->content.e_int;
+    }
     return 1;
 }
 

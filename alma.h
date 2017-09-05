@@ -254,6 +254,7 @@ node_t *copy_node(node_t *n);
 int node_copied(node_t *n);
 
 elem_t *elem_int (int val);
+elem_t *elem_bool (int val);
 elem_t *elem_float (double val);
 elem_t *elem_char (char val);
 elem_t *elem_str (char *val);
