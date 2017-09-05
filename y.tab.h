@@ -55,10 +55,11 @@ extern int yydebug;
     TRUE = 264,
     FALSE = 265,
     T_WORD = 266,
-    T_INTEGER = 267,
-    T_CHAR = 268,
-    T_STRING = 269,
-    T_FLOAT = 270
+    T_MACRO = 267,
+    T_INTEGER = 268,
+    T_CHAR = 269,
+    T_STRING = 270,
+    T_FLOAT = 271
   };
 #endif
 /* Tokens.  */
@@ -72,10 +73,11 @@ extern int yydebug;
 #define TRUE 264
 #define FALSE 265
 #define T_WORD 266
-#define T_INTEGER 267
-#define T_CHAR 268
-#define T_STRING 269
-#define T_FLOAT 270
+#define T_MACRO 267
+#define T_INTEGER 268
+#define T_CHAR 269
+#define T_STRING 270
+#define T_FLOAT 271
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -90,7 +92,7 @@ union YYSTYPE
     double d;
     struct node_t *n;
 
-#line 94 "y.tab.h" /* yacc.c:1909  */
+#line 96 "y.tab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

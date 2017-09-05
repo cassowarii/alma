@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
     struct node_t *n;
 }
 %token <s> T_WORD "word"
+%token <s> T_MACRO "macro"
 %token <i> T_INTEGER "integer"
 %token <c> T_CHAR "character"
 %token <s> T_STRING "string"
@@ -155,17 +156,19 @@ list:
     }
 
 definition:
-    DEFINE T_WORD block {
-        lib_entry_t *def = create_entry();
-        def->name = $2;
-        def->type = infer_type($3);
-        if (def->type->tag != V_ERROR) {
-            def->impl.node = $3;
-        } else {
-            add_info(def->type->content.err, "in definition of function %s", $2);
+    T_MACRO T_WORD block {
+        if (!strcmp($1, "define")) {
+            lib_entry_t *def = create_entry();
+            def->name = $2;
+            def->type = infer_type($3);
+            if (def->type->tag != V_ERROR) {
+                def->impl.node = $3;
+            } else {
+                add_info(def->type->content.err, "in definition of function %s", $2);
+            }
+            add_lib_entry(&lib, def);
+            $$ = NULL;
         }
-        add_lib_entry(&lib, def);
-        $$ = NULL;
     }
 
 %%

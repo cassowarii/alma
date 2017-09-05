@@ -57,7 +57,14 @@ int nested_comments = 0;
 
   /* The few keywords. */
 define {
-    return DEFINE;
+    yylval->s = calloc(7, sizeof(char));
+    strcpy(yylval->s, "define");
+    return T_MACRO;
+}
+bind {
+    yylval->s = calloc(5, sizeof(char));
+    strcpy(yylval->s, "bind");
+    return T_MACRO;
 }
 true {
     return TRUE;
@@ -86,6 +93,12 @@ false {
 [0-9]+\.[0-9]+([Ee][0-9]+)? {
     yylval->d = atof(yytext);
     return T_FLOAT;
+}
+  /* Macro. */
+#[A-Za-z].* {
+    yylval->s = calloc(strlen(yytext), sizeof(char));
+    strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
+    return T_MACRO;
 }
   /* Pretty much anything else is valid as something... */
 [^{}\[\]\" \t;\n]+  {

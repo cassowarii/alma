@@ -1,0 +1,11 @@
+[ println ] "hey!" "yo!" "you are very cool!"
+
+copy
+
+dip [apply]
+
+copy
+
+dip [apply]
+
+apply
