@@ -1,0 +1,76 @@
+(* I've defined two new functions: apply-0to0 and apply-0to1.
+    - apply-0to0 runs a function but checks it has no effect
+      whatsoever on the stack.
+    - apply-0to1 runs a function and ensures it takes nothing
+      off the stack and puts exactly one value on.
+   It turns out that these functions (and some tuple shuffling) are
+   all we need to carefully specify any combination of function
+   inputs/outputs and have the compiler check that for us! COOL! *)
+
+(* Example of a function with no overall stack effect: *)
+
+apply-0to0 [ println "Hello world!" ]
+
+(* How to ensure a function will only take 1 argument: *)
+
+4
+
+curry [ + 5 ] (* ← If [+ 5] had been something taking a different number
+                   of arguments, like [+], this code would fail thanks to the
+                   magic of `apply-0to1`! Go on, try it! *)
+              (* And they can't try to trick us by doing something sneaky like
+                   [5 +], which LOOKS like it only modifies one argument, but is
+                   sneaky and modifies two arguments. `0to1` is smarter than that.
+                   It can figure it out. *)
+
+println apply-0to1 (* 9 *)
+
+(* In fact, we could enshrine this pattern in some functions that check certain numbers
+   of arguments: *)
+
+define apply-1to1 [ apply curry [apply-0to1] curry ]
+define apply-2to1 [ apply curry [apply-1to1] curry ]
+
+(* We can also make functions return a certain number of results, by using pair/unpair
+   to change the apparent number of results: *)
+
+define apply-0to2 [ unpair apply-0to1 curry [pair apply] ]
+define apply-0to3 [ unpair apply-0to2 curry [pair apply] ]
+
+define apply-1to2 [ apply curry [apply-0to2] curry ]
+
+print "Type of 0to2: "
+println typeof [apply-0to2]
+print "Type of 0to3: "
+println typeof [apply-0to3]
+print "Type of 1to2: "
+println typeof [apply-1to2]
+
+(* Say, I'm noticing a common idiom here:
+        define apply-(M+1)to(N) [ apply curry [apply-MtoN] curry ]
+   Let's try factoring that out! *)
+
+define with-extra-arg [ apply curry dip [curry] ]
+
+define apply-3to1 [ with-extra-arg [apply-2to1] ]
+define apply-2to2 [ with-extra-arg [apply-1to2] ]
+
+print "Type of 3to1: "
+println typeof [apply-3to1]
+print "Type of 2to2: "
+println typeof [apply-2to2]
+
+(* We can also factor out the extra-result code: *)
+
+define with-extra-result [ unpair apply dip [curry [pair apply]] ]
+
+define apply-3to2 [ with-extra-result [apply-3to1] ]
+define apply-2to3 [ with-extra-result [apply-2to2] ]
+
+print "Type of 3to2: "
+println typeof [apply-3to2]
+print "Type of 2to3: "
+println typeof [apply-2to3]
+
+(* "Hey, super cool! I love concatenative programming!" 
+   (That's what you're thinking right now, right?) *)

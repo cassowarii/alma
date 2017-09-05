@@ -112,6 +112,24 @@ elem_t *word_pair(elem_t **top) {
     return elem_product(e_a, e_b);
 }
 
+value_type *type_unpair() {
+    stack_type *X = stack_var();
+    value_type *a = type_var();
+    value_type *b = type_var();
+    return func_type(stack_of(product_type(a, b), X), stack_of(a, stack_of(b, X)));
+}
+
+elem_t *word_unpair(elem_t **top) {
+    elem_t *e = pop(top);
+    elem_t *l = e->content.product.left;
+    elem_t *r = e->content.product.right;
+    e->content.product.left = NULL;
+    e->content.product.right = NULL;
+    free_elem(e);
+    push(l, &r);
+    return r;
+}
+
 value_type *type_cons() {
     stack_type *X = stack_var();
     value_type *a = type_var();
@@ -128,7 +146,8 @@ elem_t *word_cons(elem_t **top) {
 value_type *type_split() {
     stack_type *X = stack_var();
     value_type *a = type_var();
-    return func_type(stack_of(list_of(a), X), stack_of(diverge(a), stack_of(list_of(diverge(a)), X)));
+    //return func_type(stack_of(list_of(a), X), stack_of(diverge(a), stack_of(list_of(diverge(a)), X)));
+    return func_type(stack_of(list_of(a), X), stack_of(a, stack_of(list_of(a), X)));
 }
 
 elem_t *word_split(elem_t **top) {
@@ -201,6 +220,27 @@ elem_t *word_apply(elem_t **top) {
     eval(block->content.block, top);
     free_elem(block);
     return NULL;
+}
+
+/* These all have exactly the same implementation as `apply.` They just
+ * have more restrictive types. */
+
+value_type *type_0to0() {
+    stack_type *X = stack_var();
+    return func_type(stack_of(func_type(zero_stack(), zero_stack()), X), X);
+}
+
+value_type *type_0to1() {
+    value_type *a = type_var();
+    stack_type *X = stack_var();
+    return func_type(stack_of(func_type(zero_stack(), stack_of(a, zero_stack())), X), stack_of(a, X));
+}
+
+value_type *type_1more() {
+    value_type *a = type_var();
+    stack_type *X = stack_var();
+    stack_type *Y = stack_var();
+    return func_type(stack_of(func_type(X, stack_of(a, X)), Y), stack_of(a, Y));
 }
 
 value_type *type_dip() {
@@ -638,11 +678,15 @@ void init_library(library *l) {
     add_lib_entry(l, construct("map",       type_map(),      &word_map));
     add_lib_entry(l, construct("outer",     type_outer(),    &word_outer));
     add_lib_entry(l, construct("apply",     type_apply(),    &word_apply));
+    add_lib_entry(l, construct("apply-0to0",  type_0to0(),   &word_apply));
+    add_lib_entry(l, construct("apply-0to1",  type_0to1(),   &word_apply));
+    add_lib_entry(l, construct("apply-1more", type_1more(),  &word_apply));
     add_lib_entry(l, construct("curry",     type_curry(),    &word_curry));
     add_lib_entry(l, construct("typeof",    type_typeof(),   &word_typeof));
     add_lib_entry(l, construct("if",        type_if(),       &word_if));
     add_lib_entry(l, construct("dip",       type_dip(),      &word_dip));
     add_lib_entry(l, construct("pair",      type_pair(),     &word_pair));
+    add_lib_entry(l, construct("unpair",    type_unpair(),   &word_unpair));
     add_lib_entry(l, construct("cons",      type_cons(),     &word_cons));
     add_lib_entry(l, construct("split",     type_split(),    &word_split));
     add_lib_entry(l, construct("+",         type_PLUS(),     &word_PLUS));
