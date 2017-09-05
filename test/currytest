@@ -1,17 +1,17 @@
 3
 curry [+] 4
-print apply (* should print 7 *)
+println apply (* should println 7 *)
 
 {1 2 3 4 5}
 map [curry [+]]
 map [apply swap 4]
-print (* should print {5 6 7 8 9} *)
+println (* should println {5 6 7 8 9} *)
 
 { [+] [-] [*] }
 map [curry [curry]]
 
 map [map swap {1 2 3 4}]
-print copy (* a 2D array of functions... *)
+println copy (* a 2D array of functions... *)
 
 map [map [apply swap 5]]
-print
+println

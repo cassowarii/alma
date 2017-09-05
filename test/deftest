@@ -32,7 +32,7 @@ define bi [
 
 define save [ bi [ ] [apply] ]
 
-println "Keep2 type; "
+println "Save type; "
 println typeof [save]
 
 println "Bi type; "
