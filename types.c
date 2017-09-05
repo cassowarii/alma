@@ -66,6 +66,11 @@ value_type *diverge(value_type *a) {
 
 void handle_diverge(value_type *a) {
     if (a->tag != V_DIVERGE) return;
+    if (a->content.v->tag == V_VAR) return;
+    if (a->content.v->tag == V_BASETYPE) {
+        a->tag = V_UNIFIED;
+        return;
+    }
 #ifdef TYPEDEBUG
     char *s = string_type(a->content.v);
     printf("Now diverging from %s.\n", s);
@@ -321,10 +326,17 @@ int s_occurs_in_s(stack_type *a, stack_type *b) {
 stack_type *unify_stack(stack_type *a, stack_type *b);
 
 value_type *unify(value_type *a, value_type *b) {
-    handle_diverge(a);
-    handle_diverge(b);
     while (a->tag == V_UNIFIED) { a = a->content.v; }
     while (b->tag == V_UNIFIED) { b = b->content.v; }
+    if (a->tag == V_DIVERGE) {
+        handle_diverge(a);
+        value_type *result = unify(a->content.v, b);
+        return result;
+    } else if (b->tag == V_DIVERGE) {
+        handle_diverge(b);
+        value_type *result = unify(a, b->content.v);
+        return result;
+    }
 #ifdef TYPEDEBUG
     /*printf("[U] %ld<%d> := %ld<%d>; ", a->id, a->tag, b->id, b->tag);
     do_print_type(a); printf("; "); do_print_type(b); printf("; ");*/
