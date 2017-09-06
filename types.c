@@ -137,8 +137,9 @@ stack_type *stack_of(value_type *top, stack_type *rest) {
         t->content.top_type.rest = rest;
         return t;
     } else {
+        error *e = top->content.err;
         free_type(top);
-        return error_stacktype(top->content.err);
+        return error_stacktype(e);
     }
 }
 
@@ -338,15 +339,15 @@ value_type *unify(value_type *a, value_type *b) {
     while (a->tag == V_UNIFIED) { a = a->content.v; }
     while (b->tag == V_UNIFIED) { b = b->content.v; }
 #ifdef TYPEDEBUG
-    /*printf("[U] %ld<%d> := %ld<%d>; ", a->id, a->tag, b->id, b->tag);
-    do_print_type(a); printf("; "); do_print_type(b); printf("; ");*/
+    printf("[U] %ld<%d> := %ld<%d>; ", a->id, a->tag, b->id, b->tag);
+    do_print_type(a); printf("; "); do_print_type(b); printf("; ");
 #endif
     if (a->tag == V_VAR || a->tag == V_SCALARVAR) {
 #ifdef TYPEDEBUG
         printf("Unify var-type %ld with %ld\n", a->id, b->id);
 #endif
         if (a != b) {
-            if (v_count_in_v(a, b)) {
+            if (v_count_in_v(a, b) > 0) {
                 error *e = error_msg("found one type inside the other!");
                 char *sa = string_type(a);
                 char *sb = string_type(b);
@@ -437,7 +438,7 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
         free(sb);
 #endif
         if (a != b) {
-            if (s_count_in_s(a, b)) {
+            if (s_count_in_s(a, b) > 0) {
                 error *e = error_msg("found one type inside the other!");
                 char *sa = string_stack_type(a);
                 char *sb = string_stack_type(b);
@@ -665,10 +666,6 @@ value_type *infer_type(node_t *nn) {
                     free_type(l);
                     break;
                 }
-                /*stack_type *out = copy_stack_type(l->content.func_type.out);
-                out->refs++;
-                stack_type *in = copy_stack_type(r->content.func_type.in);
-                in->refs++;*/
                 ok = unify_stack(l->content.func_type.out, r->content.func_type.in);
                 if (ok->tag != S_ERROR) {
                     result = func_type(l->content.func_type.in, r->content.func_type.out);
@@ -690,8 +687,6 @@ value_type *infer_type(node_t *nn) {
                     free(sl);
                     free(sr);
                 }
-                /*free_stack_type(out);
-                free_stack_type(in);*/
                 free_type(l);
                 free_type(r);
             } else {
@@ -897,6 +892,7 @@ char *string_type_nocopy(value_type *t) {
 char *string_type(value_type *t) {
 #ifndef TYPEDEBUG
     value_type *x = copy_type(t);
+    x->refs ++;
 #else
     value_type *x = t;
 #endif
@@ -931,7 +927,7 @@ void do_string_type(char **s, value_type *t) {
             if (t->content.var_name == '_') {
                 asprintf(&tmp, "'<%ld>", t->id);
             } else {
-#ifdef TYPEDEBUG
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
                 asprintf(&tmp, "'%c<%ld>", t->content.var_name, t->id);
 #else
                 asprintf(&tmp, "'%c", t->content.var_name);
@@ -940,7 +936,7 @@ void do_string_type(char **s, value_type *t) {
             rstrcat(s, tmp);
             break;
         case V_FUNC:
-#ifdef TYPEDEBUG
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
             asprintf(&tmp, "%ld[ ", t->id);
             rstrcat(s, tmp);
 #else
@@ -952,7 +948,7 @@ void do_string_type(char **s, value_type *t) {
             rstrcat(s, " ]");
             break;
         case V_LIST:
-#ifdef TYPEDEBUG
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
             asprintf(&tmp, "%ld{", t->id);
             rstrcat(s, tmp);
 #else
@@ -991,16 +987,16 @@ void do_string_stack_type(char **s, stack_type *t) {
             if (t->content.var_name == '_') {
                 asprintf(&tmp, "'S<%ld>", t->id);
             } else {
-#ifndef TYPEDEBUG
-                asprintf(&tmp, "'%c", t->content.var_name);
-#else
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
                 asprintf(&tmp, "'%c<%ld>", t->content.var_name, t->id);
+#else
+                asprintf(&tmp, "'%c", t->content.var_name);
 #endif
             }
             rstrcat(s, tmp);
             break;
         case S_TOPTYPE:
-#ifdef TYPEDEBUG
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
             asprintf(&tmp, "%ld ", t->id);
             rstrcat(s, tmp);
 #endif

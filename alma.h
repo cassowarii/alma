@@ -285,11 +285,12 @@ value_type *product_type(value_type *left, value_type *right);
 value_type *type_var();
 value_type *scalar_var();
 value_type *error_type(error *e);
-value_type *diverge(value_type *a);
 stack_type *stack_of(value_type *top, stack_type *rest);
 stack_type *stack_var();
 stack_type *zero_stack();
 stack_type *error_stacktype(error *e);
+
+void regeneralize(value_type **tpt);
 
 int compare_types(value_type *a, value_type *b);
 
