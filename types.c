@@ -137,8 +137,9 @@ stack_type *stack_of(value_type *top, stack_type *rest) {
         t->content.top_type.rest = rest;
         return t;
     } else {
+        error *e = top->content.err;
         free_type(top);
-        return error_stacktype(top->content.err);
+        return error_stacktype(e);
     }
 }
 
@@ -277,7 +278,10 @@ int s_count_in_s(stack_type *a, stack_type *b) {
 }
 
 stack_type *copy_stack_structure(stack_type *t) {
-    while (t->tag == S_UNIFIED) { t = t->content.unif; }
+    while (t->tag == S_UNIFIED) {
+        stack_type *next = t->content.unif;
+        t = next;
+    }
     if (t->tag == S_TOPTYPE) {
         return stack_of(t->content.top_type.top, copy_stack_structure(t->content.top_type.rest));
     }
@@ -292,6 +296,16 @@ stack_type *bottom_of_stack(stack_type *t) {
     return t;
 }
 
+void printstackrefs(stack_type *t) {
+    while (t->tag == S_UNIFIED) { t = t->content.unif; }
+    if (t->tag == S_TOPTYPE) {
+        printf("| %d ", t->content.top_type.top->refs);
+        printstackrefs(t->content.top_type.rest);
+    } else {
+        printf("| %d\n", t->refs);
+    }
+}
+
 stack_type *replace_bottom_of_stack(stack_type *t, stack_type *new_bottom) {
     if (new_bottom->tag != S_VAR) {
         fprintf(stderr, "[INTERNAL ERROR] can't replace bottom of stack with something that isn't a variable!\n");
@@ -303,9 +317,10 @@ stack_type *replace_bottom_of_stack(stack_type *t, stack_type *new_bottom) {
         // Copy the structure of the stack (since we're changing part of it), but leave the actual
         // contents un-copied for now
         stack_type *ns = copy_stack_structure(t->content.unif);
-        t->content.unif = replace_bottom_of_stack(ns, new_bottom);
-        t->content.unif->refs ++;
-        return t;
+        ns = replace_bottom_of_stack(ns, new_bottom);
+        //t->content.unif = replace_bottom_of_stack(ns, new_bottom);
+        //t->content.unif->refs ++;
+        return ns;
     }
     if (t->tag == S_VAR) {
         free_stack_type(t);
