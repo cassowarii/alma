@@ -304,22 +304,16 @@ stack_type *replace_bottom_of_stack(stack_type *t, stack_type *new_bottom) {
         // contents un-copied for now
         stack_type *ns = copy_stack_structure(t->content.unif);
         t->content.unif = replace_bottom_of_stack(ns, new_bottom);
+        t->content.unif->refs ++;
         return t;
     }
     if (t->tag == S_VAR) {
         free_stack_type(t);
-        new_bottom->refs ++;
         return new_bottom;
     } else if (t->tag == S_TOPTYPE) {
-        if (t->content.top_type.rest->tag == S_VAR) {
-            // we're at the bottom of the stack, replace it!
-            stack_type *n = stack_of(t->content.top_type.top, new_bottom);
-            free_stack_type(t);
-            return n;
-        } else {
-            t->content.top_type.rest = replace_bottom_of_stack(t->content.top_type.rest, new_bottom);
-            return t;
-        }
+        t->content.top_type.rest = replace_bottom_of_stack(t->content.top_type.rest, new_bottom);
+        t->content.top_type.rest->refs ++;// ???XXX
+        return t;
     } else {
         return t;
     }
@@ -341,10 +335,13 @@ void regeneralize(value_type *t) {
     stack_type *right = t->content.func_type.out;
     stack_type *lb = bottom_of_stack(left);
     stack_type *rb = bottom_of_stack(right);
-    if (lb == rb && lb->tag != S_ZERO) {
+    if (lb == rb && lb->tag == S_VAR) {
         // can't regeneralize if the bottom isn't the same -- we've got a type like [[A → B] A → B]
         int count = s_count_in_v(lb, t);
         if (count == 2) {
+            char *s = string_type(t);
+            printf("Regeneralizing: %s.\n", s);
+            free(s);
             // this means the only occurrences of the type ARE on the bottom of the function stacks;
             // this prevents us from accidentally re-generalizing in a wider context like [[A → A] A → A].
             // (however, we will end up regeneralizing that first function eventually, so we will end up
@@ -352,10 +349,16 @@ void regeneralize(value_type *t) {
             stack_type *generalized_bottom = stack_var();
             stack_type *newleft = replace_bottom_of_stack(left, generalized_bottom);
             stack_type *newright = replace_bottom_of_stack(right, generalized_bottom);
-            newleft->refs++;
-            newright->refs++;
             t->content.func_type.in = newleft;
             t->content.func_type.out = newright;
+            if (newleft->tag == S_VAR) {
+                newleft->refs++;
+            }
+            if (newright->tag == S_VAR) {
+                newright->refs++;
+            }
+            s = string_type(t);
+            free(s);
         }
     }
 }
@@ -777,6 +780,7 @@ value_type *infer_type(node_t *nn) {
             HASH_FIND_STR (lib.table, nn->content.n_str, e);
             if (e) {
                 if (e->type->tag != V_ERROR) {
+                    printf("copied type for %s..\n", nn->content.n_str);
                     result = copy_type(e->type);
                 } else {
                     result = e->type;
@@ -792,7 +796,9 @@ value_type *infer_type(node_t *nn) {
         default:
             fprintf(stderr, "unrecognized node type %d, wtf\n", nn->tag);
     }
-    regeneralize(result);
+    if (nn->tag == N_COMPOSED) {
+        regeneralize(result);
+    }
 #ifdef TYPEDEBUG
     printf("[INF] "); do_print_type(result); printf("\n");
 #endif

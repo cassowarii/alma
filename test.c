@@ -1,10 +1,9 @@
-#include "cloth.h"
+#include "alma.h"
 
 int main(int argc, char **argv) {
-    char *s = malloc(5);
-    strcpy(s, "test");
-    char *t = malloc(6);
-    strcpy(t, "test!");
-    error *e = error_msg("this is my %s and my %s", s, t);
-    print_error(e);
+    stack_type *X = stack_var();
+    value_type *a = type_var();
+    value_type *thing = func_type(stack_of(a, X), X);
+    regeneralize(thing);
+    free_type(thing);
 }
