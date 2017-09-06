@@ -168,6 +168,7 @@ definition:
             }
             add_lib_entry(&lib, def);
             $$ = NULL;
+            free($1);
         }
     }
 

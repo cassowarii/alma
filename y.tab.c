@@ -1492,13 +1492,14 @@ yyreduce:
             }
             add_lib_entry(&lib, def);
             (yyval.n) = NULL;
+            free((yyvsp[-2].s));
         }
     }
-#line 1498 "y.tab.c" /* yacc.c:1646  */
+#line 1499 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1502 "y.tab.c" /* yacc.c:1646  */
+#line 1503 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1726,5 +1727,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 174 "grammar.y" /* yacc.c:1906  */
+#line 175 "grammar.y" /* yacc.c:1906  */
 
