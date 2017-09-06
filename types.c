@@ -312,7 +312,7 @@ stack_type *replace_bottom_of_stack(stack_type *t, stack_type *new_bottom) {
         return new_bottom;
     } else if (t->tag == S_TOPTYPE) {
         t->content.top_type.rest = replace_bottom_of_stack(t->content.top_type.rest, new_bottom);
-        t->content.top_type.rest->refs ++;// ???XXX
+        t->content.top_type.rest->refs ++;
         return t;
     } else {
         return t;
