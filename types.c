@@ -52,48 +52,6 @@ value_type *list_of(value_type *what) {
     }
 }
 
-value_type *diverge(value_type *a) {
-    if (a->tag != V_ERROR) {
-        value_type *t = new_typevar();
-        a->refs ++;
-        t->tag = V_DIVERGE;
-        t->content.v = a;
-        return t;
-    } else {
-        return a;
-    }
-}
-
-void handle_diverge(value_type *a) {
-    if (a->tag != V_DIVERGE) return;
-#ifdef TYPEDEBUG
-    char *s = string_type(a->content.v);
-    printf("Now diverging from %s.\n", s);
-    free(s);
-#endif
-    value_type *copy = copy_type(a->content.v);
-    free_type(a->content.v); // decrement refcount
-    a->content.v = copy;
-    copy->refs ++;
-    a->tag = V_UNIFIED;
-#ifdef TYPEDEBUG
-    s = string_type(a->content.v);
-    printf("Diverged successfully, to %s\n", s);
-    free(s);
-#endif
-}
-
-void diverge_rest(stack_type *X) {
-    if (X->tag == S_VAR) return;
-#ifdef TYPEDEBUG
-    printf("I guess I have to diverge the rest of these on my own,\nsince the other stack wimped out with a variable.\n");
-#endif
-    if (X->tag == S_TOPTYPE) {
-        handle_diverge(X->content.top_type.top);
-        diverge_rest(X->content.top_type.rest);
-    }
-}
-
 value_type *func_type(stack_type *from, stack_type *to) {
     if (from->tag != S_ERROR && to->tag != S_ERROR) {
         value_type *t = new_typevar();
@@ -209,8 +167,8 @@ stack_type *named_stack_var(char name) {
 int compare_stack_types(stack_type *a, stack_type *b);
 
 int compare_types(value_type *a, value_type *b) {
-    while (a->tag == V_UNIFIED || a->tag == V_DIVERGE) { a = a->content.v; }
-    while (b->tag == V_UNIFIED || b->tag == V_DIVERGE) { b = b->content.v; }
+    while (a->tag == V_UNIFIED) { a = a->content.v; }
+    while (b->tag == V_UNIFIED) { b = b->content.v; }
     if (a->tag != b->tag
             && !(a->tag == V_VAR && b->tag == V_SCALARVAR)
             && !(a->tag == V_SCALARVAR && b->tag == V_VAR)) {
@@ -321,8 +279,6 @@ int s_occurs_in_s(stack_type *a, stack_type *b) {
 stack_type *unify_stack(stack_type *a, stack_type *b);
 
 value_type *unify(value_type *a, value_type *b) {
-    handle_diverge(a);
-    handle_diverge(b);
     while (a->tag == V_UNIFIED) { a = a->content.v; }
     while (b->tag == V_UNIFIED) { b = b->content.v; }
 #ifdef TYPEDEBUG
@@ -438,7 +394,6 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
             a->content.unif = b;
             b->refs ++;
         }
-        //diverge_rest(b);
         return b;
     } else if (b->tag == S_VAR) {
         return unify_stack(b, a);
@@ -465,9 +420,6 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
         value_type *x = unify(a->content.top_type.top, b->content.top_type.top);
         stack_type *result;
         if (x->tag != V_ERROR) {
-            // copy arguments that aren't actually linked anymore
-            /*handle_diverge(a->content.top_type.top);
-            handle_diverge(b->content.top_type.top);*/
             result = unify_stack(a->content.top_type.rest, b->content.top_type.rest);
         } else {
             error *e = x->content.err;
@@ -582,8 +534,6 @@ value_type *do_type_copy(value_type *t, type_mapping **map) {
             return product_type(do_type_copy(t->content.prod_type.left, map), do_type_copy(t->content.prod_type.right, map));
         case V_UNIFIED:
             return do_type_copy(t->content.v, map);
-        case V_DIVERGE:
-            return diverge(do_type_copy(t->content.v, map));
         case V_ERROR:
             return t;
     }
@@ -801,7 +751,6 @@ void give_names(value_type *t, char *current_v, char *current_s) {
             // do nothing
             return;
         case V_UNIFIED:
-        case V_DIVERGE:
             give_names(t->content.v, current_v, current_s);
             return;
         case V_ERROR:
@@ -964,7 +913,6 @@ void do_string_type(char **s, value_type *t) {
             rstrcat(s, t->content.type_name);
             break;
         case V_UNIFIED:
-        case V_DIVERGE:
 #ifdef TYPEDEBUG
             asprintf(&tmp, "D<%ld>:", t->id);
             rstrcat(s, tmp);
@@ -1040,7 +988,6 @@ void free_type(value_type *t) {
             case V_LIST:
                 free_type(t->content.v);
                 break;
-            case V_DIVERGE:
             case V_UNIFIED:
                 free_type(t->content.v);
                 break;

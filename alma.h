@@ -50,7 +50,6 @@ enum vtype_tag {
     V_BASETYPE,
     V_PRODUCT,
     V_UNIFIED,
-    V_DIVERGE,
     V_ERROR,
 };
 

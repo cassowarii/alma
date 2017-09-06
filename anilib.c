@@ -146,7 +146,6 @@ elem_t *word_cons(elem_t **top) {
 value_type *type_split() {
     stack_type *X = stack_var();
     value_type *a = type_var();
-    //return func_type(stack_of(list_of(a), X), stack_of(diverge(a), stack_of(list_of(diverge(a)), X)));
     return func_type(stack_of(list_of(a), X), stack_of(a, stack_of(list_of(a), X)));
 }
 
