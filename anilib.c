@@ -331,8 +331,6 @@ elem_t *word_if(elem_t **top) {
 value_type *type_while() {
     stack_type *X = stack_var();
     stack_type *Y = stack_var();
-    stack_type *Z = stack_var();
-    //value_type *a = type_var();
     return func_type(stack_of(func_type(X, stack_of(vt_bool, Y)),       // { { 'X → bool 'Y }
                 stack_of(func_type(Y, X), X)), X);                      //   { 'Y → 'X } 'X → 'X }
 }

@@ -57,13 +57,11 @@ int nested_comments = 0;
 
   /* The few keywords. */
 define {
-    yylval->s = calloc(7, sizeof(char));
-    strcpy(yylval->s, "define");
+    yylval->s=strdup(yytext);
     return T_MACRO;
 }
 bind {
-    yylval->s = calloc(5, sizeof(char));
-    strcpy(yylval->s, "bind");
+    yylval->s=strdup(yytext);
     return T_MACRO;
 }
 true {
