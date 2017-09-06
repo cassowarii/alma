@@ -158,6 +158,9 @@ list:
 definition:
     T_MACRO T_WORD block {
         if (!strcmp($1, "define")) {
+#ifdef DIVDEBUG
+            printf("DEFINING: %s\n", $2);
+#endif
             lib_entry_t *def = create_entry();
             def->name = $2;
             def->type = infer_type($3);
@@ -168,6 +171,9 @@ definition:
             }
             add_lib_entry(&lib, def);
             $$ = NULL;
+#ifdef DIVDEBUG
+            printf("END DEFINITION: %s\n", $2);
+#endif
         }
     }
 

@@ -34,8 +34,6 @@ println replicate 5 [ 7 ]
 println replicate 3 [ { "Bagels" "Hamburgers" "Club Sandwiches" } ]
 println typeof [replicate]
 
-println replicate 5 6
-
 define make-copies [
     dip [ curry [ ] ]
     replicate

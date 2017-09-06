@@ -52,53 +52,6 @@ value_type *list_of(value_type *what) {
     }
 }
 
-value_type *diverge(value_type *a) {
-    if (a->tag != V_ERROR) {
-        value_type *t = new_typevar();
-        a->refs ++;
-        t->tag = V_DIVERGE;
-        t->content.v = a;
-        return t;
-    } else {
-        return a;
-    }
-}
-
-void handle_diverge(value_type *a) {
-    if (a->tag != V_DIVERGE) return;
-    if (a->content.v->tag == V_VAR) return;
-    if (a->content.v->tag == V_BASETYPE) {
-        a->tag = V_UNIFIED;
-        return;
-    }
-#ifdef TYPEDEBUG
-    char *s = string_type(a->content.v);
-    printf("Now diverging from %s.\n", s);
-    free(s);
-#endif
-    value_type *copy = copy_type(a->content.v);
-    free_type(a->content.v); // decrement refcount
-    a->content.v = copy;
-    copy->refs ++;
-    a->tag = V_UNIFIED;
-#ifdef TYPEDEBUG
-    s = string_type(a->content.v);
-    printf("Diverged successfully, to %s\n", s);
-    free(s);
-#endif
-}
-
-void diverge_rest(stack_type *X) {
-    if (X->tag == S_VAR) return;
-#ifdef TYPEDEBUG
-    printf("I guess I have to diverge the rest of these on my own,\nsince the other stack wimped out with a variable.\n");
-#endif
-    if (X->tag == S_TOPTYPE) {
-        handle_diverge(X->content.top_type.top);
-        diverge_rest(X->content.top_type.rest);
-    }
-}
-
 value_type *func_type(stack_type *from, stack_type *to) {
     if (from->tag != S_ERROR && to->tag != S_ERROR) {
         value_type *t = new_typevar();
@@ -214,8 +167,8 @@ stack_type *named_stack_var(char name) {
 int compare_stack_types(stack_type *a, stack_type *b);
 
 int compare_types(value_type *a, value_type *b) {
-    while (a->tag == V_UNIFIED || a->tag == V_DIVERGE) { a = a->content.v; }
-    while (b->tag == V_UNIFIED || b->tag == V_DIVERGE) { b = b->content.v; }
+    while (a->tag == V_UNIFIED) { a = a->content.v; }
+    while (b->tag == V_UNIFIED) { b = b->content.v; }
     if (a->tag != b->tag
             && !(a->tag == V_VAR && b->tag == V_SCALARVAR)
             && !(a->tag == V_SCALARVAR && b->tag == V_VAR)) {
@@ -260,35 +213,35 @@ int compare_stack_types(stack_type *a, stack_type *b) {
     return 1;
 }
 
-int v_occurs_in_v(value_type *a, value_type *b);
-int v_occurs_in_s(value_type *a, stack_type *b);
-int s_occurs_in_v(stack_type *a, value_type *b);
-int s_occurs_in_s(stack_type *a, stack_type *b);
+int v_count_in_v(value_type *a, value_type *b);
+int v_count_in_s(value_type *a, stack_type *b);
+int s_count_in_v(stack_type *a, value_type *b);
+int s_count_in_s(stack_type *a, stack_type *b);
 
-int v_occurs_in_v(value_type *a, value_type *b) {
+int v_count_in_v(value_type *a, value_type *b) {
     while (a->tag == V_UNIFIED) { a = a->content.v; }
     while (b->tag == V_UNIFIED) { b = b->content.v; }
     if (a == b) {
         return 1;
     } else if (b->tag == V_FUNC) {
-        return v_occurs_in_s(a, b->content.func_type.in) || v_occurs_in_s(a, b->content.func_type.out);
+        return v_count_in_s(a, b->content.func_type.in) + v_count_in_s(a, b->content.func_type.out);
     } else if (b->tag == V_LIST) {
-        return v_occurs_in_v(a, b->content.v);
+        return v_count_in_v(a, b->content.v);
     } else if (b->tag == V_PRODUCT) {
-        return v_occurs_in_v(a, b->content.prod_type.left) || v_occurs_in_v(a, b->content.prod_type.right);
+        return v_count_in_v(a, b->content.prod_type.left) + v_count_in_v(a, b->content.prod_type.right);
     } else {
         return 0;
     }
 }
 
-int v_occurs_in_s(value_type *a, stack_type *b) {
+int v_count_in_s(value_type *a, stack_type *b) {
     while (a->tag == V_UNIFIED) { a = a->content.v; }
     while (b->tag == S_UNIFIED) { b = b->content.unif; }
     if (b->tag == S_TOPTYPE) {
         if (b->content.top_type.top == a) {
-            return 1;
+            return 1 + v_count_in_s(a, b->content.top_type.rest);
         } else {
-            return v_occurs_in_s(a, b->content.top_type.rest);
+            return v_count_in_s(a, b->content.top_type.rest);
         }
     } else if (b->tag == S_VAR) {
         return 0;
@@ -297,29 +250,113 @@ int v_occurs_in_s(value_type *a, stack_type *b) {
     }
 }
 
-int s_occurs_in_v(stack_type *a, value_type *b) {
+int s_count_in_v(stack_type *a, value_type *b) {
     while (a->tag == S_UNIFIED) { a = a->content.unif; }
     while (b->tag == V_UNIFIED) { b = b->content.v; }
     if (b->tag == V_FUNC) {
-        return s_occurs_in_s(a, b->content.func_type.in) || s_occurs_in_s(a, b->content.func_type.out);
+        return s_count_in_s(a, b->content.func_type.in) + s_count_in_s(a, b->content.func_type.out);
     } else if (b->tag == V_LIST) {
-        return s_occurs_in_v(a, b->content.v);
+        return s_count_in_v(a, b->content.v);
     } else if (b->tag == V_PRODUCT) {
-        return s_occurs_in_v(a, b->content.prod_type.left) || s_occurs_in_v(a, b->content.prod_type.right);
+        return s_count_in_v(a, b->content.prod_type.left) + s_count_in_v(a, b->content.prod_type.right);
     } else {
         return 0;
     }
 }
 
-int s_occurs_in_s(stack_type *a, stack_type *b) {
+int s_count_in_s(stack_type *a, stack_type *b) {
     while (a->tag == S_UNIFIED) { a = a->content.unif; }
     while (b->tag == S_UNIFIED) { b = b->content.unif; }
     if (a == b) {
         return 1;
     } else if (b->tag == S_TOPTYPE) {
-        return s_occurs_in_v(a, b->content.top_type.top) || s_occurs_in_s(a, b->content.top_type.rest);
+        return s_count_in_v(a, b->content.top_type.top) + s_count_in_s(a, b->content.top_type.rest);
     } else {
         return 0;
+    }
+}
+
+stack_type *copy_stack_structure(stack_type *t) {
+    while (t->tag == S_UNIFIED) { t = t->content.unif; }
+    if (t->tag == S_TOPTYPE) {
+        return stack_of(t->content.top_type.top, copy_stack_structure(t->content.top_type.rest));
+    }
+    return t;
+}
+
+stack_type *bottom_of_stack(stack_type *t) {
+    while (t->tag == S_UNIFIED) { t = t->content.unif; }
+    if (t->tag == S_TOPTYPE) {
+        return bottom_of_stack(t->content.top_type.rest);
+    }
+    return t;
+}
+
+stack_type *replace_bottom_of_stack(stack_type *t, stack_type *new_bottom) {
+    if (new_bottom->tag != S_VAR) {
+        fprintf(stderr, "[INTERNAL ERROR] can't replace bottom of stack with something that isn't a variable!\n");
+        fprintf(stderr, "[INTERNAL ERROR] (Enum type of attempted replacement: %d)\n", new_bottom->tag);
+        return t;
+    }
+    if (t->tag == S_UNIFIED) {
+        // If we're calling this function, we actually want to "un-stick" them from each other.
+        // Copy the structure of the stack (since we're changing part of it), but leave the actual
+        // contents un-copied for now
+        stack_type *ns = copy_stack_structure(t->content.unif);
+        t->content.unif = replace_bottom_of_stack(ns, new_bottom);
+        return t;
+    }
+    if (t->tag == S_VAR) {
+        free_stack_type(t);
+        new_bottom->refs ++;
+        return new_bottom;
+    } else if (t->tag == S_TOPTYPE) {
+        if (t->content.top_type.rest->tag == S_VAR) {
+            // we're at the bottom of the stack, replace it!
+            stack_type *n = stack_of(t->content.top_type.top, new_bottom);
+            free_stack_type(t);
+            return n;
+        } else {
+            t->content.top_type.rest = replace_bottom_of_stack(t->content.top_type.rest, new_bottom);
+            return t;
+        }
+    } else {
+        return t;
+    }
+}
+
+void regen_over_stack(stack_type *t) {
+    if (t->tag == S_TOPTYPE) {
+        regeneralize(t->content.top_type.top);
+        regen_over_stack(t->content.top_type.rest);
+        char *s = string_stack_type(t);
+        free(s);
+    }
+}
+
+void regeneralize(value_type *t) {
+    while (t->tag == V_UNIFIED) { t = t->content.v; }
+    if (t->tag != V_FUNC) {
+        return;
+    }
+    stack_type *left = t->content.func_type.in;
+    stack_type *right = t->content.func_type.out;
+    stack_type *lb = bottom_of_stack(left);
+    stack_type *rb = bottom_of_stack(right);
+    if (lb == rb && lb->tag != S_ZERO) {
+        // can't regeneralize if the bottom isn't the same -- we've got a type like [[A → B] A → B]
+        int count = s_count_in_v(lb, t);
+        if (count == 2) {
+            // this means the only occurrences of the type ARE on the bottom of the function stacks;
+            // this prevents us from accidentally re-generalizing in a wider context like [[A → A] A → A].
+            // (however, we will end up regeneralizing that first function eventually, so we will end up
+            //  with [[A → A] B → B] eventually.
+            stack_type *generalized_bottom = stack_var();
+            stack_type *newleft = replace_bottom_of_stack(left, generalized_bottom);
+            stack_type *newright = replace_bottom_of_stack(right, generalized_bottom);
+            t->content.func_type.in = newleft;
+            t->content.func_type.out = newright;
+        }
     }
 }
 
@@ -328,25 +365,16 @@ stack_type *unify_stack(stack_type *a, stack_type *b);
 value_type *unify(value_type *a, value_type *b) {
     while (a->tag == V_UNIFIED) { a = a->content.v; }
     while (b->tag == V_UNIFIED) { b = b->content.v; }
-    if (a->tag == V_DIVERGE) {
-        handle_diverge(a);
-        value_type *result = unify(a->content.v, b);
-        return result;
-    } else if (b->tag == V_DIVERGE) {
-        handle_diverge(b);
-        value_type *result = unify(a, b->content.v);
-        return result;
-    }
 #ifdef TYPEDEBUG
-    /*printf("[U] %ld<%d> := %ld<%d>; ", a->id, a->tag, b->id, b->tag);
-    do_print_type(a); printf("; "); do_print_type(b); printf("; ");*/
+    printf("[U] %ld<%d> := %ld<%d>; ", a->id, a->tag, b->id, b->tag);
+    do_print_type(a); printf("; "); do_print_type(b); printf("; ");
 #endif
     if (a->tag == V_VAR || a->tag == V_SCALARVAR) {
 #ifdef TYPEDEBUG
         printf("Unify var-type %ld with %ld\n", a->id, b->id);
 #endif
         if (a != b) {
-            if (v_occurs_in_v(a, b)) {
+            if (v_count_in_v(a, b) > 0) {
                 error *e = error_msg("found one type inside the other!");
                 char *sa = string_type(a);
                 char *sb = string_type(b);
@@ -437,7 +465,7 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
         free(sb);
 #endif
         if (a != b) {
-            if (s_occurs_in_s(a, b)) {
+            if (s_count_in_s(a, b) > 0) {
                 error *e = error_msg("found one type inside the other!");
                 char *sa = string_stack_type(a);
                 char *sb = string_stack_type(b);
@@ -450,7 +478,6 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
             a->content.unif = b;
             b->refs ++;
         }
-        //diverge_rest(b);
         return b;
     } else if (b->tag == S_VAR) {
         return unify_stack(b, a);
@@ -477,9 +504,6 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
         value_type *x = unify(a->content.top_type.top, b->content.top_type.top);
         stack_type *result;
         if (x->tag != V_ERROR) {
-            // copy arguments that aren't actually linked anymore
-            /*handle_diverge(a->content.top_type.top);
-            handle_diverge(b->content.top_type.top);*/
             result = unify_stack(a->content.top_type.rest, b->content.top_type.rest);
         } else {
             error *e = x->content.err;
@@ -594,8 +618,6 @@ value_type *do_type_copy(value_type *t, type_mapping **map) {
             return product_type(do_type_copy(t->content.prod_type.left, map), do_type_copy(t->content.prod_type.right, map));
         case V_UNIFIED:
             return do_type_copy(t->content.v, map);
-        case V_DIVERGE:
-            return diverge(do_type_copy(t->content.v, map));
         case V_ERROR:
             return t;
     }
@@ -678,6 +700,7 @@ value_type *infer_type(node_t *nn) {
                 ok = unify_stack(l->content.func_type.out, r->content.func_type.in);
                 if (ok->tag != S_ERROR) {
                     result = func_type(l->content.func_type.in, r->content.func_type.out);
+                    regen_over_stack(result->content.func_type.out);
                 } else {
                     char *sl = string_type(l);
                     char *sr = string_type(r);
@@ -698,8 +721,8 @@ value_type *infer_type(node_t *nn) {
                 }
                 /*free_stack_type(out);
                 free_stack_type(in);*/
-                free_type(l);
-                free_type(r);
+                /*free_type(l);
+                free_type(r);*/
             } else {
                 l = infer_type(left(nn));
                 result = l;
@@ -775,6 +798,7 @@ value_type *infer_type(node_t *nn) {
         default:
             fprintf(stderr, "unrecognized node type %d, wtf\n", nn->tag);
     }
+    regeneralize(result);
 #ifdef TYPEDEBUG
     printf("[INF] "); do_print_type(result); printf("\n");
 #endif
@@ -813,7 +837,6 @@ void give_names(value_type *t, char *current_v, char *current_s) {
             // do nothing
             return;
         case V_UNIFIED:
-        case V_DIVERGE:
             give_names(t->content.v, current_v, current_s);
             return;
         case V_ERROR:
@@ -903,6 +926,7 @@ char *string_type_nocopy(value_type *t) {
 char *string_type(value_type *t) {
 #ifndef TYPEDEBUG
     value_type *x = copy_type(t);
+    x->refs ++;
 #else
     value_type *x = t;
 #endif
@@ -937,7 +961,7 @@ void do_string_type(char **s, value_type *t) {
             if (t->content.var_name == '_') {
                 asprintf(&tmp, "'<%ld>", t->id);
             } else {
-#ifdef TYPEDEBUG
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
                 asprintf(&tmp, "'%c<%ld>", t->content.var_name, t->id);
 #else
                 asprintf(&tmp, "'%c", t->content.var_name);
@@ -946,7 +970,7 @@ void do_string_type(char **s, value_type *t) {
             rstrcat(s, tmp);
             break;
         case V_FUNC:
-#ifdef TYPEDEBUG
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
             asprintf(&tmp, "%ld[ ", t->id);
             rstrcat(s, tmp);
 #else
@@ -958,7 +982,7 @@ void do_string_type(char **s, value_type *t) {
             rstrcat(s, " ]");
             break;
         case V_LIST:
-#ifdef TYPEDEBUG
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
             asprintf(&tmp, "%ld{", t->id);
             rstrcat(s, tmp);
 #else
@@ -976,11 +1000,6 @@ void do_string_type(char **s, value_type *t) {
             rstrcat(s, t->content.type_name);
             break;
         case V_UNIFIED:
-        case V_DIVERGE:
-#ifdef TYPEDEBUG
-            asprintf(&tmp, "D<%ld>:", t->id);
-            rstrcat(s, tmp);
-#endif
             do_string_type(s, t->content.v);
             break;
         case V_ERROR:
@@ -1002,16 +1021,16 @@ void do_string_stack_type(char **s, stack_type *t) {
             if (t->content.var_name == '_') {
                 asprintf(&tmp, "'S<%ld>", t->id);
             } else {
-#ifndef TYPEDEBUG
-                asprintf(&tmp, "'%c", t->content.var_name);
-#else
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
                 asprintf(&tmp, "'%c<%ld>", t->content.var_name, t->id);
+#else
+                asprintf(&tmp, "'%c", t->content.var_name);
 #endif
             }
             rstrcat(s, tmp);
             break;
         case S_TOPTYPE:
-#ifdef TYPEDEBUG
+#if defined(TYPEDEBUG) || defined(DIVDEBUG)
             asprintf(&tmp, "%ld ", t->id);
             rstrcat(s, tmp);
 #endif
@@ -1052,7 +1071,6 @@ void free_type(value_type *t) {
             case V_LIST:
                 free_type(t->content.v);
                 break;
-            case V_DIVERGE:
             case V_UNIFIED:
                 free_type(t->content.v);
                 break;
