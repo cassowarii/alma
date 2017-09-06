@@ -329,8 +329,6 @@ void regen_over_stack(stack_type *t) {
     if (t->tag == S_TOPTYPE) {
         regeneralize(t->content.top_type.top);
         regen_over_stack(t->content.top_type.rest);
-        char *s = string_stack_type(t);
-        free(s);
     }
 }
 
@@ -354,6 +352,8 @@ void regeneralize(value_type *t) {
             stack_type *generalized_bottom = stack_var();
             stack_type *newleft = replace_bottom_of_stack(left, generalized_bottom);
             stack_type *newright = replace_bottom_of_stack(right, generalized_bottom);
+            newleft->refs++;
+            newright->refs++;
             t->content.func_type.in = newleft;
             t->content.func_type.out = newright;
         }
@@ -693,10 +693,6 @@ value_type *infer_type(node_t *nn) {
                     free_type(l);
                     break;
                 }
-                /*stack_type *out = copy_stack_type(l->content.func_type.out);
-                out->refs++;
-                stack_type *in = copy_stack_type(r->content.func_type.in);
-                in->refs++;*/
                 ok = unify_stack(l->content.func_type.out, r->content.func_type.in);
                 if (ok->tag != S_ERROR) {
                     result = func_type(l->content.func_type.in, r->content.func_type.out);
@@ -719,10 +715,8 @@ value_type *infer_type(node_t *nn) {
                     free(sl);
                     free(sr);
                 }
-                /*free_stack_type(out);
-                free_stack_type(in);*/
-                /*free_type(l);
-                free_type(r);*/
+                free_type(l);
+                free_type(r);
             } else {
                 l = infer_type(left(nn));
                 result = l;
