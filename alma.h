@@ -290,7 +290,7 @@ stack_type *stack_var();
 stack_type *zero_stack();
 stack_type *error_stacktype(error *e);
 
-void regeneralize(value_type *t);
+void regeneralize(value_type **tpt);
 
 int compare_types(value_type *a, value_type *b);
 

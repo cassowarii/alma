@@ -1482,9 +1482,6 @@ yyreduce:
 #line 159 "grammar.y" /* yacc.c:1646  */
     {
         if (!strcmp((yyvsp[-2].s), "define")) {
-#ifdef DIVDEBUG
-            printf("DEFINING: %s\n", (yyvsp[-1].s));
-#endif
             lib_entry_t *def = create_entry();
             def->name = (yyvsp[-1].s);
             def->type = infer_type((yyvsp[0].n));
@@ -1495,16 +1492,14 @@ yyreduce:
             }
             add_lib_entry(&lib, def);
             (yyval.n) = NULL;
-#ifdef DIVDEBUG
-            printf("END DEFINITION: %s\n", (yyvsp[-1].s));
-#endif
+            free((yyvsp[-2].s));
         }
     }
-#line 1504 "y.tab.c" /* yacc.c:1646  */
+#line 1499 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1508 "y.tab.c" /* yacc.c:1646  */
+#line 1503 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1732,5 +1727,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 180 "grammar.y" /* yacc.c:1906  */
+#line 175 "grammar.y" /* yacc.c:1906  */
 
