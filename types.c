@@ -914,7 +914,7 @@ char *string_stack_type(stack_type *t) {
     stack_give_names(x, &cv, &cs);
     char *s = malloc(1);
     strcpy(s, "\0");
-    do_string_stack_type(&s, t);
+    do_string_stack_type(&s, x);
     free_stack_type(x);
     return s;
 }
