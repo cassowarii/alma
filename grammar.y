@@ -8,6 +8,7 @@ FILE *yyin;
 extern int yychar;
 extern int yylineno;
 extern int interactive_mode;
+extern int repling;
 extern int newlined; // Was a newline the last thing printed?
 
 int yylex();
@@ -47,11 +48,12 @@ int main(int argc, char **argv) {
         if (interactive_mode) {
             if (!newlined) {
                 printf("\n");
+                newlined = 1;
             }
             printf("%s", primary_prompt);
         }
         yyparse();
-    } while (interactive_mode);
+    } while (repling);
     free_elems_below(stack_top);
     free_node(root);
     if (yyin) fclose(yyin);
@@ -122,13 +124,14 @@ program: sequence_list {
                         printf("Error in compilation at line %d:\n", s->content.err->line);
                     }
                     print_error(s->content.err);
-                    printf("(stack would bottom out!)\n");
+                    printf("Not enough values on stack!\n");
+                    printf("Compilation aborted.\n");
                 } else {
                     eval(root, &stack_top);
                 }
             }
             free_type(t);
-            if (interactive_mode) {
+            if (repling) {
                 free_node(root);
             }
         }

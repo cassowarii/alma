@@ -63,20 +63,27 @@ value_type *type_list() {
 }
 
 elem_t *word_list(elem_t **top) {
-    do_list(top);
-    printf("\n");
+    int count = do_list(top);
+    if (count > 0) {
+        printf("\n");
+        newlined = 1;
+    }
     return NULL;
 }
 
-void do_list(elem_t **top) {
+// Returns number of elements listed.
+int do_list(elem_t **top) {
     elem_t *elem = *top;
+    int count = 0;
     while (elem) {
+        count ++;
         print_elem(elem);
         if (elem->next != NULL) {
             printf(" ; ");
         }
         elem = elem->next;
     }
+    return count;
 }
 
 value_type *type_copy() {
@@ -709,8 +716,8 @@ value_type *type_quit() {
 
 elem_t *word_quit(elem_t **top) {
     if (interactive_mode) {
-        interactive_mode = 0;
         // End the loop
+        repling = 0;
         return NULL;
     } else {
         return NULL;

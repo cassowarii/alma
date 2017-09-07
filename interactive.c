@@ -1,6 +1,7 @@
 #include "alma.h"
 
 void setup_interactives() {
+    repling = 1;
     asprintf(&primary_prompt, ">>> ");
     asprintf(&secondary_prompt, "... ");
 #ifdef __GNUC__

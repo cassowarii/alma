@@ -119,7 +119,11 @@ elem_t *elem_from(node_t *n) {
         //elem->content.e_str = n->content.n_str;
     } else if (n->tag == N_BLOCK) {
         elem->tag = E_BLOCK;
-        elem->content.block = left(n);
+        if (!interactive_mode) {
+            elem->content.block = left(n);
+        } else {
+            elem->content.block = copy_node(left(n));
+        }
         set_type(elem, infer_type(elem->content.block));
     } else {
         printf("Unimplemented element type %d.\n", n->tag);

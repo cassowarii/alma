@@ -276,7 +276,7 @@ char *rstrcat(char **dest, char *src);
 elem_t *word_pop(elem_t **top);
 elem_t *word_list(elem_t **top);
 elem_t *word_println(elem_t **top);
-void do_list(elem_t **top);
+int do_list(elem_t **top);
 
 /* -- Types -- */
 void set_type (elem_t *e, value_type *t);
@@ -321,8 +321,8 @@ void free_stack_type(stack_type *t);
 void setup_interactives();
 stack_type *type_of_current_stack(elem_t *top);
 int interactive_mode;
+int repling;
 char *primary_prompt;
 char *secondary_prompt;
 char *motd;
 int newlined;
-
