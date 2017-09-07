@@ -123,6 +123,7 @@ program: sequence_list {
                     current = type_of_current_stack(stack_top);
                 }
                 s = unify_stack(t->content.func_type.in, current);
+                current->refs ++;
                 if (s->tag == S_ERROR) {
                     if (s->content.err->line == -1) {
                         printf("Error in compilation at unknown line:\n");
@@ -132,8 +133,11 @@ program: sequence_list {
                     print_error(s->content.err);
                     printf("Not enough values on stack!\n");
                     printf("Compilation aborted.\n");
+                    free_error(s->content.err);
+                    free_stack_type(s);
                 } else {
                     eval(root, &stack_top);
+                    free_stack_type(current);
                 }
             }
             free_type(t);

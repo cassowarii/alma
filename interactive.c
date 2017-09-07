@@ -32,5 +32,6 @@ stack_type *type_of_current_stack(elem_t *top) {
     if (top == NULL) {
         return zero_stack();
     }
-    return stack_of(top->type, type_of_current_stack(top->next));
+    stack_type *result = stack_of(top->type, type_of_current_stack(top->next));
+    return result;
 }
