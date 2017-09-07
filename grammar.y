@@ -26,14 +26,20 @@ int yywrap() {
 
 int main(int argc, char **argv) {
     if (argc == 2) {
-        yyin = fopen(argv[1], "r");
-        if (!yyin) {
-            fprintf(stderr,
-                    "Couldn't open file %s. Are you sure it exists?\n",
-                    argv[argc-1]);
-            return 1;
+        if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
+            setup_interactives();
+            printf("Alma version %s\n", ALMA_VERSION);
+            exit(0);
+        } else {
+            yyin = fopen(argv[1], "r");
+            if (!yyin) {
+                fprintf(stderr,
+                        "Couldn't open file %s. Are you sure it exists?\n",
+                        argv[argc-1]);
+                return 1;
+            }
+            interactive_mode = 0;
         }
-        interactive_mode = 0;
     } else {
         interactive_mode = 1;
     }

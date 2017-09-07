@@ -3,7 +3,7 @@
 #include <string.h>
 #include "uthash.h"
 #define node(x, y, z) _node_lineno((x), (y), (z), yylineno)
-#define ALMA_VERSION "0.0.1"
+#define ALMA_VERSION "0.0.1 \"Lemon Drop\""
 
 enum node_tag {
     N_BLOCK,
