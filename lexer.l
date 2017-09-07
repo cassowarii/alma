@@ -22,7 +22,8 @@ int nested_comments = 0;
 "]" {
     nested_blocks --;
     if (nested_blocks < 0) {
-        fprintf(stderr, "found `}` with no matching `{`!\n");
+        fprintf(stderr, "found `]` with no matching `[`!\n");
+        nested_blocks = 0;
     }
     return BLOCKCLOSE;
 }
@@ -33,7 +34,8 @@ int nested_comments = 0;
 "}"  {
     nested_lists --;
     if (nested_lists < 0) {
-        fprintf(stderr, "found `]` with no matching `[`!\n");
+        fprintf(stderr, "found `}` with no matching `{`!\n");
+        nested_lists = 0;
     }
     return LISTCLOSE;
 }

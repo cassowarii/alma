@@ -143,6 +143,10 @@ program: sequence_list {
                 free_node(root);
             }
         }
+    } | error SEPARATOR {
+        yyerrok ;
+        yyclearin ;
+        return;
     }
 
 sequence_list: sequence {
