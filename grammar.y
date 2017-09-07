@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
         if (interactive_mode) {
             if (!newlined) {
                 printf("\n");
-                newlined = 1;
+                newlined = 0;
             }
             printf("%s", primary_prompt);
         }

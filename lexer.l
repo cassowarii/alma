@@ -41,6 +41,7 @@ int nested_comments = 0;
 \n  {
     if (yyin == stdin) {
         if (nested_lists == 0 && nested_blocks == 0) {
+            newlined = 1;
             return 0;
         } else {
             printf("%s", secondary_prompt);
@@ -117,5 +118,5 @@ false {
   /* Ignored. */
 [ \t]+                  /* skip whitespace */;
   /* End of file! */
-<<EOF>> { return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
+<<EOF>> { newlined = 0; return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
 %%
