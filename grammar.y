@@ -8,6 +8,7 @@ FILE *yyin;
 extern int yychar;
 extern int yylineno;
 extern int interactive_mode;
+extern int newlined; // Was a newline the last thing printed?
 
 int yylex();
 int yyparse();
@@ -44,6 +45,9 @@ int main(int argc, char **argv) {
     }
     do {
         if (interactive_mode) {
+            if (!newlined) {
+                printf("\n");
+            }
             printf("%s", primary_prompt);
         }
         yyparse();
@@ -93,8 +97,6 @@ program: sequence_list {
         root = $1;
         if (root != NULL) {
             value_type *t = infer_type(root);
-            // TODO prevent stack from bottoming out by somehow stack-unifying program
-            // input with a zero stack
             if (t->tag == V_ERROR) {
                 if (t->content.err->line == -1) {
                     printf("Error in compilation at unknown line:\n");
@@ -105,9 +107,30 @@ program: sequence_list {
                 printf("Compilation aborted.\n");
                 free_error(t->content.err);
             } else {
-                eval(root, &stack_top);
+                stack_type *s = NULL;
+                stack_type *current;
+                if (!interactive_mode) {
+                    current = zero_stack();
+                } else {
+                    current = type_of_current_stack(stack_top);
+                }
+                s = unify_stack(t->content.func_type.in, current);
+                if (s->tag == S_ERROR) {
+                    if (s->content.err->line == -1) {
+                        printf("Error in compilation at unknown line:\n");
+                    } else {
+                        printf("Error in compilation at line %d:\n", s->content.err->line);
+                    }
+                    print_error(s->content.err);
+                    printf("(stack would bottom out!)\n");
+                } else {
+                    eval(root, &stack_top);
+                }
             }
             free_type(t);
+            if (interactive_mode) {
+                free_node(root);
+            }
         }
     }
 

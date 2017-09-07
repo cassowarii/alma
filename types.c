@@ -519,10 +519,11 @@ value_type *get_list_type(elem_t *e) {
     } else {
         value_type *check = copy_type(e->type);
         value_type *u = unify(below_type, check);
-        free_type(check);
         if (u->tag != V_ERROR) {
+            free_type(check);
             return below_type;
         } else {
+            free_type(check);
             // first mismatch
             value_type *err = error_type(error_msg("Mismatched types in list: %s and %s", string_type(below_type), string_type(e->type)));
             return err;

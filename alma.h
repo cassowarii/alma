@@ -319,7 +319,10 @@ void free_stack_type(stack_type *t);
 
 /* -- Interactive mode -- */
 void setup_interactives();
+stack_type *type_of_current_stack(elem_t *top);
 int interactive_mode;
 char *primary_prompt;
 char *secondary_prompt;
 char *motd;
+int newlined;
+

@@ -38,6 +38,7 @@ elem_t *word_print(elem_t **top) {
     elem_t *e = pop(top);
     print_elem(e);
     free_elem(e);
+    newlined = 0;
     return NULL;
 }
 
@@ -52,6 +53,7 @@ elem_t *word_println(elem_t **top) {
     print_elem(e);
     free_elem(e);
     printf("\n");
+    newlined = 1;
     return NULL;
 }
 
@@ -583,6 +585,30 @@ elem_t *word_select(elem_t **top) {
     }
 }
 
+value_type *type_LT() {
+    stack_type *X = stack_var();
+    return func_type(stack_of(vt_num, stack_of(vt_num, X)), stack_of(vt_bool, X));
+}
+
+elem_t *word_LT(elem_t **top) {
+    elem_t *e_a = pop(top);
+    elem_t *e_b = pop(top);
+    elem_t *result = elem_bool(e_a->content.e_int < e_b->content.e_int);
+    return result;
+}
+
+value_type *type_GT() {
+    stack_type *X = stack_var();
+    return func_type(stack_of(vt_num, stack_of(vt_num, X)), stack_of(vt_bool, X));
+}
+
+elem_t *word_GT(elem_t **top) {
+    elem_t *e_a = pop(top);
+    elem_t *e_b = pop(top);
+    elem_t *result = elem_bool(e_a->content.e_int > e_b->content.e_int);
+    return result;
+}
+
 value_type *type_EQUAL() {
     stack_type *X = stack_var();
     value_type *a = scalar_var();
@@ -742,6 +768,8 @@ void init_library(library *l) {
     add_lib_entry(l, construct("/",         type_FLDIV(),    &word_FLDIV));
     add_lib_entry(l, construct("div",       type_INTDIV(),   &word_INTDIV));
     add_lib_entry(l, construct("%",         type_MOD(),      &word_MOD));
+    add_lib_entry(l, construct("<",         type_LT(),       &word_LT));
+    add_lib_entry(l, construct(">",         type_GT(),       &word_GT));
     add_lib_entry(l, construct("select",    type_select(),   &word_select));
     add_lib_entry(l, construct("upper",     type_upper(),    &word_upper));
     add_lib_entry(l, construct("lower",     type_lower(),    &word_lower));

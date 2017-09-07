@@ -44,6 +44,7 @@ int nested_comments = 0;
             return 0;
         } else {
             printf("%s", secondary_prompt);
+            return SEPARATOR;
         }
     } else {
         return SEPARATOR;
