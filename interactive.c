@@ -1,5 +1,4 @@
 #include "alma.h"
-#include <stdio.h>
 #include <unistd.h>
 
 void setup_interactives() {
