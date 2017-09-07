@@ -3,6 +3,7 @@
 #include <string.h>
 #include "uthash.h"
 #define node(x, y, z) _node_lineno((x), (y), (z), yylineno)
+#define ALMA_VERSION "0.0.1"
 
 enum node_tag {
     N_BLOCK,
@@ -274,6 +275,7 @@ char *rstrcat(char **dest, char *src);
 /* -- Library -- */
 elem_t *word_pop(elem_t **top);
 elem_t *word_list(elem_t **top);
+elem_t *word_println(elem_t **top);
 void do_list(elem_t **top);
 
 /* -- Types -- */
@@ -314,3 +316,10 @@ void bestow_varnames (value_type *t);
 
 void free_type(value_type *t);
 void free_stack_type(stack_type *t);
+
+/* -- Interactive mode -- */
+void setup_interactives();
+int interactive_mode;
+char *primary_prompt;
+char *secondary_prompt;
+char *motd;

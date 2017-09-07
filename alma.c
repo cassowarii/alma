@@ -238,9 +238,6 @@ void do_word(const char *word, elem_t **top) {
 }
 
 elem_t *apply(lib_entry_t *e, elem_t **top) {
-    elem_t *check_elem = *top;
-    int zip_height = -1;
-    int i;
     /*value_type *type = copy_type(e->type);
     printf("Attempt-type: ");
     print_type(type);

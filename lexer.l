@@ -38,7 +38,17 @@ int nested_comments = 0;
     return LISTCLOSE;
 }
 ";" { return SEPARATOR; }
-\n  { return SEPARATOR; }
+\n  {
+    if (yyin == stdin) {
+        if (nested_lists == 0 && nested_blocks == 0) {
+            return 0;
+        } else {
+            printf("%s", secondary_prompt);
+        }
+    } else {
+        return SEPARATOR;
+    }
+}
   /* Comments. */
 <COMMENT,INITIAL>"(*" {
     BEGIN(COMMENT);

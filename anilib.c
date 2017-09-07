@@ -20,7 +20,11 @@ value_type *type_pop() {
 
 elem_t *word_pop(elem_t **top) {
     //*top = (*top)->next;
-    pop(top);
+    if (interactive_mode) {
+        word_println(top);
+    } else {
+        pop(top);
+    }
     return NULL;
 }
 
@@ -668,6 +672,25 @@ elem_t *word_lower(elem_t **top) {
     return elem_char(tolower(c));
 }
 
+value_type *type_quit() {
+    if (interactive_mode) {
+        stack_type *X = stack_var();
+        return func_type(X, X);
+    } else {
+        return error_type(error_msg("Can't use 'quit' non-interactively."));
+    }
+}
+
+elem_t *word_quit(elem_t **top) {
+    if (interactive_mode) {
+        interactive_mode = 0;
+        // End the loop
+        return NULL;
+    } else {
+        return NULL;
+    }
+}
+
 lib_entry_t *create_entry() {
     lib_entry_t *e = malloc(sizeof(lib_entry_t));
     e->name = NULL;
@@ -723,4 +746,5 @@ void init_library(library *l) {
     add_lib_entry(l, construct("upper",     type_upper(),    &word_upper));
     add_lib_entry(l, construct("lower",     type_lower(),    &word_lower));
     add_lib_entry(l, construct("=",         type_EQUAL(),    &word_EQUAL));
+    add_lib_entry(l, construct("quit",      type_quit(),     &word_quit));
 }

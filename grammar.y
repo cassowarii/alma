@@ -7,9 +7,12 @@
 FILE *yyin;
 extern int yychar;
 extern int yylineno;
+extern int interactive_mode;
 
 int yylex();
 int yyparse();
+
+node_t *root;
 
 void yyerror(const char *str) {
     throw_error(str, yylineno);
@@ -22,20 +25,31 @@ int yywrap() {
 int main(int argc, char **argv) {
     if (argc == 2) {
         yyin = fopen(argv[1], "r");
+        if (!yyin) {
+            fprintf(stderr,
+                    "Couldn't open file %s. Are you sure it exists?\n",
+                    argv[argc-1]);
+            return 1;
+        }
+        interactive_mode = 0;
     } else {
-        printf("usage: %s <file>\n", argv[0]);
-        return 1;
-    }
-    if (!yyin) {
-        fprintf(stderr,
-                "Couldn't open file %s. Are you sure it exists?\n",
-                argv[argc-1]);
-        return 1;
+        interactive_mode = 1;
     }
     stack_top = NULL;
     init_types();
     init_library(&lib);
-    yyparse();
+    if (interactive_mode) {
+        setup_interactives();
+        printf("%s", motd);
+    }
+    do {
+        if (interactive_mode) {
+            printf("%s", primary_prompt);
+        }
+        yyparse();
+    } while (interactive_mode);
+    free_elems_below(stack_top);
+    free_node(root);
     if (yyin) fclose(yyin);
     return 0;
 }
@@ -48,7 +62,6 @@ int main(int argc, char **argv) {
 %token LISTCLOSE "}"
 %token BLOCKOPEN "["
 %token BLOCKCLOSE "]"
-%token SEPARATOR
 %token END 0 "end-of-file"
 %token DEFINE "define"
 %token TRUE "true"
@@ -67,6 +80,7 @@ int main(int argc, char **argv) {
 %token <c> T_CHAR "character"
 %token <s> T_STRING "string"
 %token <d> T_FLOAT "float"
+%token <c> SEPARATOR
 %type <n> sequence_list
 %type <n> sequence
 %type <n> item
@@ -76,7 +90,7 @@ int main(int argc, char **argv) {
 
 %%
 program: sequence_list {
-        node_t *root = $1;
+        root = $1;
         if (root != NULL) {
             value_type *t = infer_type(root);
             // TODO prevent stack from bottoming out by somehow stack-unifying program
@@ -94,8 +108,6 @@ program: sequence_list {
                 eval(root, &stack_top);
             }
             free_type(t);
-            free_elems_below(stack_top);
-            free_node(root);
         }
     }
 

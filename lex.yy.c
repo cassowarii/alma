@@ -903,12 +903,22 @@ case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
 #line 41 "lexer.l"
-{ return SEPARATOR; }
+{
+    if (yyin == stdin) {
+        if (nested_lists == 0 && nested_blocks == 0) {
+            return 0;
+        } else {
+            printf("%s", secondary_prompt);
+        }
+    } else {
+        return SEPARATOR;
+    }
+}
 	YY_BREAK
 /* Comments. */
 case 7:
 YY_RULE_SETUP
-#line 43 "lexer.l"
+#line 53 "lexer.l"
 {
     BEGIN(COMMENT);
     nested_comments ++;
@@ -916,7 +926,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 47 "lexer.l"
+#line 57 "lexer.l"
 {
     nested_comments --;
     if (nested_comments == 0) {
@@ -928,19 +938,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 55 "lexer.l"
+#line 65 "lexer.l"
 { /* throw it into the trash ! */ }
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 56 "lexer.l"
+#line 66 "lexer.l"
 { /* throw it into the trash ! */ }
 	YY_BREAK
 /* The few keywords. */
 case 11:
 YY_RULE_SETUP
-#line 59 "lexer.l"
+#line 69 "lexer.l"
 {
     yylval->s=strdup(yytext);
     return T_MACRO;
@@ -948,7 +958,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 63 "lexer.l"
+#line 73 "lexer.l"
 {
     yylval->s=strdup(yytext);
     return T_MACRO;
@@ -956,14 +966,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 67 "lexer.l"
+#line 77 "lexer.l"
 {
     return TRUE;
 }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 70 "lexer.l"
+#line 80 "lexer.l"
 {
     return FALSE;
 }
@@ -971,7 +981,7 @@ YY_RULE_SETUP
 /* Various literals. */
 case 15:
 YY_RULE_SETUP
-#line 75 "lexer.l"
+#line 85 "lexer.l"
 {
     yylval->c = yytext[2];
     return T_CHAR;
@@ -980,7 +990,7 @@ YY_RULE_SETUP
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 79 "lexer.l"
+#line 89 "lexer.l"
 {
     yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
@@ -989,7 +999,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 84 "lexer.l"
+#line 94 "lexer.l"
 {
     /*:[^{}\[\]\" \t]+ {*/
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
@@ -999,12 +1009,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 90 "lexer.l"
+#line 100 "lexer.l"
 yylval->i=atoi(yytext); return T_INTEGER;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 91 "lexer.l"
+#line 101 "lexer.l"
 {
     yylval->d = atof(yytext);
     return T_FLOAT;
@@ -1013,7 +1023,7 @@ YY_RULE_SETUP
 /* Macro. */
 case 20:
 YY_RULE_SETUP
-#line 96 "lexer.l"
+#line 106 "lexer.l"
 {
     yylval->s = calloc(strlen(yytext), sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
@@ -1023,7 +1033,7 @@ YY_RULE_SETUP
 /* Pretty much anything else is valid as something... */
 case 21:
 YY_RULE_SETUP
-#line 102 "lexer.l"
+#line 112 "lexer.l"
 {
     yylval->s=strdup(yytext);
     return T_WORD;
@@ -1032,21 +1042,21 @@ YY_RULE_SETUP
 /* Ignored. */
 case 22:
 YY_RULE_SETUP
-#line 107 "lexer.l"
+#line 117 "lexer.l"
 /* skip whitespace */;
 	YY_BREAK
 /* End of file! */
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
-#line 109 "lexer.l"
+#line 119 "lexer.l"
 { return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 110 "lexer.l"
+#line 120 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1050 "lex.yy.c"
+#line 1060 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2013,7 +2023,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 110 "lexer.l"
+#line 120 "lexer.l"
 
 
 
