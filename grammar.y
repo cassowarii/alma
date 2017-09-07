@@ -7,9 +7,6 @@
 FILE *yyin;
 extern int yychar;
 extern int yylineno;
-extern int interactive_mode;
-extern int repling;
-extern int newlined; // Was a newline the last thing printed?
 
 int yylex();
 int yyparse();
@@ -25,6 +22,7 @@ int yywrap() {
 }
 
 int main(int argc, char **argv) {
+    tty = 0;
     if (argc == 2) {
         if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
             setup_interactives();
@@ -48,10 +46,10 @@ int main(int argc, char **argv) {
     init_library(&lib);
     if (interactive_mode) {
         setup_interactives();
-        printf("%s", motd);
+        if (tty) printf("%s", motd);
     }
     do {
-        if (interactive_mode) {
+        if (interactive_mode && tty) {
             if (!newlined) {
                 printf("\n");
                 newlined = 0;

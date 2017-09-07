@@ -326,3 +326,4 @@ char *primary_prompt;
 char *secondary_prompt;
 char *motd;
 int newlined;
+int tty;

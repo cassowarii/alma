@@ -1,4 +1,6 @@
 #include "alma.h"
+#include <stdio.h>
+#include <unistd.h>
 
 void setup_interactives() {
     repling = 1;
@@ -23,6 +25,9 @@ void setup_interactives() {
 #endif
     asprintf(&motd, "Alma language interpreter version %s\nCompiled on %s at %s, with %s %d.%d.%d for %s.\n",
             ALMA_VERSION, __DATE__, __TIME__, compiler, compvers[0], compvers[1], compvers[2], platform);
+    if (isatty(fileno(stdin))) {
+        tty = 1;
+    }
 }
 
 // Only used interactively - we want to allow things that might cause

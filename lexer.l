@@ -44,7 +44,9 @@ int nested_comments = 0;
             newlined = 1;
             return 0;
         } else {
-            printf("%s", secondary_prompt);
+            if (tty) {
+                printf("%s", secondary_prompt);
+            }
             return SEPARATOR;
         }
     } else {
@@ -118,5 +120,5 @@ false {
   /* Ignored. */
 [ \t]+                  /* skip whitespace */;
   /* End of file! */
-<<EOF>> { newlined = 0; return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
+<<EOF>> { repling = 0; newlined = 0; return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
 %%
