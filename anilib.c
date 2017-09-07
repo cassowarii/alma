@@ -332,7 +332,7 @@ value_type *type_while() {
     stack_type *X = stack_var();
     stack_type *Y = stack_var();
     return func_type(stack_of(func_type(X, stack_of(vt_bool, Y)),       // { { 'X → bool 'Y }
-                stack_of(func_type(Y, X), X)), X);                      //   { 'Y → 'X } 'X → 'X }
+                stack_of(func_type(Y, X), X)), Y);                      //   { 'Y → 'X } 'X → 'Y }
 }
 
 elem_t *word_while(elem_t **top) {
