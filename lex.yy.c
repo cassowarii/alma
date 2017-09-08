@@ -870,7 +870,8 @@ YY_RULE_SETUP
 {
     nested_blocks --;
     if (nested_blocks < 0) {
-        fprintf(stderr, "found `]` with no matching `[`!\n");
+        // uh oh, this'll be a syntax error later
+        // we won't report it here though, yacc'll catch it
         nested_blocks = 0;
     }
     return BLOCKCLOSE;
@@ -878,7 +879,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 30 "lexer.l"
+#line 31 "lexer.l"
 {
     nested_lists ++;
     return LISTOPEN;
@@ -886,11 +887,11 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 34 "lexer.l"
+#line 35 "lexer.l"
 {
     nested_lists --;
     if (nested_lists < 0) {
-        fprintf(stderr, "found `}` with no matching `{`!\n");
+        // see above, uh oh
         nested_lists = 0;
     }
     return LISTCLOSE;
@@ -898,13 +899,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 42 "lexer.l"
+#line 43 "lexer.l"
 { return SEPARATOR; }
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 43 "lexer.l"
+#line 44 "lexer.l"
 {
     if (yyin == stdin) {
         if (nested_lists == 0 && nested_blocks == 0) {
@@ -924,7 +925,7 @@ YY_RULE_SETUP
 /* Comments. */
 case 7:
 YY_RULE_SETUP
-#line 59 "lexer.l"
+#line 60 "lexer.l"
 {
     BEGIN(COMMENT);
     nested_comments ++;
@@ -932,7 +933,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 63 "lexer.l"
+#line 64 "lexer.l"
 {
     nested_comments --;
     if (nested_comments == 0) {
@@ -944,19 +945,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 71 "lexer.l"
+#line 72 "lexer.l"
 { /* throw it into the trash ! */ }
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 72 "lexer.l"
+#line 73 "lexer.l"
 { /* throw it into the trash ! */ }
 	YY_BREAK
 /* The few keywords. */
 case 11:
 YY_RULE_SETUP
-#line 75 "lexer.l"
+#line 76 "lexer.l"
 {
     yylval->s=strdup(yytext);
     return T_MACRO;
@@ -964,7 +965,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 79 "lexer.l"
+#line 80 "lexer.l"
 {
     yylval->s=strdup(yytext);
     return T_MACRO;
@@ -972,14 +973,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 83 "lexer.l"
+#line 84 "lexer.l"
 {
     return TRUE;
 }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 86 "lexer.l"
+#line 87 "lexer.l"
 {
     return FALSE;
 }
@@ -987,7 +988,7 @@ YY_RULE_SETUP
 /* Various literals. */
 case 15:
 YY_RULE_SETUP
-#line 91 "lexer.l"
+#line 92 "lexer.l"
 {
     yylval->c = yytext[2];
     return T_CHAR;
@@ -996,7 +997,7 @@ YY_RULE_SETUP
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 95 "lexer.l"
+#line 96 "lexer.l"
 {
     yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
@@ -1005,7 +1006,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 100 "lexer.l"
+#line 101 "lexer.l"
 {
     /*:[^{}\[\]\" \t]+ {*/
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
@@ -1015,12 +1016,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 106 "lexer.l"
+#line 107 "lexer.l"
 yylval->i=atoi(yytext); return T_INTEGER;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 107 "lexer.l"
+#line 108 "lexer.l"
 {
     yylval->d = atof(yytext);
     return T_FLOAT;
@@ -1029,7 +1030,7 @@ YY_RULE_SETUP
 /* Macro. */
 case 20:
 YY_RULE_SETUP
-#line 112 "lexer.l"
+#line 113 "lexer.l"
 {
     yylval->s = calloc(strlen(yytext), sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
@@ -1039,7 +1040,7 @@ YY_RULE_SETUP
 /* Pretty much anything else is valid as something... */
 case 21:
 YY_RULE_SETUP
-#line 118 "lexer.l"
+#line 119 "lexer.l"
 {
     yylval->s=strdup(yytext);
     return T_WORD;
@@ -1048,21 +1049,21 @@ YY_RULE_SETUP
 /* Ignored. */
 case 22:
 YY_RULE_SETUP
-#line 123 "lexer.l"
+#line 124 "lexer.l"
 /* skip whitespace */;
 	YY_BREAK
 /* End of file! */
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
-#line 125 "lexer.l"
+#line 126 "lexer.l"
 { repling = 0; newlined = 0; return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 126 "lexer.l"
+#line 127 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1066 "lex.yy.c"
+#line 1067 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2029,7 +2030,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 126 "lexer.l"
+#line 127 "lexer.l"
 
 
 

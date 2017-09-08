@@ -14,7 +14,7 @@ int yyparse();
 node_t *root;
 
 void yyerror(const char *str) {
-    throw_error(str, yylineno);
+    fprintf(stderr, "Syntax error at line %d:\n\t%s\n", yylineno, str);
 }
 
 int yywrap() {
@@ -124,11 +124,7 @@ program: sequence_list {
                 current->refs ++;
                 if (s->tag == S_ERROR) {
                     error_lineno(s->content.err, yylineno-1);
-                    if (s->content.err->line == -1) {
-                        printf("Error in compilation at unknown line:\n");
-                    } else {
-                        printf("Error in compilation at line %d:\n", s->content.err->line);
-                    }
+                    printf("Error in compilation at line %d:\n", s->content.err->line);
                     print_error(s->content.err);
                     if (interactive_mode) {
                         printf("Not enough values on stack, or couldn't match type with type of preexisting stack.\n");

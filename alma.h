@@ -209,8 +209,6 @@ void free_elems_below(elem_t *e);
 
 void free_node(node_t *n);
 
-void throw_error(const char *errstr, int line_no);
-
 typedef struct error {
     int size;
     int maxsize;

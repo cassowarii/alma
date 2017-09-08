@@ -579,7 +579,3 @@ void free_node(node_t *n) {
     }
     free(n);
 }
-
-void throw_error(const char *errstr, int line_no) {
-    fprintf(stderr, "error at line %d ~ %s\n", line_no, errstr);
-}

@@ -348,14 +348,14 @@ value_type *unify(value_type *a, value_type *b) {
 #endif
         if (a != b) {
             if (v_count_in_v(a, b) > 0) {
-                error *e = error_msg("found one type inside the other!");
+                error *e = error_msg("* Found one type inside the other!");
                 char *sa = string_type(a);
                 char *sb = string_type(b);
-                add_info(e, "\t(specifically, found %s inside %s!)", sa, sb);
+                add_info(e, "    (specifically, found %s inside %s!)", sa, sb);
 #ifndef TYPEDEBUG
-                add_info(e, "\t(incidentally, this error message is useless! i don't know how to improve it.)");
+                add_info(e, "    (incidentally, this error message is useless! i don't know how to improve it.)");
 #else
-                add_info(e, "\t(you have TYPEDEBUG on, so this is hopefully useful to you.)");
+                add_info(e, "    (you have TYPEDEBUG on, so this is hopefully useful to you.)");
 #endif
                 free(sa);
                 free(sb);
@@ -410,7 +410,7 @@ value_type *unify(value_type *a, value_type *b) {
         } else {
             char *sa = string_type(a);
             char *sb = string_type(b);
-            error *e = error_msg("\tBasic types don't match: %s and %s", sa, sb);
+            error *e = error_msg("* Basic types don't match: %s and %s", sa, sb);
             free(sa);
             free(sb);
             return error_type(e);
@@ -418,7 +418,7 @@ value_type *unify(value_type *a, value_type *b) {
     } else {
         char *sa = string_type(a);
         char *sb = string_type(b);
-        error *e = error_msg("\tCouldn't figure out how to match %s and %s", sa, sb);
+        error *e = error_msg("* Couldn't figure out how to match %s and %s", sa, sb);
         free(sa);
         free(sb);
         return error_type(e);
@@ -439,10 +439,10 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
 #endif
         if (a != b) {
             if (s_count_in_s(a, b) > 0) {
-                error *e = error_msg("found one type inside the other!");
+                error *e = error_msg("* Found one type inside the other!");
                 char *sa = string_stack_type(a);
                 char *sb = string_stack_type(b);
-                add_info(e, "\t(specifically, found %s inside %s!)", sa, sb);
+                add_info(e, "    (specifically, found %s inside %s!)", sa, sb);
                 free(sa);
                 free(sb);
                 return error_stacktype(e);
@@ -463,7 +463,7 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
         } else {
             char *sa = string_stack_type(a);
             char *sb = string_stack_type(b);
-            error *e = error_msg("\tCouldn't unify types: %s and %s", sa, sb);
+            error *e = error_msg("* Couldn't unify types: %s and %s", sa, sb);
             free(sa);
             free(sb);
             return error_stacktype(e);
@@ -487,7 +487,7 @@ stack_type *unify_stack(stack_type *a, stack_type *b) {
     } else {
         char *sa = string_stack_type(a);
         char *sb = string_stack_type(b);
-        error *e = error_msg("\tCouldn't unify types: %s and %s", sa, sb);
+        error *e = error_msg("* Couldn't unify types: %s and %s", sa, sb);
         free(sa);
         free(sb);
         return error_stacktype(e);
@@ -675,9 +675,9 @@ value_type *infer_type(node_t *nn) {
                     char *sr = string_type(r);
                     char *wl = string_node(last_node_in(left(nn)));
                     char *wr = string_node(first_node_in(right(nn)));
-                    error *e = error_msg("Type error; couldn't compose functions:");
-                    add_info(e, "\tcouldn't match output stack of %s\n\t\ttype: %s", wl, sl);
-                    add_info(e, "\twith input stack of %s\n\t\ttype: %s", wr, sr);
+                    error *e = error_msg("* Couldn't compose functions:");
+                    add_info(e, "    couldn't match output stack of %s\n        type: %s", wl, sl);
+                    add_info(e, "    with input stack of %s\n        type: %s", wr, sr);
                     error_concat(e, ok->content.err);
                     error_lineno(e, nn->line);
                     result = error_type(e);
