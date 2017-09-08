@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
 %token BLOCKOPEN "["
 %token BLOCKCLOSE "]"
 %token END 0 "end-of-file"
-%token DEFINE "define"
+%token T_MACROCOLON ":"
 %token TRUE "true"
 %token FALSE "false"
 %union
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 %type <n> item
 %type <n> block
 %type <n> list
-%type <n> definition
+%type <n> macro
 
 %%
 program: sequence_list {
@@ -171,7 +171,7 @@ sequence:
         $$ = node(N_COMPOSED, $1, NULL);
     } | sequence item {
         $$ = node(N_COMPOSED, $2, $1);
-    } | definition {
+    } | macro {
         $$ = $1;
     }
 
@@ -206,16 +206,16 @@ list:
         $$ = $2;
     }
 
-definition:
-    T_MACRO T_WORD block {
+macro:
+    T_WORD ":" T_WORD block {
         if (!strcmp($1, "define")) {
             lib_entry_t *def = create_entry();
-            def->name = $2;
-            def->type = infer_type($3);
+            def->name = $3;
+            def->type = infer_type($4);
             if (def->type->tag != V_ERROR) {
-                def->impl.node = $3;
+                def->impl.node = $4;
             } else {
-                add_info(def->type->content.err, "in definition of function %s", $2);
+                add_info(def->type->content.err, "in macro of function %s", $3);
             }
             add_lib_entry(&lib, def);
             $$ = NULL;

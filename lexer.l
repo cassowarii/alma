@@ -73,13 +73,8 @@ int nested_comments = 0;
 <COMMENT>\n { /* throw it into the trash ! */ }
 
   /* The few keywords. */
-define {
-    yylval->s=strdup(yytext);
-    return T_MACRO;
-}
-bind {
-    yylval->s=strdup(yytext);
-    return T_MACRO;
+":" {
+    return T_MACROCOLON;
 }
 true {
     return TRUE;

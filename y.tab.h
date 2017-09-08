@@ -50,7 +50,7 @@ extern int yydebug;
     LISTCLOSE = 259,
     BLOCKOPEN = 260,
     BLOCKCLOSE = 261,
-    DEFINE = 262,
+    T_MACROCOLON = 262,
     TRUE = 263,
     FALSE = 264,
     T_WORD = 265,
@@ -68,7 +68,7 @@ extern int yydebug;
 #define LISTCLOSE 259
 #define BLOCKOPEN 260
 #define BLOCKCLOSE 261
-#define DEFINE 262
+#define T_MACROCOLON 262
 #define TRUE 263
 #define FALSE 264
 #define T_WORD 265

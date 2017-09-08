@@ -1,14 +1,14 @@
-define add3 [+ +]
+define : add3 [+ +]
 
-define keep [
+define : keep [
     dip [copy]
     swap
     dip [apply]
 ]
 
-define nip [dip [pop]]
+define : nip [dip [pop]]
 
-define 2dip [
+define : 2dip [
     (* Double dip: [X→Y] a b X → a b Y *)
     swap
     dip [
@@ -17,7 +17,7 @@ define 2dip [
     ]
 ]
 
-define bi [
+define : bi [
     (* Bi combinator: [a→b] [a→c] a → b c *)
     swap            (* [a→c] [a→b] a ... *)
     dip [           (* [a→b] a ... *)
@@ -30,7 +30,7 @@ define bi [
     dip [apply]     (* b c ... *)
 ]
 
-define save [ bi [ ] [apply] ]
+define : save [ bi [ ] [apply] ]
 
 println "Save type; "
 println typeof [save]

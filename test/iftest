@@ -1,4 +1,4 @@
-define 2copy [
+define : 2copy [
     dip [copy]
     swap
     dip [copy]
@@ -7,7 +7,7 @@ define 2copy [
 
 println typeof [2copy]
 
-define say-if-sum-is-five [
+define : say-if-sum-is-five [
     if [= 5 +] [
         println "Hooray! The sum is five."
     ] [
@@ -19,7 +19,7 @@ say-if-sum-is-five 4 5
 say-if-sum-is-five 2 3
 say-if-sum-is-five 4 3
 
-define narrate-sisif [
+define : narrate-sisif [
     2copy
     print "Is the sum of "
     print

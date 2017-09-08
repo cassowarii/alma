@@ -2,10 +2,10 @@
    from the Factor language -- call a quotation N times
    and collect the results into a list. *)
 
-define zero? [= 0 copy]
-define not [= false]
+define : zero? [= 0 copy]
+define : not [= false]
 
-define bi [
+define : bi [
     (* Bi combinator: [a→b] [a→c] a → b c *)
     swap            (* [a→c] [a→b] a ... *)
     dip [           (* [a→b] a ... *)
@@ -18,7 +18,7 @@ define bi [
     dip [apply]     (* b c ... *)
 ]
 
-define replicate [              (* N quot *)
+define : replicate [              (* N quot *)
     dip [dip [ { } ]]           (* N quot {} *)
     while [not zero?] [         (* N quot {...} *)
         dip [                   (* quot {...} *)
@@ -34,7 +34,7 @@ println replicate 5 [ 7 ]
 println replicate 3 [ { "Bagels" "Hamburgers" "Club Sandwiches" } ]
 println typeof [replicate]
 
-define make-copies [
+define : make-copies [
     dip [ curry [ ] ]
     replicate
 ]

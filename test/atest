@@ -1,4 +1,4 @@
-define bi [
+define : bi [
     (* Bi combinator: [a→b] [a→c] a → b c *)
     swap            (* [a→c] [a→b] a ... *)
     dip [           (* [a→b] a ... *)
@@ -11,7 +11,7 @@ define bi [
     dip [apply]     (* b c ... *)
 ]
 
-define save [ bi [ ] [apply] ]
+define : save [ bi [ ] [apply] ]
 
 4 3 2
 copy [+]
