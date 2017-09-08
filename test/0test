@@ -1,4 +1,4 @@
-(* I've define :d two new functions: apply-0to0 and apply-0to1.
+(* I've defined two new functions: apply-0to0 and apply-0to1.
     - apply-0to0 runs a function but checks it has no effect
       whatsoever on the stack.
     - apply-0to1 runs a function and ensures it takes nothing

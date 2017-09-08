@@ -215,7 +215,7 @@ macro:
             if (def->type->tag != V_ERROR) {
                 def->impl.node = $4;
             } else {
-                add_info(def->type->content.err, "in macro of function %s", $3);
+                add_info(def->type->content.err, "in definition of function %s", $3);
             }
             add_lib_entry(&lib, def);
             $$ = NULL;
