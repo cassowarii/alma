@@ -519,8 +519,21 @@ char *string_elem(elem_t *e) {
     return s;
 }
 
+char *repr_elem(elem_t *e) {
+    char *s = malloc(1);
+    strcpy(s, "\0");
+    do_string_elem(&s, e);
+    return s;
+}
+
 void print_elem(elem_t *e) {
     char *p = string_elem(e);
+    printf("%s", p);
+    free(p);
+}
+
+void print_repr_elem(elem_t *e) {
+    char *p = repr_elem(e);
     printf("%s", p);
     free(p);
 }

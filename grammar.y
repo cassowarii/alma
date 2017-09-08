@@ -14,7 +14,7 @@ int yyparse();
 node_t *root;
 
 void yyerror(const char *str) {
-    fprintf(stderr, "Syntax error at line %d:\n\t%s\n", yylineno, str);
+    fprintf(stderr, "Syntax error at line %d:\n* %s\n", yylineno, str);
 }
 
 int yywrap() {

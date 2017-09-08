@@ -19,12 +19,7 @@ value_type *type_pop() {
 }
 
 elem_t *word_pop(elem_t **top) {
-    //*top = (*top)->next;
-    if (interactive_mode) {
-        word_println(top);
-    } else {
-        pop(top);
-    }
+    pop(top);
     return NULL;
 }
 
@@ -77,7 +72,7 @@ int do_list(elem_t **top) {
     int count = 0;
     while (elem) {
         count ++;
-        print_elem(elem);
+        print_repr_elem(elem);
         if (elem->next != NULL) {
             printf(" ; ");
         }
@@ -170,6 +165,27 @@ elem_t *word_split(elem_t **top) {
     elem_t *e_l = pop(top);
     elem_t *e_a = pop(&e_l->content.list);
     push(e_a, &e_l);
+    return e_l;
+}
+
+value_type *type_lenQ() {
+    stack_type *X = stack_var();
+    value_type *a = type_var();
+    return func_type(stack_of(list_of(a), X), stack_of(vt_num, stack_of(list_of(a), X)));
+}
+
+int listlen(elem_t *e) {
+    if (e == NULL) {
+        return 0;
+    } else {
+        return 1 + listlen(e->next);
+    }
+}
+
+elem_t *word_lenQ(elem_t **top) {
+    elem_t *e_l = pop(top);
+    elem_t *e_n = elem_int(listlen(e_l->content.list));
+    push(e_n, &e_l);
     return e_l;
 }
 
@@ -299,6 +315,32 @@ elem_t *word_curry(elem_t **top) {
     /*printf("BLOCK TYPE: <@ %p> ", block->type);
     print_type(block->type);
     printf("\t(w/ refs %d)\n", block->type->refs);*/
+    return e;
+}
+
+value_type *type_compose() {
+    stack_type *X = stack_var();
+    stack_type *Y = stack_var();
+    stack_type *Z = stack_var();
+    stack_type *W = stack_var();
+    return func_type(stack_of(func_type(Y, Z), stack_of(func_type(X, Y), W)), stack_of(func_type(X, Z), W));
+}
+
+elem_t *word_compose(elem_t **top) {
+    elem_t *block2 = pop(top);
+    elem_t *block1 = pop(top);
+    node_t *func1 = copy_node(block1->content.block);
+    node_t *func2 = copy_node(block2->content.block);
+    free_elem(block1);
+    free_elem(block2);
+    node_t *newnode = _node_lineno(N_COMPOSED, func1, func2, -2);
+    newnode->flags |= NF_COPIED;
+    left(newnode)->flags |= NF_COPIED;
+    right(newnode)->flags |= NF_COPIED;
+    elem_t *e = new_elem();
+    e->tag = E_BLOCK;
+    e->content.block = newnode;
+    set_type(e, infer_type(e->content.block));
     return e;
 }
 
@@ -764,6 +806,7 @@ void init_library(library *l) {
     add_lib_entry(l, construct("apply-0to1",  type_0to1(),   &word_apply));
     add_lib_entry(l, construct("apply-1more", type_1more(),  &word_apply));
     add_lib_entry(l, construct("curry",     type_curry(),    &word_curry));
+    add_lib_entry(l, construct("compose",   type_compose(),  &word_compose));
     add_lib_entry(l, construct("typeof",    type_typeof(),   &word_typeof));
     add_lib_entry(l, construct("if",        type_if(),       &word_if));
     add_lib_entry(l, construct("while",     type_while(),    &word_while));
@@ -772,6 +815,7 @@ void init_library(library *l) {
     add_lib_entry(l, construct("unpair",    type_unpair(),   &word_unpair));
     add_lib_entry(l, construct("cons",      type_cons(),     &word_cons));
     add_lib_entry(l, construct("split",     type_split(),    &word_split));
+    add_lib_entry(l, construct("len?",      type_lenQ(),     &word_lenQ));
     add_lib_entry(l, construct("+",         type_PLUS(),     &word_PLUS));
     add_lib_entry(l, construct("-",         type_MINUS(),    &word_MINUS));
     add_lib_entry(l, construct("*",         type_TIMES(),    &word_TIMES));

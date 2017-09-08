@@ -197,6 +197,7 @@ elem_t *list_from(elem_t *head);
 elem_t *elem_from(node_t *node);
 
 void print_elem(elem_t *e);
+void print_repr_elem(elem_t *e);
 void print_string(elem_t *e);
 
 void push(elem_t *new_elem, elem_t **top);
