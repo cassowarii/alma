@@ -525,9 +525,9 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   102,   102,   146,   152,   154,   156,   158,   164,   169,
-     171,   173,   178,   180,   182,   184,   186,   188,   190,   192,
-     194,   199,   204,   209
+       0,   102,   102,   151,   157,   159,   161,   163,   169,   174,
+     176,   178,   183,   185,   187,   189,   191,   193,   195,   197,
+     199,   204,   209,   214
 };
 #endif
 
@@ -1349,13 +1349,18 @@ yyreduce:
                 s = unify_stack(t->content.func_type.in, current);
                 current->refs ++;
                 if (s->tag == S_ERROR) {
+                    error_lineno(s->content.err, yylineno-1);
                     if (s->content.err->line == -1) {
                         printf("Error in compilation at unknown line:\n");
                     } else {
                         printf("Error in compilation at line %d:\n", s->content.err->line);
                     }
                     print_error(s->content.err);
-                    printf("Not enough values on stack!\n");
+                    if (interactive_mode) {
+                        printf("Not enough values on stack, or couldn't match type with type of preexisting stack.\n");
+                    } else {
+                        printf("Not enough values on stack!\n");
+                    }
                     printf("Compilation aborted.\n");
                     free_error(s->content.err);
                     free_stack_type(s);
@@ -1370,45 +1375,45 @@ yyreduce:
             }
         }
     }
-#line 1374 "y.tab.c" /* yacc.c:1646  */
+#line 1379 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 146 "grammar.y" /* yacc.c:1646  */
+#line 151 "grammar.y" /* yacc.c:1646  */
     {
         yyerrok ;
         yyclearin ;
         return;
     }
-#line 1384 "y.tab.c" /* yacc.c:1646  */
+#line 1389 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 152 "grammar.y" /* yacc.c:1646  */
+#line 157 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = (yyvsp[0].n);
     }
-#line 1392 "y.tab.c" /* yacc.c:1646  */
+#line 1397 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 154 "grammar.y" /* yacc.c:1646  */
+#line 159 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = (yyvsp[-1].n);
     }
-#line 1400 "y.tab.c" /* yacc.c:1646  */
+#line 1405 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 156 "grammar.y" /* yacc.c:1646  */
+#line 161 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = (yyvsp[0].n);
     }
-#line 1408 "y.tab.c" /* yacc.c:1646  */
+#line 1413 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 158 "grammar.y" /* yacc.c:1646  */
+#line 163 "grammar.y" /* yacc.c:1646  */
     {
         if ((yyvsp[0].n) == NULL) {
             (yyval.n) = (yyvsp[-2].n);
@@ -1416,131 +1421,131 @@ yyreduce:
             (yyval.n) = node(N_COMPOSED, (yyvsp[-2].n), (yyvsp[0].n));
         }
     }
-#line 1420 "y.tab.c" /* yacc.c:1646  */
+#line 1425 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 164 "grammar.y" /* yacc.c:1646  */
+#line 169 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = NULL;
     }
-#line 1428 "y.tab.c" /* yacc.c:1646  */
+#line 1433 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 169 "grammar.y" /* yacc.c:1646  */
+#line 174 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node(N_COMPOSED, (yyvsp[0].n), NULL);
     }
-#line 1436 "y.tab.c" /* yacc.c:1646  */
+#line 1441 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 171 "grammar.y" /* yacc.c:1646  */
+#line 176 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node(N_COMPOSED, (yyvsp[0].n), (yyvsp[-1].n));
     }
-#line 1444 "y.tab.c" /* yacc.c:1646  */
+#line 1449 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 173 "grammar.y" /* yacc.c:1646  */
+#line 178 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = (yyvsp[0].n);
     }
-#line 1452 "y.tab.c" /* yacc.c:1646  */
+#line 1457 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 178 "grammar.y" /* yacc.c:1646  */
+#line 183 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node(N_BLOCK, (yyvsp[0].n), NULL);
     }
-#line 1460 "y.tab.c" /* yacc.c:1646  */
+#line 1465 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 180 "grammar.y" /* yacc.c:1646  */
+#line 185 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node(N_LIST, (yyvsp[0].n), NULL);
     }
-#line 1468 "y.tab.c" /* yacc.c:1646  */
+#line 1473 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 182 "grammar.y" /* yacc.c:1646  */
+#line 187 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node_word((yyvsp[0].s), yylineno);
     }
-#line 1476 "y.tab.c" /* yacc.c:1646  */
+#line 1481 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 184 "grammar.y" /* yacc.c:1646  */
+#line 189 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node_str((yyvsp[0].s), yylineno);
     }
-#line 1484 "y.tab.c" /* yacc.c:1646  */
+#line 1489 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 186 "grammar.y" /* yacc.c:1646  */
+#line 191 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node_int((yyvsp[0].i), yylineno);
     }
-#line 1492 "y.tab.c" /* yacc.c:1646  */
+#line 1497 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 188 "grammar.y" /* yacc.c:1646  */
+#line 193 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node_float((yyvsp[0].d), yylineno);
     }
-#line 1500 "y.tab.c" /* yacc.c:1646  */
+#line 1505 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 190 "grammar.y" /* yacc.c:1646  */
+#line 195 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node_char((yyvsp[0].c), yylineno);
     }
-#line 1508 "y.tab.c" /* yacc.c:1646  */
+#line 1513 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 192 "grammar.y" /* yacc.c:1646  */
+#line 197 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node_bool(1, yylineno);
     }
-#line 1516 "y.tab.c" /* yacc.c:1646  */
+#line 1521 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 194 "grammar.y" /* yacc.c:1646  */
+#line 199 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = node_bool(0, yylineno);
     }
-#line 1524 "y.tab.c" /* yacc.c:1646  */
+#line 1529 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 199 "grammar.y" /* yacc.c:1646  */
-    {
-        (yyval.n) = (yyvsp[-1].n);
-    }
-#line 1532 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 22:
 #line 204 "grammar.y" /* yacc.c:1646  */
     {
         (yyval.n) = (yyvsp[-1].n);
     }
-#line 1540 "y.tab.c" /* yacc.c:1646  */
+#line 1537 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 22:
+#line 209 "grammar.y" /* yacc.c:1646  */
+    {
+        (yyval.n) = (yyvsp[-1].n);
+    }
+#line 1545 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 209 "grammar.y" /* yacc.c:1646  */
+#line 214 "grammar.y" /* yacc.c:1646  */
     {
         if (!strcmp((yyvsp[-2].s), "define")) {
             lib_entry_t *def = create_entry();
@@ -1556,11 +1561,11 @@ yyreduce:
             free((yyvsp[-2].s));
         }
     }
-#line 1560 "y.tab.c" /* yacc.c:1646  */
+#line 1565 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1564 "y.tab.c" /* yacc.c:1646  */
+#line 1569 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1788,5 +1793,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 225 "grammar.y" /* yacc.c:1906  */
+#line 230 "grammar.y" /* yacc.c:1906  */
 

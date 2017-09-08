@@ -153,6 +153,9 @@ elem_t *word_cons(elem_t **top) {
     elem_t *e_a = pop(top);
     elem_t *e_l = pop(top);
     push(e_a, &e_l->content.list);
+    if (interactive_mode) {
+        unify(e_a->type, e_l->type->content.v);
+    }
     return e_l;
 }
 

@@ -123,13 +123,18 @@ program: sequence_list {
                 s = unify_stack(t->content.func_type.in, current);
                 current->refs ++;
                 if (s->tag == S_ERROR) {
+                    error_lineno(s->content.err, yylineno-1);
                     if (s->content.err->line == -1) {
                         printf("Error in compilation at unknown line:\n");
                     } else {
                         printf("Error in compilation at line %d:\n", s->content.err->line);
                     }
                     print_error(s->content.err);
-                    printf("Not enough values on stack!\n");
+                    if (interactive_mode) {
+                        printf("Not enough values on stack, or couldn't match type with type of preexisting stack.\n");
+                    } else {
+                        printf("Not enough values on stack!\n");
+                    }
                     printf("Compilation aborted.\n");
                     free_error(s->content.err);
                     free_stack_type(s);
