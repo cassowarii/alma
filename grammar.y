@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
 %token BLOCKCLOSE "]"
 %token END 0 "end-of-file"
 %token T_MACROCOLON ":"
+%token T_MACROCOMMA ","
 %token TRUE "true"
 %token FALSE "false"
 %union
@@ -97,6 +98,7 @@ int main(int argc, char **argv) {
 %type <n> block
 %type <n> list
 %type <n> macro
+%type <s> macroparams
 
 %%
 program: sequence_list {
@@ -207,7 +209,7 @@ list:
     }
 
 macro:
-    T_WORD ":" T_WORD block {
+    T_WORD ":" macroparams block {
         if (!strcmp($1, "define")) {
             lib_entry_t *def = create_entry();
             def->name = $3;
@@ -221,6 +223,13 @@ macro:
             $$ = NULL;
             free($1);
         }
+    }
+
+macroparams:
+    T_WORD {
+        $$ = $1;
+    } | macroparams T_MACROCOMMA T_WORD {
+        $$ = $3;
     }
 
 %%

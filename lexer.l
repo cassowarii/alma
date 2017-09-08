@@ -73,15 +73,10 @@ int nested_comments = 0;
 <COMMENT>\n { /* throw it into the trash ! */ }
 
   /* The few keywords. */
-":" {
-    return T_MACROCOLON;
-}
-true {
-    return TRUE;
-}
-false {
-    return FALSE;
-}
+":" { return T_MACROCOLON; }
+"," { return T_MACROCOMMA; }
+true { return TRUE; }
+false { return FALSE; }
 
   /* Various literals. */
 #\"\\?.\" {
@@ -104,14 +99,8 @@ false {
     yylval->d = atof(yytext);
     return T_FLOAT;
 }
-  /* Macro. */
-#[A-Za-z].* {
-    yylval->s = calloc(strlen(yytext), sizeof(char));
-    strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
-    return T_MACRO;
-}
   /* Pretty much anything else is valid as something... */
-[^{}\[\]\" \t;\n]+  {
+[^{}\[\]\" \t;\n,]+  {
     yylval->s=strdup(yytext);
     return T_WORD;
 }
