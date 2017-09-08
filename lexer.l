@@ -40,7 +40,7 @@ int nested_comments = 0;
     }
     return LISTCLOSE;
 }
-";" { return SEPARATOR; }
+"|" { return SEPARATOR; }
 \n  {
     if (yyin == stdin) {
         if (nested_lists == 0 && nested_blocks == 0) {
