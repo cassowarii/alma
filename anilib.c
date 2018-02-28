@@ -189,6 +189,19 @@ elem_t *word_lenQ(elem_t **top) {
     return e_l;
 }
 
+value_type *type_len() {
+    stack_type *X = stack_var();
+    value_type *a = type_var();
+    return func_type(stack_of(list_of(a), X), stack_of(vt_num, X));
+}
+
+elem_t *word_len(elem_t **top) {
+    elem_t *e_l = pop(top);
+    elem_t *e_n = elem_int(listlen(e_l->content.list));
+    free_elem(e_l);
+    return e_n;
+}
+
 value_type *type_map() {
     stack_type *X = zero_stack();
     stack_type *Y = stack_var();
@@ -247,6 +260,19 @@ value_type *type_apply() {
 }
 
 elem_t *word_apply(elem_t **top) {
+    elem_t *block = pop(top);
+    eval(block->content.block, top);
+    free_elem(block);
+    return NULL;
+}
+
+value_type *type_linrec() {
+    stack_type *X = stack_var();
+    stack_type *Y = stack_var();
+    return func_type(stack_of(func_type(X, Y), X), Y);
+}
+
+elem_t *word_linrec(elem_t **top) {
     elem_t *block = pop(top);
     eval(block->content.block, top);
     free_elem(block);
@@ -815,6 +841,7 @@ void init_library(library *l) {
     add_lib_entry(l, construct("unpair",    type_unpair(),   &word_unpair));
     add_lib_entry(l, construct("cons",      type_cons(),     &word_cons));
     add_lib_entry(l, construct("split",     type_split(),    &word_split));
+    add_lib_entry(l, construct("len",       type_len(),      &word_len));
     add_lib_entry(l, construct("len?",      type_lenQ(),     &word_lenQ));
     add_lib_entry(l, construct("+",         type_PLUS(),     &word_PLUS));
     add_lib_entry(l, construct("-",         type_MINUS(),    &word_MINUS));

@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.2"
+#define YYBISON_VERSION "3.0.4"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -203,7 +203,7 @@ extern int yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
+
 union YYSTYPE
 {
 #line 81 "grammar.y" /* yacc.c:355  */
@@ -216,6 +216,8 @@ union YYSTYPE
 
 #line 218 "y.tab.c" /* yacc.c:355  */
 };
+
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
@@ -228,7 +230,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 232 "y.tab.c" /* yacc.c:358  */
+#line 234 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1375,7 +1377,7 @@ yyreduce:
             }
         }
     }
-#line 1379 "y.tab.c" /* yacc.c:1646  */
+#line 1381 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
@@ -1385,7 +1387,7 @@ yyreduce:
         yyclearin ;
         return;
     }
-#line 1389 "y.tab.c" /* yacc.c:1646  */
+#line 1391 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
@@ -1393,7 +1395,7 @@ yyreduce:
     {
         (yyval.n) = (yyvsp[0].n);
     }
-#line 1397 "y.tab.c" /* yacc.c:1646  */
+#line 1399 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
@@ -1401,7 +1403,7 @@ yyreduce:
     {
         (yyval.n) = (yyvsp[-1].n);
     }
-#line 1405 "y.tab.c" /* yacc.c:1646  */
+#line 1407 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
@@ -1409,7 +1411,7 @@ yyreduce:
     {
         (yyval.n) = (yyvsp[0].n);
     }
-#line 1413 "y.tab.c" /* yacc.c:1646  */
+#line 1415 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
@@ -1421,7 +1423,7 @@ yyreduce:
             (yyval.n) = node(N_COMPOSED, (yyvsp[-2].n), (yyvsp[0].n));
         }
     }
-#line 1425 "y.tab.c" /* yacc.c:1646  */
+#line 1427 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
@@ -1429,7 +1431,7 @@ yyreduce:
     {
         (yyval.n) = NULL;
     }
-#line 1433 "y.tab.c" /* yacc.c:1646  */
+#line 1435 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
@@ -1437,7 +1439,7 @@ yyreduce:
     {
         (yyval.n) = node(N_COMPOSED, (yyvsp[0].n), NULL);
     }
-#line 1441 "y.tab.c" /* yacc.c:1646  */
+#line 1443 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
@@ -1445,7 +1447,7 @@ yyreduce:
     {
         (yyval.n) = node(N_COMPOSED, (yyvsp[0].n), (yyvsp[-1].n));
     }
-#line 1449 "y.tab.c" /* yacc.c:1646  */
+#line 1451 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
@@ -1453,7 +1455,7 @@ yyreduce:
     {
         (yyval.n) = (yyvsp[0].n);
     }
-#line 1457 "y.tab.c" /* yacc.c:1646  */
+#line 1459 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
@@ -1461,7 +1463,7 @@ yyreduce:
     {
         (yyval.n) = node(N_BLOCK, (yyvsp[0].n), NULL);
     }
-#line 1465 "y.tab.c" /* yacc.c:1646  */
+#line 1467 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
@@ -1469,7 +1471,7 @@ yyreduce:
     {
         (yyval.n) = node(N_LIST, (yyvsp[0].n), NULL);
     }
-#line 1473 "y.tab.c" /* yacc.c:1646  */
+#line 1475 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
@@ -1477,7 +1479,7 @@ yyreduce:
     {
         (yyval.n) = node_word((yyvsp[0].s), yylineno);
     }
-#line 1481 "y.tab.c" /* yacc.c:1646  */
+#line 1483 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
@@ -1485,7 +1487,7 @@ yyreduce:
     {
         (yyval.n) = node_str((yyvsp[0].s), yylineno);
     }
-#line 1489 "y.tab.c" /* yacc.c:1646  */
+#line 1491 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
@@ -1493,7 +1495,7 @@ yyreduce:
     {
         (yyval.n) = node_int((yyvsp[0].i), yylineno);
     }
-#line 1497 "y.tab.c" /* yacc.c:1646  */
+#line 1499 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
@@ -1501,7 +1503,7 @@ yyreduce:
     {
         (yyval.n) = node_float((yyvsp[0].d), yylineno);
     }
-#line 1505 "y.tab.c" /* yacc.c:1646  */
+#line 1507 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
@@ -1509,7 +1511,7 @@ yyreduce:
     {
         (yyval.n) = node_char((yyvsp[0].c), yylineno);
     }
-#line 1513 "y.tab.c" /* yacc.c:1646  */
+#line 1515 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
@@ -1517,7 +1519,7 @@ yyreduce:
     {
         (yyval.n) = node_bool(1, yylineno);
     }
-#line 1521 "y.tab.c" /* yacc.c:1646  */
+#line 1523 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
@@ -1525,7 +1527,7 @@ yyreduce:
     {
         (yyval.n) = node_bool(0, yylineno);
     }
-#line 1529 "y.tab.c" /* yacc.c:1646  */
+#line 1531 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
@@ -1533,7 +1535,7 @@ yyreduce:
     {
         (yyval.n) = (yyvsp[-1].n);
     }
-#line 1537 "y.tab.c" /* yacc.c:1646  */
+#line 1539 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
@@ -1541,7 +1543,7 @@ yyreduce:
     {
         (yyval.n) = (yyvsp[-1].n);
     }
-#line 1545 "y.tab.c" /* yacc.c:1646  */
+#line 1547 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
@@ -1561,7 +1563,7 @@ yyreduce:
             free((yyvsp[-3].s));
         }
     }
-#line 1565 "y.tab.c" /* yacc.c:1646  */
+#line 1567 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
@@ -1569,7 +1571,7 @@ yyreduce:
     {
         (yyval.s) = (yyvsp[0].s);
     }
-#line 1573 "y.tab.c" /* yacc.c:1646  */
+#line 1575 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
@@ -1577,11 +1579,11 @@ yyreduce:
     {
         (yyval.s) = (yyvsp[0].s);
     }
-#line 1581 "y.tab.c" /* yacc.c:1646  */
+#line 1583 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1585 "y.tab.c" /* yacc.c:1646  */
+#line 1587 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
