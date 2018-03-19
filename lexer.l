@@ -10,10 +10,15 @@ int nested_blocks = 0;
 int nested_lists = 0;
 int nested_parens = 0;
 int nested_comments = 0;
+
+#define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
+
 %}
 
-%option nounput noinput yylineno bison-bridge
+%option nounput noinput yylineno bison-bridge bison-locations
 %x COMMENT LINECMT
+%x SEPARATORS
+%s IMPORT
 
  /* unicode char classes taken from http://www.kylheku.com/cgit/txr/tree/parser.l */
 ASC     [\x00-\x7f]
@@ -30,10 +35,12 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 %%
 
   /* Reserved words. */
-"import"    return T_IMPORT;
-"include"   return T_INCLUDE;
-"let"       return T_LET;
-"with"      return T_WITH;
+"import"        { BEGIN(IMPORT); return T_IMPORT; }
+"let"           return T_LET;
+"with"          return T_WITH;
+<IMPORT>"as"    { BEGIN(INITIAL); return T_AS; }
+<IMPORT>\|      return '|';
+<IMPORT>[\r\n]  return '\n';
 
   /* Special tokens. */
 "{"  {
@@ -66,8 +73,8 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
     strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
     return T_REF;
 } */
-"|"     return '|';
-\n      return '|';
+"|"             return '|';
+\r|\n           return '\n';
 
   /* Comments. */
 <COMMENT,INITIAL>"(*" {
@@ -92,7 +99,7 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 <COMMENT,LINECMT>. { /* throw it into the trash ! */ }
 <LINECMT>\n|\r {
     BEGIN(INITIAL);
-    return '|';
+    return '\n';
 }
 
   /***** Various literals. *****/
@@ -100,20 +107,20 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
   /* Character literal. */
 $\\?{UANYN} {
     yylval->c = yytext[2];
-    return T_CHAR;
+    return CHAR;
 }
 
   /* String literal. */
 \"(\\{UANYN}|[^"\r\n]|\\\n)*\" {
     yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
-    return T_STRING;
+    return STRING;
 }
 
 \'(\\{UANYN}|[^"\r\n]|\\\n)*\' {
     yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
-    return T_STRING;
+    return STRING;
 }
 
 \"(\\{UANYN}|[^"\r\n])*(\r|\n) {
@@ -124,24 +131,24 @@ $\\?{UANYN} {
     yyerror("syntax error, unterminated single-quoted string");
 }
 
-:([A-Za-z]|{UONLY})([A-Za-z0-9\-_.]|{UONLY})* {
-    /*:[^{}\[\]\" \t]+ {*/
+ /* :([A-Za-z]|{UONLY})([A-Za-z0-9\-_.]|{UONLY})* {
+    / * :[^{}\[\]\" \t]+ { * / // <-- !!
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
     return T_STRING;
-}
+} */
 
-[0-9]+                  yylval->i=atoi(yytext); return T_INTEGER;
+[0-9]+                  yylval->i=atoi(yytext); return INTEGER;
 
 [0-9]+\.[0-9]+([Ee][0-9]+)? {
     yylval->d = atof(yytext);
-    return T_FLOAT;
+    return FLOAT;
 }
 
   /* Pretty much anything else is valid as something... */
 [^{}\[\]\" \t;\n]+  {
     yylval->s=strdup(yytext);
-    return T_WORD;
+    return WORD;
 }
 
   /* Ignored. */

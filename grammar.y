@@ -10,9 +10,13 @@ extern int yylineno;
 int yylex();
 int yyparse();
 
-void yyerror(const char *str) {
+void do_error(const char *str, int linenum) {
     //throw_error(str, yylineno);
-    printf("error at line %d: %s\n", yylineno, str);
+    printf("error at line %d: %s\n", linenum, str);
+}
+
+void yyerror(const char *str) {
+    do_error(str, yylineno);
 }
 
 int yywrap() {
@@ -23,9 +27,14 @@ int yywrap() {
 
 %define api.pure
 
+%define parse.lac full
+
+/* track bison locations */
+%locations
+
 /* Reserved words */
-%token T_IMPORT     "import"    /* "import" */
-%token T_INCLUDE    "include"   /* "include" */
+%token T_IMPORT     "import"    /* "include" */
+%token T_AS         "as"        /* "as" (but only after an 'import') */
 %token T_LET        "let"       /* "let" */
 %token T_WITH       "with"      /* "with" */
 
@@ -38,41 +47,49 @@ int yywrap() {
     double d;
     //struct node_t *n;
 }
-%token <s> T_WORD   "word"
-%token <i> T_INTEGER "integer"
-%token <c> T_CHAR   "character"
-%token <s> T_STRING "string"
-%token <d> T_FLOAT  "float"
+%token <s> WORD   "word"
+%token <i> INTEGER "integer"
+%token <c> CHAR   "character"
+%token <s> STRING "string"
+%token <d> FLOAT  "float"
 
 %%
 
 program
-    :   dirlist_opt {
-    }
-
-dirlist_opt
-    :   /* nothing */ {
-    } | dirlist {
+    :   dirlist {
+    } | words_nonempty {
+        /* if not interactive... */
+        do_error("Bare words not permitted outside a function in non-interactive mode.\n"
+                "Place code you want to run first in a function named \"main\".", @1.first_line);
+    } | /* empty */ {
+        // do nothing
     }
 
 dirlist
+    :   sep dirlist {
+    } | realdirlist {
+    }
+
+realdirlist
     :   directive {
-    } | dirlist directive {
+    } | realdirlist directive {
+    } | realdirlist sep {
     }
 
 directive
-    :   declaration '|' {
-    } | import '|' {
-    } | '|' /* blank lines OK */ {
+    :   declaration {
+    } | import {
+    } | err {
     }
 
 import
-    :   T_INCLUDE T_STRING {
-    } | T_IMPORT T_WORD T_STRING {
+    :   "import" STRING {
+    } | "import" STRING "as" WORD {
+    } | wrongimport {
     }
 
 declaration
-    :   ':' T_WORD block {
+    :   ':' WORD so block {
     }
 
 block
@@ -86,7 +103,12 @@ block
 
 words
     :   wordseq_opt {
-    } | words '|' wordseq_opt {
+    } | words sep wordseq_opt {
+    }
+
+words_nonempty
+    :   wordseq {
+    } | words_nonempty sep wordseq_opt {
     }
 
 wordseq_opt
@@ -100,29 +122,60 @@ wordseq
     }
 
 word
-    :   T_INTEGER {
-    } | T_WORD {
-    } | T_STRING {
-    } | T_CHAR {
+    :   INTEGER {
+    } | WORD {
+    } | STRING {
+    } | CHAR {
+    } | FLOAT {
     } | list {
     } | block {
-    } | T_LET '{' dirlist '}' block {
-    } | T_WITH '{' names_opt '}' block {
+    } | "let" so '{' dirlist '}' so block {
+    } | "with" so '{' names_opt '}' so block {
     } | '(' words ')' {
     }
 
 names_opt
-    :   /* nothing */ {
-    } | names {
+    :   so /*nothing*/ {
+    } | so names {
     }
 
 names
-    :   T_WORD {
-    } | names T_WORD {
+    :   WORD {
+    } | names WORD {
+    } | names sep {
     }
 
 list
     :   '{' words '}' {
+    }
+
+sep : '|' | '\n'
+
+ /* separator optional */
+so : /* nothing */ | so sep
+
+err
+    :   ':' sep WORD block {
+        do_error("Can't have a newline or '|' between colon and function being defined.", @2.first_line);
+    } | ':' multword block {
+        do_error("Spaces not permitted in word names.", @1.first_line);
+    }
+
+multword: WORD WORD | multword WORD
+
+wrongimport
+    /* who knew there were so many ways to violate this simple import syntax */
+    :   "import" WORD "as" WORD {
+        do_error("'import' directive expects a quoted path to the file to be imported.", @2.first_line);
+    } | "import" WORD {
+        do_error("'import' directive expects a quoted path to the file to be imported.", @2.first_line);
+    } | "import" STRING "as" STRING {
+        do_error("'import ... as' expects a bare name to prefix imported functions with.", @4.first_line);
+    } | "import" WORD "as" STRING {
+        do_error("'import' directive expects a quoted path to the file to be imported.", @2.first_line);
+        do_error("'import ... as' expects a bare name to prefix imported functions with.", @4.first_line);
+    } | "import" {
+        do_error("'import' needs the path to the file to be imported.", @1.first_line);
     }
 
 %%
