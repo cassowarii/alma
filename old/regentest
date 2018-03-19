@@ -1,0 +1,12 @@
+define add-twice [
+    dip [copy]
+    swap
+    dip [copy]
+    swap
+    dip [dip [apply]]
+    swap
+    dip [apply]
+    +
+]
+
+println typeof [add-twice]

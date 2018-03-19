@@ -156,6 +156,21 @@ void push(elem_t *new_elem, elem_t **top) {
     *top = new_elem;
 }
 
+void append(elem_t *new_elem, elem_t **top) {
+    if (new_elem == NULL) return;
+    if (*top == NULL) {
+        *top = new_elem;
+        return;
+    }
+
+    elem_t *prev = *top;
+    while (prev->next != NULL) {
+        prev = prev->next;
+    }
+
+    prev->next = new_elem;
+}
+
 // TODO I think this is old and busted as well maybe
 unsigned int length(elem_t *e) {
     if (!is_list(e)) {

@@ -1,0 +1,9 @@
+println typeof copy [ copy [println] ]
+
+swap "woop!"
+swap "hello!"
+
+apply
+
+dip [apply]
+apply

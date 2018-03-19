@@ -168,6 +168,22 @@ elem_t *word_split(elem_t **top) {
     return e_l;
 }
 
+value_type *type_append() {
+    stack_type *X = stack_var();
+    value_type *a = type_var();
+    return func_type(stack_of(a, stack_of(list_of(a), X)), stack_of(list_of(a), X));
+}
+
+elem_t *word_append(elem_t **top) {
+    elem_t *e_a = pop(top);
+    elem_t *e_l = pop(top);
+    append(e_a, &e_l->content.list);
+    if (interactive_mode) {
+        unify(e_a->type, e_l->type->content.v);
+    }
+    return e_l;
+}
+
 value_type *type_lenQ() {
     stack_type *X = stack_var();
     value_type *a = type_var();
@@ -551,6 +567,17 @@ elem_t *word_FLDIV(elem_t **top) {
     // backwards!!
     elem_t *e_b = pop(top);
     elem_t *e_a = pop(top);
+
+    // don't fall prey to floating point rounding errors if they
+    // actually are divisible by each other!
+    if (e_a->tag == E_INT && e_b->tag == E_INT
+            && e_a->content.e_int % e_b->content.e_int == 0) {
+        int result = e_a->content.e_int / e_b->content.e_int;
+        free_elem(e_a);
+        free_elem(e_b);
+        return elem_int(result);
+    }
+
     double a;
     if (e_a->tag == E_INT) {
         a = (double)e_a->content.e_int;
@@ -671,7 +698,7 @@ value_type *type_LT() {
 elem_t *word_LT(elem_t **top) {
     elem_t *e_a = pop(top);
     elem_t *e_b = pop(top);
-    elem_t *result = elem_bool(e_a->content.e_int < e_b->content.e_int);
+    elem_t *result = elem_bool(e_a->content.e_int > e_b->content.e_int);
     return result;
 }
 
@@ -683,7 +710,7 @@ value_type *type_GT() {
 elem_t *word_GT(elem_t **top) {
     elem_t *e_a = pop(top);
     elem_t *e_b = pop(top);
-    elem_t *result = elem_bool(e_a->content.e_int > e_b->content.e_int);
+    elem_t *result = elem_bool(e_a->content.e_int < e_b->content.e_int);
     return result;
 }
 
@@ -820,8 +847,8 @@ void add_lib_entry(library *l, lib_entry_t *entry) {
 void init_library(library *l) {
     l->table = NULL;
     add_lib_entry(l, construct("pop",       type_pop(),      &word_pop));
-    add_lib_entry(l, construct("print",     type_print(),    &word_print));
-    add_lib_entry(l, construct("println",   type_println(),  &word_println));
+    add_lib_entry(l, construct("print,",     type_print(),    &word_print));
+    add_lib_entry(l, construct("print",   type_println(),  &word_println));
     add_lib_entry(l, construct("list",      type_list(),     &word_list));
     add_lib_entry(l, construct("copy",      type_copy(),     &word_copy));
     add_lib_entry(l, construct("swap",      type_swap(),     &word_swap));
@@ -840,6 +867,7 @@ void init_library(library *l) {
     add_lib_entry(l, construct("pair",      type_pair(),     &word_pair));
     add_lib_entry(l, construct("unpair",    type_unpair(),   &word_unpair));
     add_lib_entry(l, construct("cons",      type_cons(),     &word_cons));
+    add_lib_entry(l, construct("append",    type_append(),   &word_append));
     add_lib_entry(l, construct("split",     type_split(),    &word_split));
     add_lib_entry(l, construct("len",       type_len(),      &word_len));
     add_lib_entry(l, construct("len?",      type_lenQ(),     &word_lenQ));

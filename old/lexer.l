@@ -73,8 +73,7 @@ int nested_comments = 0;
 <COMMENT>\n { /* throw it into the trash ! */ }
 
   /* The few keywords. */
-":" { return T_MACROCOLON; }
-"," { return T_MACROCOMMA; }
+":" { return T_COLON; }
 true { return TRUE; }
 false { return FALSE; }
 
@@ -100,7 +99,7 @@ false { return FALSE; }
     return T_FLOAT;
 }
   /* Pretty much anything else is valid as something... */
-[^{}\[\]\" \t;\n,]+  {
+[^{}\[\]\" \t\n]+  {
     yylval->s=strdup(yytext);
     return T_WORD;
 }

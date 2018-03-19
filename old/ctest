@@ -1,0 +1,6 @@
+define : co [copy]
+
+co [println] "boom!" "bam!"
+
+dip [apply]
+apply

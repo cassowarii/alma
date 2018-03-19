@@ -1,0 +1,49 @@
+define add3 [+ +]
+
+define keep [
+    dip [copy]
+    swap
+    dip [apply]
+]
+
+define nip [dip [pop]]
+
+define 2dip [
+    (* Double dip: [X→Y] a b X → a b Y *)
+    swap
+    dip [
+        swap
+        dip [apply]
+    ]
+]
+
+define bi [
+    (* Bi combinator: [a→b] [a→c] a → b c *)
+    swap            (* [a→c] [a→b] a ... *)
+    dip [           (* [a→b] a ... *)
+        dip [copy]  (* [a→b] a a ... *)
+        swap        (* a [a→b] a ... *)
+        dip [apply] (* a b ... *)
+        swap        (* b a ... *)
+    ]               (* [a→c] b a ... *)
+    swap            (* b [a→c] a ... *)
+    dip [apply]     (* b c ... *)
+]
+
+define save [ bi [ ] [apply] ]
+
+println "Save type; "
+println typeof [save]
+
+println "Bi type; "
+println typeof [bi]
+
+2
+save [println] add3 4 5 6
+list
+
+apply
+
+3 4
+nip
+list

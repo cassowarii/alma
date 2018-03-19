@@ -1,0 +1,5 @@
+define save [ dip [apply] copy ]
+
+4
+
+save 5

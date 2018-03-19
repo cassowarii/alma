@@ -50,17 +50,16 @@ extern int yydebug;
     LISTCLOSE = 259,
     BLOCKOPEN = 260,
     BLOCKCLOSE = 261,
-    T_MACROCOLON = 262,
-    T_MACROCOMMA = 263,
-    TRUE = 264,
-    FALSE = 265,
-    T_WORD = 266,
-    T_MACRO = 267,
-    T_INTEGER = 268,
-    T_CHAR = 269,
-    T_STRING = 270,
-    T_FLOAT = 271,
-    SEPARATOR = 272
+    T_COLON = 262,
+    TRUE = 263,
+    FALSE = 264,
+    T_WORD = 265,
+    T_MACRO = 266,
+    T_INTEGER = 267,
+    T_CHAR = 268,
+    T_STRING = 269,
+    T_FLOAT = 270,
+    SEPARATOR = 271
   };
 #endif
 /* Tokens.  */
@@ -69,24 +68,23 @@ extern int yydebug;
 #define LISTCLOSE 259
 #define BLOCKOPEN 260
 #define BLOCKCLOSE 261
-#define T_MACROCOLON 262
-#define T_MACROCOMMA 263
-#define TRUE 264
-#define FALSE 265
-#define T_WORD 266
-#define T_MACRO 267
-#define T_INTEGER 268
-#define T_CHAR 269
-#define T_STRING 270
-#define T_FLOAT 271
-#define SEPARATOR 272
+#define T_COLON 262
+#define TRUE 263
+#define FALSE 264
+#define T_WORD 265
+#define T_MACRO 266
+#define T_INTEGER 267
+#define T_CHAR 268
+#define T_STRING 269
+#define T_FLOAT 270
+#define SEPARATOR 271
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 81 "grammar.y" /* yacc.c:1909  */
+#line 82 "grammar.y" /* yacc.c:1909  */
 
     int i;
     char c;
@@ -94,7 +92,7 @@ union YYSTYPE
     double d;
     struct node_t *n;
 
-#line 98 "y.tab.h" /* yacc.c:1909  */
+#line 96 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

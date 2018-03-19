@@ -1,0 +1,630 @@
+Terminals unused in grammar
+
+   "float"
+
+
+Grammar
+
+    0 $accept: program "end-of-file"
+
+    1 program: dirlist_opt
+
+    2 dirlist_opt: %empty
+    3            | dirlist
+
+    4 dirlist: directive
+    5        | dirlist directive
+
+    6 directive: declaration '|'
+    7          | import '|'
+    8          | '|'
+
+    9 import: "include" "string"
+   10       | "import" "word" "string"
+
+   11 declaration: ':' "word" block
+
+   12 block: '[' words ']'
+
+   13 words: wordseq_opt
+   14      | words '|' wordseq_opt
+
+   15 wordseq_opt: %empty
+   16            | wordseq
+
+   17 wordseq: word
+   18        | wordseq word
+
+   19 word: "integer"
+   20     | "word"
+   21     | "string"
+   22     | "character"
+   23     | list
+   24     | block
+   25     | "let" '{' dirlist '}' block
+   26     | "with" '{' names_opt '}' block
+   27     | '(' words ')'
+
+   28 names_opt: %empty
+   29          | names
+
+   30 names: "word"
+   31      | names "word"
+
+   32 list: '{' words '}'
+
+
+Terminals, with rules where they appear
+
+"end-of-file" (0) 0
+'(' (40) 27
+')' (41) 27
+':' (58) 11
+'[' (91) 12
+']' (93) 12
+'{' (123) 25 26 32
+'|' (124) 6 7 8 14
+'}' (125) 25 26 32
+error (256)
+"import" (258) 10
+"include" (259) 9
+"let" (260) 25
+"with" (261) 26
+"word" (262) 10 11 20 30 31
+"integer" (263) 19
+"character" (264) 22
+"string" (265) 9 10 21
+"float" (266)
+
+
+Nonterminals, with rules where they appear
+
+$accept (20)
+    on left: 0
+program (21)
+    on left: 1, on right: 0
+dirlist_opt (22)
+    on left: 2 3, on right: 1
+dirlist (23)
+    on left: 4 5, on right: 3 5 25
+directive (24)
+    on left: 6 7 8, on right: 4 5
+import (25)
+    on left: 9 10, on right: 7
+declaration (26)
+    on left: 11, on right: 6
+block (27)
+    on left: 12, on right: 11 24 25 26
+words (28)
+    on left: 13 14, on right: 12 14 27 32
+wordseq_opt (29)
+    on left: 15 16, on right: 13 14
+wordseq (30)
+    on left: 17 18, on right: 16 18
+word (31)
+    on left: 19 20 21 22 23 24 25 26 27, on right: 17 18
+names_opt (32)
+    on left: 28 29, on right: 26
+names (33)
+    on left: 30 31, on right: 29 31
+list (34)
+    on left: 32, on right: 23
+
+
+State 0
+
+    0 $accept: . program "end-of-file"
+
+    "import"   shift, and go to state 1
+    "include"  shift, and go to state 2
+    '|'        shift, and go to state 3
+    ':'        shift, and go to state 4
+
+    $default  reduce using rule 2 (dirlist_opt)
+
+    program      go to state 5
+    dirlist_opt  go to state 6
+    dirlist      go to state 7
+    directive    go to state 8
+    import       go to state 9
+    declaration  go to state 10
+
+
+State 1
+
+   10 import: "import" . "word" "string"
+
+    "word"  shift, and go to state 11
+
+
+State 2
+
+    9 import: "include" . "string"
+
+    "string"  shift, and go to state 12
+
+
+State 3
+
+    8 directive: '|' .
+
+    $default  reduce using rule 8 (directive)
+
+
+State 4
+
+   11 declaration: ':' . "word" block
+
+    "word"  shift, and go to state 13
+
+
+State 5
+
+    0 $accept: program . "end-of-file"
+
+    "end-of-file"  shift, and go to state 14
+
+
+State 6
+
+    1 program: dirlist_opt .
+
+    $default  reduce using rule 1 (program)
+
+
+State 7
+
+    3 dirlist_opt: dirlist .
+    5 dirlist: dirlist . directive
+
+    "import"   shift, and go to state 1
+    "include"  shift, and go to state 2
+    '|'        shift, and go to state 3
+    ':'        shift, and go to state 4
+
+    $default  reduce using rule 3 (dirlist_opt)
+
+    directive    go to state 15
+    import       go to state 9
+    declaration  go to state 10
+
+
+State 8
+
+    4 dirlist: directive .
+
+    $default  reduce using rule 4 (dirlist)
+
+
+State 9
+
+    7 directive: import . '|'
+
+    '|'  shift, and go to state 16
+
+
+State 10
+
+    6 directive: declaration . '|'
+
+    '|'  shift, and go to state 17
+
+
+State 11
+
+   10 import: "import" "word" . "string"
+
+    "string"  shift, and go to state 18
+
+
+State 12
+
+    9 import: "include" "string" .
+
+    $default  reduce using rule 9 (import)
+
+
+State 13
+
+   11 declaration: ':' "word" . block
+
+    '['  shift, and go to state 19
+
+    block  go to state 20
+
+
+State 14
+
+    0 $accept: program "end-of-file" .
+
+    $default  accept
+
+
+State 15
+
+    5 dirlist: dirlist directive .
+
+    $default  reduce using rule 5 (dirlist)
+
+
+State 16
+
+    7 directive: import '|' .
+
+    $default  reduce using rule 7 (directive)
+
+
+State 17
+
+    6 directive: declaration '|' .
+
+    $default  reduce using rule 6 (directive)
+
+
+State 18
+
+   10 import: "import" "word" "string" .
+
+    $default  reduce using rule 10 (import)
+
+
+State 19
+
+   12 block: '[' . words ']'
+
+    "let"        shift, and go to state 21
+    "with"       shift, and go to state 22
+    "word"       shift, and go to state 23
+    "integer"    shift, and go to state 24
+    "character"  shift, and go to state 25
+    "string"     shift, and go to state 26
+    '['          shift, and go to state 19
+    '{'          shift, and go to state 27
+    '('          shift, and go to state 28
+
+    $default  reduce using rule 15 (wordseq_opt)
+
+    block        go to state 29
+    words        go to state 30
+    wordseq_opt  go to state 31
+    wordseq      go to state 32
+    word         go to state 33
+    list         go to state 34
+
+
+State 20
+
+   11 declaration: ':' "word" block .
+
+    $default  reduce using rule 11 (declaration)
+
+
+State 21
+
+   25 word: "let" . '{' dirlist '}' block
+
+    '{'  shift, and go to state 35
+
+
+State 22
+
+   26 word: "with" . '{' names_opt '}' block
+
+    '{'  shift, and go to state 36
+
+
+State 23
+
+   20 word: "word" .
+
+    $default  reduce using rule 20 (word)
+
+
+State 24
+
+   19 word: "integer" .
+
+    $default  reduce using rule 19 (word)
+
+
+State 25
+
+   22 word: "character" .
+
+    $default  reduce using rule 22 (word)
+
+
+State 26
+
+   21 word: "string" .
+
+    $default  reduce using rule 21 (word)
+
+
+State 27
+
+   32 list: '{' . words '}'
+
+    "let"        shift, and go to state 21
+    "with"       shift, and go to state 22
+    "word"       shift, and go to state 23
+    "integer"    shift, and go to state 24
+    "character"  shift, and go to state 25
+    "string"     shift, and go to state 26
+    '['          shift, and go to state 19
+    '{'          shift, and go to state 27
+    '('          shift, and go to state 28
+
+    $default  reduce using rule 15 (wordseq_opt)
+
+    block        go to state 29
+    words        go to state 37
+    wordseq_opt  go to state 31
+    wordseq      go to state 32
+    word         go to state 33
+    list         go to state 34
+
+
+State 28
+
+   27 word: '(' . words ')'
+
+    "let"        shift, and go to state 21
+    "with"       shift, and go to state 22
+    "word"       shift, and go to state 23
+    "integer"    shift, and go to state 24
+    "character"  shift, and go to state 25
+    "string"     shift, and go to state 26
+    '['          shift, and go to state 19
+    '{'          shift, and go to state 27
+    '('          shift, and go to state 28
+
+    $default  reduce using rule 15 (wordseq_opt)
+
+    block        go to state 29
+    words        go to state 38
+    wordseq_opt  go to state 31
+    wordseq      go to state 32
+    word         go to state 33
+    list         go to state 34
+
+
+State 29
+
+   24 word: block .
+
+    $default  reduce using rule 24 (word)
+
+
+State 30
+
+   12 block: '[' words . ']'
+   14 words: words . '|' wordseq_opt
+
+    '|'  shift, and go to state 39
+    ']'  shift, and go to state 40
+
+
+State 31
+
+   13 words: wordseq_opt .
+
+    $default  reduce using rule 13 (words)
+
+
+State 32
+
+   16 wordseq_opt: wordseq .
+   18 wordseq: wordseq . word
+
+    "let"        shift, and go to state 21
+    "with"       shift, and go to state 22
+    "word"       shift, and go to state 23
+    "integer"    shift, and go to state 24
+    "character"  shift, and go to state 25
+    "string"     shift, and go to state 26
+    '['          shift, and go to state 19
+    '{'          shift, and go to state 27
+    '('          shift, and go to state 28
+
+    $default  reduce using rule 16 (wordseq_opt)
+
+    block  go to state 29
+    word   go to state 41
+    list   go to state 34
+
+
+State 33
+
+   17 wordseq: word .
+
+    $default  reduce using rule 17 (wordseq)
+
+
+State 34
+
+   23 word: list .
+
+    $default  reduce using rule 23 (word)
+
+
+State 35
+
+   25 word: "let" '{' . dirlist '}' block
+
+    "import"   shift, and go to state 1
+    "include"  shift, and go to state 2
+    '|'        shift, and go to state 3
+    ':'        shift, and go to state 4
+
+    dirlist      go to state 42
+    directive    go to state 8
+    import       go to state 9
+    declaration  go to state 10
+
+
+State 36
+
+   26 word: "with" '{' . names_opt '}' block
+
+    "word"  shift, and go to state 43
+
+    $default  reduce using rule 28 (names_opt)
+
+    names_opt  go to state 44
+    names      go to state 45
+
+
+State 37
+
+   14 words: words . '|' wordseq_opt
+   32 list: '{' words . '}'
+
+    '|'  shift, and go to state 39
+    '}'  shift, and go to state 46
+
+
+State 38
+
+   14 words: words . '|' wordseq_opt
+   27 word: '(' words . ')'
+
+    '|'  shift, and go to state 39
+    ')'  shift, and go to state 47
+
+
+State 39
+
+   14 words: words '|' . wordseq_opt
+
+    "let"        shift, and go to state 21
+    "with"       shift, and go to state 22
+    "word"       shift, and go to state 23
+    "integer"    shift, and go to state 24
+    "character"  shift, and go to state 25
+    "string"     shift, and go to state 26
+    '['          shift, and go to state 19
+    '{'          shift, and go to state 27
+    '('          shift, and go to state 28
+
+    $default  reduce using rule 15 (wordseq_opt)
+
+    block        go to state 29
+    wordseq_opt  go to state 48
+    wordseq      go to state 32
+    word         go to state 33
+    list         go to state 34
+
+
+State 40
+
+   12 block: '[' words ']' .
+
+    $default  reduce using rule 12 (block)
+
+
+State 41
+
+   18 wordseq: wordseq word .
+
+    $default  reduce using rule 18 (wordseq)
+
+
+State 42
+
+    5 dirlist: dirlist . directive
+   25 word: "let" '{' dirlist . '}' block
+
+    "import"   shift, and go to state 1
+    "include"  shift, and go to state 2
+    '|'        shift, and go to state 3
+    ':'        shift, and go to state 4
+    '}'        shift, and go to state 49
+
+    directive    go to state 15
+    import       go to state 9
+    declaration  go to state 10
+
+
+State 43
+
+   30 names: "word" .
+
+    $default  reduce using rule 30 (names)
+
+
+State 44
+
+   26 word: "with" '{' names_opt . '}' block
+
+    '}'  shift, and go to state 50
+
+
+State 45
+
+   29 names_opt: names .
+   31 names: names . "word"
+
+    "word"  shift, and go to state 51
+
+    $default  reduce using rule 29 (names_opt)
+
+
+State 46
+
+   32 list: '{' words '}' .
+
+    $default  reduce using rule 32 (list)
+
+
+State 47
+
+   27 word: '(' words ')' .
+
+    $default  reduce using rule 27 (word)
+
+
+State 48
+
+   14 words: words '|' wordseq_opt .
+
+    $default  reduce using rule 14 (words)
+
+
+State 49
+
+   25 word: "let" '{' dirlist '}' . block
+
+    '['  shift, and go to state 19
+
+    block  go to state 52
+
+
+State 50
+
+   26 word: "with" '{' names_opt '}' . block
+
+    '['  shift, and go to state 19
+
+    block  go to state 53
+
+
+State 51
+
+   31 names: names "word" .
+
+    $default  reduce using rule 31 (names)
+
+
+State 52
+
+   25 word: "let" '{' dirlist '}' block .
+
+    $default  reduce using rule 25 (word)
+
+
+State 53
+
+   26 word: "with" '{' names_opt '}' block .
+
+    $default  reduce using rule 26 (word)

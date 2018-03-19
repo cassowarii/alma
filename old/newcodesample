@@ -1,0 +1,78 @@
+# Q: What if I just redid this language to be SML-Forth?
+# A: Well this is fun.
+
+: list-collect-until [
+    with { condition next start } [ # with binds names to things on the stack, lexically (& removes them)
+        if [ do-1to1 condition start ] [
+            { start }
+        ] [
+            cons (start) (list-collect-until (condition) (do-1to1 next start) (next))
+        ]
+    ]
+]
+
+: if-even [
+    copy | if [ % 2 | = 0 ]
+]
+
+: collatz-next [
+    if-even [ / 2 ] [ * 3 | + 1 ]
+]
+
+: collatz [
+    list-collect-until [ = 1 ] [ collatz-next ]
+]
+
+
+# Or.
+
+: collatz [
+    let { # let like sml let -- defined lexically within a following quote
+          # this sort of means braces are weird tho -- maybe lists need better syntax?
+          # actually nvm, it's still fine. this declarational mode only appears after let/at top level
+
+        # branch if even.
+        : if-even [ copy | if [ % 2 | = 0 ] ]
+
+        # next in sequence.
+        : collatz-next [ if-even [ / 2 ] [ * 3 | + 1 ] ]
+
+    } [
+        list-collect-until [ = 1 ] [ collatz-next ]
+    ]
+]
+
+: main [ print collatz 10 ] # :O
+
+
+so... what's our syntax look like then
+
+program     : dirlist
+dirlist     : directive+
+directive   : declaration | import
+import      : "import" name | "from" name "import" name
+declaration : ":" name block
+block       : "[" words "]"
+words       : word+ | words "|" word+ # | and () affect execution order
+word        : number | name | string | list | block
+              | "let" "{" dirlist "}" block | "with" "{" names "}" block | "(" words ")"
+names       : name+
+list        : "{" words "}"
+name        : <obvi>
+number      : <obvi>
+string      : <obvi>
+
+ok this isn't so bad actually
+
+another win for "languages should have no syntax"
+
+the shame is that this one doesn't have extensible syntax... but that kind of comes with the territory of
+being a static-typed functional monstrosity i feel like. haskell/sml/etc can't really do that either
+
+maybe we have a hash literal too
+
+oh and tuples
+
+ok
+
+how do we do exporting from modules

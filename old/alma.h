@@ -201,6 +201,7 @@ void print_repr_elem(elem_t *e);
 void print_string(elem_t *e);
 
 void push(elem_t *new_elem, elem_t **top);
+void append(elem_t *new_elem, elem_t **top);
 
 elem_t *stack_top;
 

@@ -1,6 +1,8 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "alma.h"
 #define YYERROR_VERBOSE
 
@@ -73,8 +75,7 @@ int main(int argc, char **argv) {
 %token BLOCKOPEN "["
 %token BLOCKCLOSE "]"
 %token END 0 "end-of-file"
-%token T_MACROCOLON ":"
-%token T_MACROCOMMA ","
+%token T_COLON ":"
 %token TRUE "true"
 %token FALSE "false"
 %union
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
 %type <n> block
 %type <n> list
 %type <n> macro
-%type <s> macroparams
+/*%type <s> macroparams*/
 
 %%
 program: sequence_list {
@@ -209,27 +210,24 @@ list:
     }
 
 macro:
-    T_WORD ":" macroparams block {
-        if (!strcmp($1, "define")) {
+     ":" T_WORD block {
             lib_entry_t *def = create_entry();
-            def->name = $3;
-            def->type = infer_type($4);
+            def->name = $2;
+            def->type = infer_type($3);
             if (def->type->tag != V_ERROR) {
-                def->impl.node = $4;
+                def->impl.node = $3;
             } else {
                 add_info(def->type->content.err, "in definition of function %s", $3);
             }
             add_lib_entry(&lib, def);
             $$ = NULL;
-            free($1);
-        }
     }
-
+/*
 macroparams:
     T_WORD {
         $$ = $1;
     } | macroparams T_MACROCOMMA T_WORD {
         $$ = $3;
     }
-
+*/
 %%

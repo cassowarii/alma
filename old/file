@@ -1,0 +1,62 @@
+copied type for copy..
+Regeneralizing: [ 'a 'X -> 'a 'a 'X ].
+copied type for println..
+Regeneralizing: [ 'a 'X -> 'X ].
+copied type for co..
+Regeneralizing: [ 'a 'X -> 'a 'a 'X ].
+Regeneralizing: [ 'a 'X -> 'X ].
+Regeneralizing: [ 'a 'X -> 'X ].
+Regeneralizing: [ 'X -> [ 'a 'Y -> 'Y ] [ 'a 'Y -> 'Y ] 'X ].
+| 2
+| 2
+| 1
+Regeneralizing: [ 'a 'X -> 'X ].
+Regeneralizing: [ 'a 'X -> 'X ].
+Regeneralizing: [ 'X -> [ 'a 'Y -> 'Y ] [ 'a 'Y -> 'Y ] {char} 'X ].
+| 1 | 1
+| 2 | 2
+| 1 | 1
+Regeneralizing: [ 'a 'X -> 'X ].
+Regeneralizing: [ 'a 'X -> 'X ].
+Regeneralizing: [ 'X -> [ 'a 'Y -> 'Y ] [ 'a 'Y -> 'Y ] {char} {char} 'X ].
+| 1 | 1 | 1
+| 2 | 2 | 2
+| 1 | 1 | 1
+Regeneralizing: [ 'a 'X -> 'X ].
+Regeneralizing: [ 'a 'X -> 'X ].
+Regeneralizing: [ 'X -> [ 'a 'Y -> 'Y ] [ 'a 'Y -> 'Y ] {char} {char} 'X ].
+| 2
+| 2
+| 1
+| 1 | 1 | 0
+| 2 | 2 | 1
+| 1 | 2 | 1
+copied type for apply..
+copied type for dip..
+Regeneralizing: [ {char} {char} 'X -> {char} 'X ].
+| 2 | 2
+| 3 | 3
+| 3 | 3
+| 3 | 1
+| 4 | 2
+| 3 | 1
+Regeneralizing: [ 'X -> [ {char} {char} 'Y -> {char} 'Y ] {char} 'X ].
+| 2
+| 2
+| 1
+| 3 | 0
+| 4 | 1
+| 4 | 1
+copied type for apply..
+Regeneralizing: [ {char} 'X -> {char} 'X ].
+| 4 | 1
+| 5 | 2
+| 5 | 2
+| 5 | 1
+| 6 | 2
+| 6 | 2
+copied type for println..
+Regeneralizing: [ 'a 'X -> 'X ].
+copied type for apply..
+boom!
+bam!
