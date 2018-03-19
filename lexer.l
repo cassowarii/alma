@@ -145,7 +145,7 @@ $\\?{UANYN} {
 }
 
   /* Pretty much anything else is valid as something... */
-[^{}\[\]\" \t;\n]+  {
+([^{}\[\]\" \t;\n]|{UONLY})+  {
     yylval->s=strdup(yytext);
     return WORD;
 }

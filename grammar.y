@@ -57,10 +57,11 @@ int yywrap() {
 
 program
     :   dirlist {
-    } | words_nonempty {
+    } | dirlist words_nonempty program_after_barewords {
+        /* if interactive mode, handle thing */
         /* if not interactive... */
-        do_error("Bare words not permitted outside a function in non-interactive mode.\n"
-                "Place code you want to run first in a function named \"main\".", @1.first_line);
+        do_error("To run code at top level non-interactively, "
+                 "put it in a function called 'main'.", @2.first_line);
     } | /* empty */ {
         // do nothing
     }
@@ -78,7 +79,11 @@ realdirlist
 
 directive
     :   declaration {
-    } | import {
+    } | import sep {
+        /* Imports need a sep after them because (a) otherwise weird looking
+         * and (b) otherwise you can't tell if it's `import "a"` or `import | "a"`
+         * (an error'd pathless import followed by an error'd bare string.)
+         * Obviously the first one is intended, but this is an easy way to enforce it. */
     } | err {
     }
 
@@ -176,6 +181,17 @@ wrongimport
         do_error("'import ... as' expects a bare name to prefix imported functions with.", @4.first_line);
     } | "import" {
         do_error("'import' needs the path to the file to be imported.", @1.first_line);
+    }
+
+program_after_barewords
+    :   realdirlist {
+    } | realdirlist words_nonempty program_after_barewords {
+        /* Would be good to make this one somehow combine together, so we don't
+         * print it out backwards... hmm. */
+        do_error("To run code at top level non-interactively, "
+                 "put it in a function called 'main'.", @2.first_line);
+    } | /* empty */ {
+        // do nothing
     }
 
 %%
