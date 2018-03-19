@@ -1,7 +1,7 @@
 .*.swp
 .*.swo
 *.o
-
 alma
 *.tab.*
 lex.yy.*
+grammar.output
