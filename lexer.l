@@ -17,7 +17,6 @@ int nested_comments = 0;
 
 %option nounput noinput yylineno bison-bridge bison-locations
 %x COMMENT LINECMT
-%x SEPARATORS
 %s IMPORT
 
  /* unicode char classes taken from http://www.kylheku.com/cgit/txr/tree/parser.l */
