@@ -1,6 +1,6 @@
 %{
-#include <stdio.h>
-#include <string.h>
+#include "alma.h"
+
 #define YYERROR_VERBOSE
 
 FILE *yyin;
@@ -10,9 +10,11 @@ extern int yylineno;
 int yylex();
 int yyparse();
 
+int errors = 0;
+
 void do_error(const char *str, int linenum) {
-    //throw_error(str, yylineno);
-    printf("error at line %d: %s\n", linenum, str);
+    fprintf(stderr, "error at line %d: %s\n", linenum, str);
+    errors++;
 }
 
 void yyerror(const char *str) {
@@ -37,23 +39,35 @@ int yywrap() {
 %token T_AS         "as"        /* "as" (but only after an 'import') */
 %token T_LET        "let"       /* "let" */
 %token T_WITH       "with"      /* "with" */
+%token T_DEF        "def"       /* "def" */
+%token T_IN         "in"        /* "in" */
 
 %token END 0        "end-of-file"
 %union
 {
     int i;
     char c;
-    char *s;
+    char *cs; // cstring
+    struct ustr *s;
     double d;
     //struct node_t *n;
 }
 %token <s> WORD   "word"
 %token <i> INTEGER "integer"
-%token <c> CHAR   "character"
+%token <i> CHAR   "character"
 %token <s> STRING "string"
 %token <d> FLOAT  "float"
 
 %%
+
+main
+    :   program {
+        if (errors > 0) {
+            // oh no!
+        } else {
+            printf("Syntax OK\n");
+        }
+    }
 
 program
     :   dirlist {
@@ -62,12 +76,11 @@ program
         /* if not interactive... */
         do_error("To run code at top level non-interactively, "
                  "put it in a function called 'main'.", @2.first_line);
-    } | /* empty */ {
-        // do nothing
     }
 
 dirlist
-    :   sep dirlist {
+    :   /* empty */ {
+    } | sep dirlist {
     } | realdirlist {
     }
 
@@ -84,7 +97,9 @@ directive
          * and (b) otherwise you can't tell if it's `import "a"` or `import | "a"`
          * (an error'd pathless import followed by an error'd bare string.)
          * Obviously the first one is intended, but this is an easy way to enforce it. */
-    } | err {
+    /* } | err { */
+    } | error sep {
+        yyerrok ;
     }
 
 import
@@ -94,7 +109,7 @@ import
     }
 
 declaration
-    :   ':' WORD so block {
+    :   "def" WORD ':' words ';' {
     }
 
 block
@@ -131,23 +146,25 @@ word
     } | WORD {
     } | STRING {
     } | CHAR {
+        printf("Got a character: ");
+        print_char($1);
     } | FLOAT {
     } | list {
     } | block {
-    } | "let" so '{' dirlist '}' so block {
-    } | "with" so '{' names_opt '}' so block {
+    } | "let" dirlist "in" nlo '(' words ')' {
+    } | "with" names nlo '(' words ')' {
     } | '(' words ')' {
     }
 
-names_opt
-    :   so /*nothing*/ {
-    } | so names {
-    }
+/* names_opt
+    :   nlo / *nothing* / {
+    } | nlo names {
+    } */
 
 names
     :   WORD {
     } | names WORD {
-    } | names sep {
+    /* } | names sep { */
     }
 
 list
@@ -156,17 +173,17 @@ list
 
 sep : '|' | '\n'
 
- /* separator optional */
-so : /* nothing */ | so sep
+ /* newline optional, but not | because it's silly */
+nlo : /* nothing */ | nlo '\n'
 
-err
+ /* err
     :   ':' sep WORD block {
         do_error("Can't have a newline or '|' between colon and function being defined.", @2.first_line);
     } | ':' multword block {
         do_error("Spaces not permitted in word names.", @1.first_line);
-    }
+    } */
 
-multword: WORD WORD | multword WORD
+ /* multword: WORD WORD | multword WORD */
 
 wrongimport
     /* who knew there were so many ways to violate this simple import syntax */

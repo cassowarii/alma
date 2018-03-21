@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-std=c99 -Wall -g -D_GNU_SOURCE
 
-alma: grammar.tab.o lex.yy.o alma.o 
+alma: grammar.tab.o ustrings.o lex.yy.o alma.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 grammar.tab.c: grammar.y

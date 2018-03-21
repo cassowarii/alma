@@ -1,7 +1,6 @@
 %{
-#include <stdio.h>
-#include <string.h>
 #include "grammar.tab.h"
+#include "alma.h"
 #define yyterminate() return END
 
 extern FILE * yyin;
@@ -12,6 +11,9 @@ int nested_parens = 0;
 int nested_comments = 0;
 
 #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
+
+uint32_t char_parse(const char *utf8, unsigned int length);
+ustr *parse_string(const char *bytes, unsigned int length);
 
 %}
 
@@ -34,12 +36,14 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 %%
 
   /* Reserved words. */
-"import"        { BEGIN(IMPORT); return T_IMPORT; }
-"let"           return T_LET;
-"with"          return T_WITH;
-<IMPORT>"as"    { BEGIN(INITIAL); return T_AS; }
-<IMPORT>\|      return '|';
-<IMPORT>[\r\n]  return '\n';
+"import"                { BEGIN(IMPORT); return T_IMPORT; }
+"let"                   return T_LET;
+"with"                  return T_WITH;
+"def"                   return T_DEF;
+"in"                    return T_IN;
+<IMPORT>"as"            { BEGIN(INITIAL); return T_AS; }
+<IMPORT>\|              return '|';
+<IMPORT>[\r\n]          return '\n';
 
   /* Special tokens. */
 "{"  {
@@ -67,11 +71,15 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
     return ')';
 }
 ":"     return ':';
+
+";"         { BEGIN(INITIAL); return ';'; }
+
  /* @.+ {
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
     strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
     return T_REF;
 } */
+
 "|"             return '|';
 \r|\n           return '\n';
 
@@ -96,6 +104,7 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 }
 
 <COMMENT,LINECMT>. { /* throw it into the trash ! */ }
+<COMMENT>\n|\r     { /* in case of block comment, also eat newlines */ }
 <LINECMT>\n|\r {
     BEGIN(INITIAL);
     return '\n';
@@ -105,28 +114,42 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 
   /* Character literal. */
 $\\?{UANYN} {
-    yylval->c = yytext[2];
+    // TODO this gives actually the wrong value for unicode things
+    // (since it'll only look at a byte)
+    yylval->i = char_parse(yytext+1, strlen(yytext)-1);
+    return CHAR;
+}
+
+$\"\\?{UANYN}\" {
+    yylval->i = char_parse(yytext+2, strlen(yytext)-3);
+    return CHAR;
+}
+
+$'\\?{UANYN}' {
+    yylval->c = yytext[3];
     return CHAR;
 }
 
   /* String literal. */
 \"(\\{UANYN}|[^"\r\n]|\\\n)*\" {
-    yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
-    strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
+    //yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
+    //strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
+    yylval->s = parse_string(yytext + 1, strlen(yytext)-2);
     return STRING;
 }
 
-\'(\\{UANYN}|[^"\r\n]|\\\n)*\' {
-    yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
-    strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
+\'(\\{UANYN}|[^'\r\n]|\\\n)*\' {
+    //yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
+    //strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
+    yylval->s = parse_string(yytext + 1, strlen(yytext)-2);
     return STRING;
 }
 
-\"(\\{UANYN}|[^"\r\n])*(\r|\n) {
+\"(\\{UANYN}|[^"\r\n])*$ {
     yyerror("syntax error, unterminated double-quoted string");
 }
 
-\'(\\{UANYN}|[^"\r\n])*(\r|\n) {
+\'(\\{UANYN}|[^'\r\n])*$ {
     yyerror("syntax error, unterminated single-quoted string");
 }
 
@@ -145,8 +168,8 @@ $\\?{UANYN} {
 }
 
   /* Pretty much anything else is valid as something... */
-([^{}\[\]\" \t;\n]|{UONLY})+  {
-    yylval->s=strdup(yytext);
+([^{}\[\]\" \t\n()]|{UONLY})+  {
+    yylval->cs = strdup(yytext);
     return WORD;
 }
 
@@ -154,5 +177,7 @@ $\\?{UANYN} {
 [ \t]+                  /* skip whitespace */;
 
   /* End of file! */
+<COMMENT><<EOF>> { yyerror("syntax error, unterminated comment"); return 0; }
 <<EOF>> { return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
+
 %%
