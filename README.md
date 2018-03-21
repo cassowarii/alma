@@ -1,4 +1,6 @@
-![ALMA](almalogo.png)
+<p align="center">
+  <img src="almalogo.png" title="(alma logo)" width="324" height="119" />
+</p>
 
 Alma
 ====
