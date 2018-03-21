@@ -38,8 +38,8 @@ int yywrap() {
 %token T_IMPORT     "import"    /* "include" */
 %token T_AS         "as"        /* "as" (but only after an 'import') */
 %token T_LET        "let"       /* "let" */
-%token T_WITH       "with"      /* "with" */
-%token T_DEF        "def"       /* "def" */
+%token T_BIND       "bind"      /* "bind" */
+%token T_FUNC       "func"      /* "func" */
 %token T_IN         "in"        /* "in" */
 
 %token END 0        "end-of-file"
@@ -109,7 +109,7 @@ import
     }
 
 declaration
-    :   "def" WORD ':' words ';' {
+    :   "func" WORD ':' words ';' {
     }
 
 block
@@ -151,8 +151,8 @@ word
     } | FLOAT {
     } | list {
     } | block {
-    } | "let" dirlist "in" nlo '(' words ')' {
-    } | "with" names nlo '(' words ')' {
+    } | "let" dirlist "in" nlo word {
+    } | "bind" names nlo "in" nlo word {
     } | '(' words ')' {
     }
 

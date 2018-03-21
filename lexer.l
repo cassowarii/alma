@@ -38,8 +38,8 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
   /* Reserved words. */
 "import"                { BEGIN(IMPORT); return T_IMPORT; }
 "let"                   return T_LET;
-"with"                  return T_WITH;
-"def"                   return T_DEF;
+"bind"                  return T_BIND;
+"func"                  return T_FUNC;
 "in"                    return T_IN;
 <IMPORT>"as"            { BEGIN(INITIAL); return T_AS; }
 <IMPORT>\|              return '|';
@@ -94,7 +94,7 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
     if (nested_comments == 0) {
         BEGIN(INITIAL);
     } else if (nested_comments < 0) {
-        fprintf(stderr, "found `*)` with no matching `(*`!\n");
+        fprintf(stderr, "found `*)` bind no matching `(*`!\n");
         nested_comments = 0;
     }
 }
