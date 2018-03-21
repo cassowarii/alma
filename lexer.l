@@ -52,6 +52,7 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 }
 "}" {
     nested_blocks --;
+    if (nested_blocks < 0) nested_blocks = 0;
     return '}';
 }
 "["  {
@@ -60,6 +61,7 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 }
 "]" {
     nested_lists --;
+    if (nested_lists < 0) nested_lists = 0;
     return ']';
 }
 \( {
@@ -68,6 +70,7 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 }
 \) {
     nested_parens --;
+    if (nested_parens < 0) nested_parens = 0;
     return ')';
 }
 ":"     return ':';
@@ -153,13 +156,6 @@ $'\\?{UANYN}' {
     yyerror("syntax error, unterminated single-quoted string");
 }
 
- /* :([A-Za-z]|{UONLY})([A-Za-z0-9\-_.]|{UONLY})* {
-    / * :[^{}\[\]\" \t]+ { * / // <-- !!
-    yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
-    strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
-    return T_STRING;
-} */
-
 [0-9]+                  yylval->i=atoi(yytext); return INTEGER;
 
 [0-9]+\.[0-9]+([Ee][0-9]+)? {
@@ -167,9 +163,18 @@ $'\\?{UANYN}' {
     return FLOAT;
 }
 
+  /* Symbol literals e.g. /symbol /whatever */
+\/([^{}\[\]\" \t\n()]|{UONLY})+  {
+    yylval->cs = (char*)calloc(strlen(yytext) - 1 + 1, sizeof(char));
+    strncpy(yylval->cs, yytext + 1, strlen(yytext) - 1);
+    return SYMBOL;
+}
+
   /* Pretty much anything else is valid as something... */
 ([^{}\[\]\" \t\n()]|{UONLY})+  {
-    yylval->cs = strdup(yytext);
+    // (We just treat these as bytes though, since we don't treat them like strings.)
+    yylval->cs = (char*)calloc(strlen(yytext) + 1, sizeof(char));
+    strncpy(yylval->cs, yytext, strlen(yytext));
     return WORD;
 }
 

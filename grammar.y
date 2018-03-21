@@ -54,11 +54,12 @@ int yywrap() {
     double d;
     //struct node_t *n;
 }
-%token <s> WORD   "word"
-%token <i> INTEGER "integer"
-%token <i> CHAR   "character"
-%token <s> STRING "string"
-%token <d> FLOAT  "float"
+%token <cs> WORD    "word"
+%token <cs> SYMBOL  "symbol"
+%token <i>  INTEGER "integer"
+%token <i>  CHAR    "character"
+%token <s>  STRING  "string"
+%token <d>  FLOAT   "float"
 
 %%
 
@@ -151,6 +152,7 @@ word
         printf("Got a character: ");
         print_char($1);
     } | FLOAT {
+    } | SYMBOL {
     } | list {
     } | block {
     } | "let" dirlist "in" nlo word {
