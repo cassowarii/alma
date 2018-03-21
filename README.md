@@ -1,1 +1,1 @@
-![almalogo.png](ALMA)
+![ALMA](almalogo.png)
