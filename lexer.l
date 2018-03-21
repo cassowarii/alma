@@ -94,8 +94,8 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
     if (nested_comments == 0) {
         BEGIN(INITIAL);
     } else if (nested_comments < 0) {
-        fprintf(stderr, "found `*)` bind no matching `(*`!\n");
         nested_comments = 0;
+        return CMTCLOSE_ERRORTOKEN;
     }
 }
 

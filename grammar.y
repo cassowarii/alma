@@ -42,6 +42,8 @@ int yywrap() {
 %token T_FUNC       "func"      /* "func" */
 %token T_IN         "in"        /* "in" */
 
+%token CMTCLOSE_ERRORTOKEN "*)" /* a block comment end. always syntactically invalid */
+
 %token END 0        "end-of-file"
 %union
 {
