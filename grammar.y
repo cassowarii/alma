@@ -50,7 +50,7 @@ int yywrap() {
     int i;
     char c;
     char *cs; // cstring
-    struct ustr *s;
+    struct AUstr *s;
     double d;
     //struct node_t *n;
 }

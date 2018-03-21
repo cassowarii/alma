@@ -13,7 +13,7 @@ int nested_comments = 0;
 #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
 
 uint32_t char_parse(const char *utf8, unsigned int length);
-ustr *parse_string(const char *bytes, unsigned int length);
+AUstr *parse_string(const char *bytes, unsigned int length);
 
 %}
 

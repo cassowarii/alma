@@ -2,8 +2,8 @@
 
 /* Create a new string (actually a sequence of 32-bit integers
  * representing UTF8 codepoints) */
-ustr *ustr_new(size_t initial_size) {
-    ustr *newstr = malloc(sizeof(ustr));
+AUstr *ustr_new(size_t initial_size) {
+    AUstr *newstr = malloc(sizeof(AUstr));
     if (newstr == NULL) {
         fprintf(stderr, "Couldn't allocate space for a new string: Out of memory\n");
         return NULL;
@@ -21,7 +21,7 @@ ustr *ustr_new(size_t initial_size) {
 /* Append a new codepoint to a ustr.
  * ustr's are immutable in alma -- this function is
  * only called during compilation. */
-void ustr_append(ustr *u, uint32_t ch) {
+void ustr_append(AUstr *u, uint32_t ch) {
     if (u->length == u->capacity) {
         uint32_t *newdata = realloc(u->data, u->capacity * 2 * sizeof(uint32_t));
         if (newdata == NULL) {
@@ -38,7 +38,7 @@ void ustr_append(ustr *u, uint32_t ch) {
 /* Finish off a string by cutting off the unused
  * space on the end (again, only happens in compilation
  * phase) */
-void ustr_finish(ustr *u) {
+void ustr_finish(AUstr *u) {
     if (u->capacity > u->length) {
         uint32_t *newdata = realloc(u->data, u->length * 2 * sizeof(uint32_t));
         if (newdata == NULL) {
@@ -59,8 +59,8 @@ void print_char(uint32_t utf8) {
     }
 }
 
-/* Print a ustr character-by-character. */
-void ustr_print(ustr *u) {
+/* Print a AUstr character-by-character. */
+void ustr_print(AUstr *u) {
     for (int i = 0; i < u->length; i++) {
         print_char(u->data[i]);
     }
@@ -123,11 +123,11 @@ int is_u4(unsigned char x) {
 }
 
 /* Parse a const char * into a ustring using char_parse */
-ustr *parse_string(const char *bytes, unsigned int length) {
+AUstr *parse_string(const char *bytes, unsigned int length) {
     /* The number of codepoints in the string is AT MOST the number
      * bytes in the string. If it's less, the extra gets clipped off
      * at the end. */
-    ustr *newstr = ustr_new(length);
+    AUstr *newstr = ustr_new(length);
     if (newstr == NULL) {
         fprintf(stderr, "Couldn't allocate a new ustring.\n");
         return NULL;
