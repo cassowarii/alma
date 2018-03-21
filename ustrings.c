@@ -162,7 +162,6 @@ AUstr *parse_string(const char *bytes, unsigned int length) {
     }
 
     ustr_finish(newstr);
-    ustr_print(newstr);
 
     return newstr;
 }

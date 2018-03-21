@@ -25,6 +25,8 @@ int yywrap() {
     return 1;
 }
 
+ASymbolTable symtab = NULL;
+
 %}
 
 %define api.pure
@@ -147,12 +149,16 @@ wordseq
 word
     :   INTEGER {
     } | WORD {
+        ASymbol *sym = get_symbol(&symtab, $1);
+        printf("Symbol '%s' at %p\n", $1, sym);
     } | STRING {
     } | CHAR {
         printf("Got a character: ");
         print_char($1);
     } | FLOAT {
     } | SYMBOL {
+        ASymbol *sym = get_symbol(&symtab, $1);
+        printf("Symbol '%s' at %p\n", $1, sym);
     } | list {
     } | block {
     } | "let" dirlist "in" nlo word {

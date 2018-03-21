@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 #include "uthash.h"
 
 /*-*-*-* ustrings.c *-*-*-*/
@@ -52,3 +53,5 @@ typedef struct ASymbolMapping {
 /* Used for the actual table, since uthash just passes around an
  * ASymbolMapping* for access to the hash table */
 typedef ASymbolMapping* ASymbolTable;
+
+ASymbol *get_symbol(ASymbolTable *t, const char *name);
