@@ -1,4 +1,4 @@
-#include "alma.h"
+#include "symbols.h"
 
 /* Create new symbol... */
 ASymbol *create_symbol(const char *name) {
