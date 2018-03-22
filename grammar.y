@@ -114,7 +114,7 @@ import
     }
 
 declaration
-    :   "func" WORD ':' words ';' {
+    :   "func" WORD ':' words '.' {
     }
 
 block

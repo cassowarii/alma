@@ -75,7 +75,7 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 }
 ":"     return ':';
 
-";"         { BEGIN(INITIAL); return ';'; }
+"."         { BEGIN(INITIAL); return '.'; }
 
  /* @.+ {
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
