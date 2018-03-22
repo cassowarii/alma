@@ -147,6 +147,13 @@ wordseq
     }
 
 word
+    :   value {
+    } | "let" dirlist "in" nlo word {
+    } | "bind" names nlo "in" nlo word {
+    } | '(' words ')' {
+    }
+
+value
     :   INTEGER {
     } | WORD {
         ASymbol *sym = get_symbol(&symtab, $1);
@@ -161,9 +168,6 @@ word
         printf("Symbol '%s' at %p\n", $1, sym);
     } | list {
     } | block {
-    } | "let" dirlist "in" nlo word {
-    } | "bind" names nlo "in" nlo word {
-    } | '(' words ')' {
     }
 
 /* names_opt
