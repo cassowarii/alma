@@ -111,11 +111,6 @@ realdirlist
 directive
     :   declaration {
     } | import '.' {
-        /* Imports need a sep after them because (a) otherwise weird looking
-         * and (b) otherwise you can't tell if it's `import "a"` or `import | "a"`
-         * (an error'd pathless import followed by an error'd bare string.)
-         * Obviously the first one is intended, but this is an easy way to enforce it. */
-    /* } | err { */
     } | error sep {
         yyerrok ;
     }
@@ -137,11 +132,6 @@ block
     :   '[' words ']' {
         $$ = $2;
     }
-
- /* words_opt
-    :  <nothing>  {
-    } | words {
-    } */
 
 words
     :   wordseq_opt {
@@ -202,15 +192,9 @@ value
         $$ = val_block($1);
     }
 
-/* names_opt
-    :   nlo / *nothing* / {
-    } | nlo names {
-    } */
-
 names
     :   WORD {
     } | names WORD {
-    /* } | names sep { */
     }
 
 list
@@ -221,15 +205,6 @@ sep : '|' | '\n'
 
  /* newline optional, but not | because it's silly */
 nlo : /* nothing */ | nlo '\n'
-
- /* err
-    :   ':' sep WORD block {
-        do_error("Can't have a newline or '|' between colon and function being defined.", @2.first_line);
-    } | ':' multword block {
-        do_error("Spaces not permitted in word names.", @1.first_line);
-    } */
-
- /* multword: WORD WORD | multword WORD */
 
 wrongimport
     /* who knew there were so many ways to violate this simple import syntax */
