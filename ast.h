@@ -3,6 +3,12 @@
 
 #include "alma.h"
 
-void ast_newnode(ANodeType type, AValue *val);
+AAstNode *ast_valnode(unsigned int location, AValue *val);
+
+AAstNode *ast_wordnode(unsigned int location, ASymbol *sym);
+
+AAstNode *ast_parennode(unsigned int location, AAstNode *content);
+
+ADeclNode *ast_decl(unsigned int location, ASymbol *sym, AAstNode *body);
 
 #endif

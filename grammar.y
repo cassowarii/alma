@@ -69,6 +69,7 @@ ASymbolTable symtab = NULL;
 
 %type <val> value;
 %type <ast> block;
+%type <ast> word;
 
 %%
 
@@ -122,6 +123,8 @@ import
 
 declaration
     :   "func" WORD ':' words '.' {
+        ASymbol *sym = get_symbol(&symtab, $2);
+        printf("Symbol '%s' at %p\n", $2, sym);
     }
 
 block
@@ -156,9 +159,11 @@ wordseq
 word
     :   value {
         printf("New value @ %p\n", $1);
+        $$ = ast_valnode(@1.first_line, $1);
     } | WORD {
         ASymbol *sym = get_symbol(&symtab, $1);
         printf("Symbol '%s' at %p\n", $1, sym);
+        $$ = ast_wordnode(@1.first_line, $1);
     } | "let" dirlist "in" nlo word {
     } | "bind" names nlo "in" nlo word {
     } | '(' words ')' {

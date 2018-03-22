@@ -69,18 +69,26 @@ typedef struct AValue {
 typedef enum {
     value_node,
     word_node,
-    definition_node,
+    paren_node,
 } ANodeType;
 
 /* Struct representing an AST node. */
 typedef struct AAstNode {
-    ANodeType type;     // is it a value or a word or a function decl.? (later we'll do let and bind also)
+    ANodeType type;         // is it a value push or a word call?
     union {
-        AValue *val;    // if value
-        ASymbol *sym;   // if word
+        AValue *val;        // if value
+        ASymbol *sym;       // if word
+        struct AAstNode *inside; // if parentheses
     } data;
-    int linenum;        // location of the thing, for debugging
+    struct AAstNode *next;  // these are a linked list
+    unsigned int linenum;   // location of the thing, for debugging
 } AAstNode;
 
+/* Struct representing a declaration node. */
+typedef struct ADeclNode {
+    ASymbol *sym;
+    AAstNode *node;
+    unsigned int linenum;
+} ADeclNode;
 
 #endif
