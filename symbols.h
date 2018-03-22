@@ -1,7 +1,7 @@
-#include "alma.h"
-
 #ifndef _AL_SYM_H__
 #define _AL_SYM_H__
+
+#include "alma.h"
 
 /* A mapping from names to unique symbols. */
 typedef struct ASymbol {

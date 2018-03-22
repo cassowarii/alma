@@ -10,8 +10,6 @@
 
 #include "ustrings.h"
 #include "symbols.h"
-
-
-/* Oops I removed this whole file except the includes */
+#include "ast.h"
 
 #endif

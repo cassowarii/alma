@@ -1,6 +1,7 @@
 #include "symbols.h"
 
 /* Create new symbol... */
+static
 ASymbol *create_symbol(const char *name) {
     ASymbol *newsym = malloc(sizeof(ASymbol));
 

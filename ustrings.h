@@ -1,7 +1,7 @@
-#include "alma.h"
-
 #ifndef _AL_USTR_H__
 #define _AL_USTR_H__
+
+#include "alma.h"
 
 /* A UTF32 string. Characters stored as an array of ints. */
 typedef struct AUstr {
