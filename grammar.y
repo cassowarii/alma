@@ -110,7 +110,7 @@ realdirlist
 
 directive
     :   declaration {
-    } | import sep {
+    } | import '.' {
         /* Imports need a sep after them because (a) otherwise weird looking
          * and (b) otherwise you can't tell if it's `import "a"` or `import | "a"`
          * (an error'd pathless import followed by an error'd bare string.)

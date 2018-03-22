@@ -34,6 +34,12 @@ UANY    {ASC}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 UANYN   {ASCN}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 
+ /* ([^{}\[\]\" \t\n()]|{UONLY}) */
+IDBEGIN [^{[(\"\' \t\n]
+IDMID   [^ \t\n]
+IDEND   [^}\]) \t\n.]
+IDONECH [^{}[\]()\"\' \t\n.]
+
 %%
 
   /* Reserved words. */
@@ -162,15 +168,15 @@ $'\\?{UANYN}' {
     return FLOAT;
 }
 
-  /* Symbol literals e.g. /symbol /whatever */
-\/([^{}\[\]\" \t\n()]|{UONLY})+  {
+  /* Symbol literals e.g. /whatever */
+\/([A-Za-z0-9]|{UONLY})([^{}\[\]\" \t\n()]|{UONLY})*  {
     yylval->cs = (char*)calloc(strlen(yytext) - 1 + 1, sizeof(char));
     strncpy(yylval->cs, yytext + 1, strlen(yytext) - 1);
     return SYMBOL;
 }
 
   /* Pretty much anything else is valid as something... */
-([^{}\[\]\" \t\n()]|{UONLY})+  {
+{IDBEGIN}({IDMID})*{IDEND}|{IDONECH} {
     // (We just treat these as bytes though, since we don't treat them like strings.)
     yylval->cs = (char*)calloc(strlen(yytext) + 1, sizeof(char));
     strncpy(yylval->cs, yytext, strlen(yytext));
