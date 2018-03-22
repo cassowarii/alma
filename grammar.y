@@ -59,6 +59,7 @@ ASymbolTable symtab = NULL;
     double d;
     struct AValue* val;
     struct AAstNode* ast;
+    struct ADeclNode *dec;
 }
 %token <cs> WORD    "word"
 %token <cs> SYMBOL  "symbol"
@@ -70,6 +71,10 @@ ASymbolTable symtab = NULL;
 %type <val> value;
 %type <ast> block;
 %type <ast> word;
+%type <ast> words;
+%type <ast> wordseq;
+%type <ast> wordseq_opt;
+%type <dec> declaration;
 
 %%
 
@@ -125,10 +130,12 @@ declaration
     :   "func" WORD ':' words '.' {
         ASymbol *sym = get_symbol(&symtab, $2);
         printf("Symbol '%s' at %p\n", $2, sym);
+        $$ = ast_decl(@2.first_line, sym, $4);
     }
 
 block
     :   '[' words ']' {
+        $$ = $2;
     }
 
  /* words_opt
@@ -138,7 +145,10 @@ block
 
 words
     :   wordseq_opt {
+        $$ = ast_parennode(@1.first_line, $1);
     } | words sep wordseq_opt {
+        $$ = $1;
+        $$->next = ast_parennode(@3.first_line, $3);
     }
 
 words_nonempty
@@ -148,12 +158,17 @@ words_nonempty
 
 wordseq_opt
     :   /* nothing */ {
+        $$ = NULL;
     } | wordseq {
+        $$ = $1;
     }
 
 wordseq
     :   word {
+        $$ = $1;
     } | wordseq word {
+        $$ = $2;
+        $$->next = $1;
     }
 
 word
@@ -163,10 +178,11 @@ word
     } | WORD {
         ASymbol *sym = get_symbol(&symtab, $1);
         printf("Symbol '%s' at %p\n", $1, sym);
-        $$ = ast_wordnode(@1.first_line, $1);
+        $$ = ast_wordnode(@1.first_line, sym);
     } | "let" dirlist "in" nlo word {
     } | "bind" names nlo "in" nlo word {
     } | '(' words ')' {
+        $$ = ast_parennode(@1.first_line, $2);
     }
 
 value

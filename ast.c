@@ -4,6 +4,7 @@
 static
 AAstNode *ast_newnode() {
     AAstNode *newnode = malloc(sizeof(AAstNode));
+    newnode->next = NULL;
     // check
     return newnode;
 }
