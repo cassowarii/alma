@@ -3,13 +3,6 @@
 
 #include "alma.h"
 
-/* A UTF32 string. Characters stored as an array of ints. */
-typedef struct AUstr {
-    unsigned int capacity;
-    unsigned int length;
-    uint32_t *data;
-} AUstr;
-
 /* Create a new string (actually a sequence of 32-bit integers
  * representing UTF8 codepoints) */
 AUstr   *ustr_new(size_t initial_size);

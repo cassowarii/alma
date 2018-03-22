@@ -1,6 +1,7 @@
 %{
 #include "grammar.tab.h"
 #include "alma.h"
+#include "ustrings.h"
 #define yyterminate() return END
 
 extern FILE * yyin;
@@ -116,9 +117,7 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
   /***** Various literals. *****/
 
   /* Character literal. */
-$\\?{UANYN} {
-    // TODO this gives actually the wrong value for unicode things
-    // (since it'll only look at a byte)
+  /* $\\?{UANYN} {
     yylval->i = char_parse(yytext+1, strlen(yytext)-1);
     return CHAR;
 }
@@ -131,7 +130,7 @@ $\"\\?{UANYN}\" {
 $'\\?{UANYN}' {
     yylval->c = yytext[3];
     return CHAR;
-}
+} */
 
   /* String literal. */
 \"(\\{UANYN}|[^"\r\n]|\\\n)*\" {

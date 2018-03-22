@@ -1,5 +1,8 @@
 %{
 #include "alma.h"
+#include "value.h"
+#include "ast.h"
+#include "symbols.h"
 
 #define YYERROR_VERBOSE
 
@@ -54,7 +57,8 @@ ASymbolTable symtab = NULL;
     char *cs; // cstring
     struct AUstr *s;
     double d;
-    //struct node_t *n;
+    struct AValue* val;
+    struct AAstNode* ast;
 }
 %token <cs> WORD    "word"
 %token <cs> SYMBOL  "symbol"
@@ -62,6 +66,9 @@ ASymbolTable symtab = NULL;
 %token <i>  CHAR    "character"
 %token <s>  STRING  "string"
 %token <d>  FLOAT   "float"
+
+%type <val> value;
+%type <ast> block;
 
 %%
 
@@ -148,6 +155,10 @@ wordseq
 
 word
     :   value {
+        printf("New value @ %p\n", $1);
+    } | WORD {
+        ASymbol *sym = get_symbol(&symtab, $1);
+        printf("Symbol '%s' at %p\n", $1, sym);
     } | "let" dirlist "in" nlo word {
     } | "bind" names nlo "in" nlo word {
     } | '(' words ')' {
@@ -155,19 +166,19 @@ word
 
 value
     :   INTEGER {
-    } | WORD {
-        ASymbol *sym = get_symbol(&symtab, $1);
-        printf("Symbol '%s' at %p\n", $1, sym);
+        $$ = val_int($1);
     } | STRING {
-    } | CHAR {
-        printf("Got a character: ");
-        print_char($1);
+        $$ = val_str($1);
     } | FLOAT {
+        $$ = val_float($1);
     } | SYMBOL {
         ASymbol *sym = get_symbol(&symtab, $1);
         printf("Symbol '%s' at %p\n", $1, sym);
+        $$ = val_sym(sym);
     } | list {
+        // I'll do this later!!!!!
     } | block {
+        $$ = val_block($1);
     }
 
 /* names_opt
