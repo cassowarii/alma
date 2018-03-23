@@ -24,7 +24,7 @@ typedef struct ASymbolMapping {
     UT_hash_handle hh;
 } ASymbolMapping;
 
-/*-*-* symbols.h *-*-*/
+/*-*-* ustrings.h *-*-*/
 
 /* A UTF32 string. Characters stored as an array of ints. */
 /* I don't think it's actually UTF32. It's utf8 grouped by codepoint
@@ -58,7 +58,7 @@ typedef struct AValue {
         float fl;
         AUstr *str;
         ASymbol *sym;
-        struct AAstNode *ast;
+        struct AWordSeqNode *ast;
         // we'll... do lists later
     } data;
 } AValue;
@@ -78,16 +78,22 @@ typedef struct AAstNode {
     union {
         AValue *val;        // if value
         ASymbol *sym;       // if word
-        struct AAstNode *inside; // if parentheses
+        struct AWordSeqNode *inside; // if parentheses
     } data;
     struct AAstNode *next;  // these are a linked list
     unsigned int linenum;   // location of the thing, for debugging
 } AAstNode;
 
+/* Struct representing a sequence of AST nodes. */
+typedef struct AWordSeqNode {
+    AAstNode *first;
+    AAstNode *last;
+} AWordSeqNode;
+
 /* Struct representing a declaration node. */
 typedef struct ADeclNode {
     ASymbol *sym;           // symbol to bind node to
-    AAstNode *node;         // node to bind to name
+    AWordSeqNode *node;     // node to bind to name
     unsigned int linenum;   // where is?
     struct ADeclNode *next; // also a linked list
 } ADeclNode;

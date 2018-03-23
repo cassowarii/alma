@@ -59,6 +59,7 @@ ASymbolTable symtab = NULL;
     double d;
     struct AValue* val;
     struct AAstNode* ast;
+    struct AWordSeqNode *wsq;
     struct ADeclNode *dec;
     struct ADeclSeqNode *dsq;
 }
@@ -70,12 +71,12 @@ ASymbolTable symtab = NULL;
 %token <d>  FLOAT   "float"
 
 %type <val> value;
-%type <ast> block;
+%type <wsq> block;
 %type <ast> word;
-%type <ast> words;
-%type <ast> wordseq;
-%type <ast> wordseq_opt;
-%type <ast> words_nonempty;
+%type <wsq> words;
+%type <wsq> wordseq;
+%type <wsq> wordseq_opt;
+%type <wsq> words_nonempty;
 %type <dec> declaration;
 %type <dec> directive;
 %type <dsq> dirlist;
@@ -97,6 +98,7 @@ program
     :   dirlist {
         $$ = $1;
         printf("We got an AST for the whole program finally %p\n", $$);
+        print_decl_seq($1);
     } | dirlist words_nonempty program_after_barewords {
         /* if interactive mode, handle thing */
         /* if not interactive... */
@@ -140,9 +142,8 @@ import
 declaration
     :   "func" WORD ':' words '.' {
         ASymbol *sym = get_symbol(&symtab, $2);
-        printf("Symbol '%s' at %p\n", $2, sym);
         $$ = ast_decl(@2.first_line, sym, $4);
-        free($2);
+        //free($2);
     }
 
 block
@@ -152,44 +153,56 @@ block
 
 words
     :   wordseq_opt {
-        $$ = ast_parennode(@1.first_line, $1);
+        $$ = $1;
     } | words sep wordseq_opt {
         $$ = $1;
-        $$->next = ast_parennode(@3.first_line, $3);
+        ast_wordseq_concat($$, $3);
+        free($3);
     }
 
 words_nonempty
     :   wordseq {
-        $$ = ast_parennode(@1.first_line, $1);
+        $$ = $1;
     } | words_nonempty sep wordseq_opt {
         $$ = $1;
-        $$->next = ast_parennode(@3.first_line, $3);
+        ast_wordseq_concat($$, $3);
+        free($3);
     }
 
 wordseq_opt
     :   /* nothing */ {
-        $$ = NULL;
+        $$ = ast_wordseq_new();
     } | wordseq {
         $$ = $1;
     }
 
 wordseq
     :   word {
-        $$ = $1;
+        if ($1->type == paren_node) {
+            $$ = $1->data.inside;
+            free($1);
+        } else {
+            $$ = ast_wordseq_new();
+            ast_wordseq_prepend($$, $1);
+        }
     } | wordseq word {
-        $$ = $2;
-        $$->next = $1;
+        if ($2->type == paren_node) {
+            $$ = $2->data.inside;
+            ast_wordseq_concat($$, $1);
+            free($2);
+        } else {
+            $$ = $1;
+            ast_wordseq_prepend($$, $2);
+        }
     }
 
 word
     :   value {
-        printf("New value @ %p\n", $1);
         $$ = ast_valnode(@1.first_line, $1);
     } | WORD {
         ASymbol *sym = get_symbol(&symtab, $1);
-        printf("Symbol '%s' at %p\n", $1, sym);
         $$ = ast_wordnode(@1.first_line, sym);
-        free($1);
+        //free($1);
     } | "let" dirlist "in" nlo word {
     } | "bind" names nlo "in" nlo word {
     } | '(' words ')' {
@@ -205,9 +218,8 @@ value
         $$ = val_float($1);
     } | SYMBOL {
         ASymbol *sym = get_symbol(&symtab, $1);
-        printf("Symbol '%s' at %p\n", $1, sym);
         $$ = val_sym(sym);
-        free($1);
+        //free($1);
     } | list {
         // I'll do this later!!!!!
     } | block {

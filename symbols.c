@@ -34,3 +34,8 @@ ASymbol *get_symbol(ASymbolTable *t, const char *name) {
         return mapping->sym;
     }
 }
+
+/* Print a symbol. */
+void print_symbol(ASymbol *s) {
+    printf("%s", s->name);
+}
