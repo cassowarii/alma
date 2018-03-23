@@ -86,9 +86,16 @@ typedef struct AAstNode {
 
 /* Struct representing a declaration node. */
 typedef struct ADeclNode {
-    ASymbol *sym;
-    AAstNode *node;
-    unsigned int linenum;
+    ASymbol *sym;           // symbol to bind node to
+    AAstNode *node;         // node to bind to name
+    unsigned int linenum;   // where is?
+    struct ADeclNode *next; // also a linked list
 } ADeclNode;
+
+/* Struct representing a series of declaration/imports. */
+typedef struct ADeclSeqNode {
+    ADeclNode *first;       // first one to execute
+    ADeclNode *last;        // last one, to append to
+} ADeclSeqNode;
 
 #endif

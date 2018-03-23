@@ -60,6 +60,7 @@ ASymbolTable symtab = NULL;
     struct AValue* val;
     struct AAstNode* ast;
     struct ADeclNode *dec;
+    struct ADeclSeqNode *dsq;
 }
 %token <cs> WORD    "word"
 %token <cs> SYMBOL  "symbol"
@@ -74,7 +75,12 @@ ASymbolTable symtab = NULL;
 %type <ast> words;
 %type <ast> wordseq;
 %type <ast> wordseq_opt;
+%type <ast> words_nonempty;
 %type <dec> declaration;
+%type <dec> directive;
+%type <dsq> dirlist;
+%type <dsq> realdirlist;
+%type <dsq> program;
 
 %%
 
@@ -89,6 +95,8 @@ main
 
 program
     :   dirlist {
+        $$ = $1;
+        printf("We got an AST for the whole program finally %p\n", $$);
     } | dirlist words_nonempty program_after_barewords {
         /* if interactive mode, handle thing */
         /* if not interactive... */
@@ -99,17 +107,25 @@ program
 dirlist
     :   /* empty */ {
     } | sep dirlist {
+        $$ = $2;
     } | realdirlist {
+        $$ = $1;
     }
 
 realdirlist
     :   directive {
+        $$ = ast_declseq_new();
+        ast_declseq_append($$, $1);
     } | realdirlist directive {
+        $$ = $1;
+        ast_declseq_append($$, $2);
     } | realdirlist sep {
+        $$ = $1;
     }
 
 directive
     :   declaration {
+        $$ = $1;
     } | import '.' {
     } | error sep {
         yyerrok ;
@@ -118,7 +134,7 @@ directive
 import
     :   "import" STRING {
     } | "import" STRING "as" WORD {
-    } | wrongimport {
+    /* } | wrongimport { */
     }
 
 declaration
@@ -126,6 +142,7 @@ declaration
         ASymbol *sym = get_symbol(&symtab, $2);
         printf("Symbol '%s' at %p\n", $2, sym);
         $$ = ast_decl(@2.first_line, sym, $4);
+        free($2);
     }
 
 block
@@ -143,7 +160,10 @@ words
 
 words_nonempty
     :   wordseq {
+        $$ = ast_parennode(@1.first_line, $1);
     } | words_nonempty sep wordseq_opt {
+        $$ = $1;
+        $$->next = ast_parennode(@3.first_line, $3);
     }
 
 wordseq_opt
@@ -169,6 +189,7 @@ word
         ASymbol *sym = get_symbol(&symtab, $1);
         printf("Symbol '%s' at %p\n", $1, sym);
         $$ = ast_wordnode(@1.first_line, sym);
+        free($1);
     } | "let" dirlist "in" nlo word {
     } | "bind" names nlo "in" nlo word {
     } | '(' words ')' {
@@ -186,6 +207,7 @@ value
         ASymbol *sym = get_symbol(&symtab, $1);
         printf("Symbol '%s' at %p\n", $1, sym);
         $$ = val_sym(sym);
+        free($1);
     } | list {
         // I'll do this later!!!!!
     } | block {
@@ -201,13 +223,12 @@ list
     :   '{' words '}' {
     }
 
-sep : '|' | '\n'
+sep :   '|' | '\n'
 
  /* newline optional, but not | because it's silly */
-nlo : /* nothing */ | nlo '\n'
+nlo :   /* nothing */ | nlo '\n'
 
-wrongimport
-    /* who knew there were so many ways to violate this simple import syntax */
+/* wrongimport
     :   "import" WORD "as" WORD {
         do_error("'import' directive expects a quoted path to the file to be imported.", @2.first_line);
     } | "import" WORD {
@@ -219,7 +240,7 @@ wrongimport
         do_error("'import ... as' expects a bare name to prefix imported functions with.", @4.first_line);
     } | "import" {
         do_error("'import' needs the path to the file to be imported.", @1.first_line);
-    }
+    } */
 
 program_after_barewords
     :   realdirlist {

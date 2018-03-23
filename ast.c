@@ -52,3 +52,25 @@ ADeclNode *ast_decl(unsigned int location, ASymbol *sym, AAstNode *body) {
     newnode->linenum = location;
     return newnode;
 }
+
+/* Create a new node representing a declaration sequence. */
+ADeclSeqNode *ast_declseq_new() {
+    ADeclSeqNode *newnode = malloc(sizeof(ADeclSeqNode));
+    newnode->first = NULL;
+    newnode->last = NULL;
+    return newnode;
+}
+
+/* Append a new declaration to an ADeclSeqNode. */
+void ast_declseq_append(ADeclSeqNode *seq, ADeclNode *node) {
+    if (seq->last == NULL) {
+        seq->first = seq->last = node;
+    } else if (seq->last->next == NULL) {
+        seq->last->next = node;
+        seq->last = node;
+    } else {
+        /* Somehow, we're appending to the middle of the list. */
+        fprintf(stderr, "Somehow appending to middle of declaration list. "
+                "This probably shouldn't happen.\n");
+    }
+}

@@ -11,4 +11,8 @@ AAstNode *ast_parennode(unsigned int location, AAstNode *content);
 
 ADeclNode *ast_decl(unsigned int location, ASymbol *sym, AAstNode *body);
 
+ADeclSeqNode *ast_declseq_new();
+
+void ast_declseq_append(ADeclSeqNode *seq, ADeclNode *node);
+
 #endif
