@@ -4,7 +4,6 @@
 #include "ustrings.h"
 #define yyterminate() return END
 
-extern FILE * yyin;
 extern void yyerror(const char *str);
 int nested_blocks = 0;
 int nested_lists = 0;
@@ -18,7 +17,7 @@ AUstr *parse_string(const char *bytes, unsigned int length);
 
 %}
 
-%option nounput noinput yylineno bison-bridge bison-locations
+%option reentrant nounput noinput yylineno bison-bridge bison-locations
 %x COMMENT LINECMT
 %s IMPORT
 

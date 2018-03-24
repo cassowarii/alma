@@ -6,9 +6,10 @@
 
 #define YYERROR_VERBOSE
 
-FILE *yyin;
 extern int yychar;
 extern int yylineno;
+
+struct ADeclSeqNode; // forward decl
 
 int yylex();
 int yyparse();
@@ -20,17 +21,13 @@ void do_error(const char *str, int linenum) {
     errors++;
 }
 
-void yyerror(const char *str) {
-    do_error(str, yylineno);
-}
-
-int yywrap() {
-    return 1;
-}
-
 ASymbolTable symtab = NULL;
 
 %}
+
+%parse-param {void *scanner} {struct ADeclSeqNode **out}
+
+%lex-param {void *scanner}
 
 %define api.pure
 
@@ -83,22 +80,33 @@ ASymbolTable symtab = NULL;
 %type <dsq> realdirlist;
 %type <dsq> program;
 
+%{
+
+void yyerror(YYLTYPE *loc, void *scan, ADeclSeqNode **out, const char *str) {
+    do_error(str, loc->first_line);
+}
+
+int yywrap() {
+    return 1;
+}
+
+%}
+
 %%
 
 main
     :   program {
         if (errors > 0) {
-            // oh no!
+            // TODO free on error here
+            *out = NULL;
         } else {
-            printf("Syntax OK\n");
+            *out = $1;
         }
     }
 
 program
     :   dirlist {
         $$ = $1;
-        printf("We got an AST for the whole program finally %p\n", $$);
-        print_decl_seq($1);
     } | dirlist words_nonempty program_after_barewords {
         /* if interactive mode, handle thing */
         /* if not interactive... */

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c99 -Wall -g -D_GNU_SOURCE
+CFLAGS=-std=c99 -Wall -pedantic -g -D_GNU_SOURCE
 
 alma: ustrings.o symbols.o value.o ast.o grammar.tab.o lex.yy.o alma.o
 	$(CC) $(CFLAGS) -o $@ $^
