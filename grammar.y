@@ -56,6 +56,7 @@ ASymbolTable symtab = NULL;
     double d;
     struct AValue* val;
     struct AAstNode* ast;
+    struct AProtoList* pls;
     struct AWordSeqNode *wsq;
     struct ADeclNode *dec;
     struct ADeclSeqNode *dsq;
@@ -69,6 +70,8 @@ ASymbolTable symtab = NULL;
 
 %type <val> value;
 %type <wsq> block;
+%type <pls> listcontent;
+%type <pls> list;
 %type <ast> word;
 %type <wsq> words;
 %type <wsq> wordseq;
@@ -229,7 +232,7 @@ value
         $$ = val_sym(sym);
         //free($1);
     } | list {
-        // I'll do this later!!!!!
+        $$ = val_protolist($1);
     } | block {
         $$ = val_block($1);
     }
@@ -240,7 +243,17 @@ names
     }
 
 list
-    :   '{' words '}' {
+    :   '{' listcontent '}' {
+        $$ = $2;
+    }
+
+listcontent
+    :   wordseq_opt {
+        $$ = ast_protolist_new();
+        ast_protolist_append($$, $1);
+    } | listcontent ',' wordseq_opt {
+        $$ = $1;
+        ast_protolist_append($$, $3);
     }
 
 sep :   '|' | '\n'

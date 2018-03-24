@@ -86,9 +86,10 @@ AWordSeqNode *ast_wordseq_new() {
 
 /* Prepend a new node to the beginning of an AWordSeqNode. */
 void ast_wordseq_prepend(AWordSeqNode *seq, AAstNode *node) {
+    if (node == NULL) return;
     if (node->next != NULL) {
-        printf("Prepending a node with already-existing following content. "
-               "This probably shouldn't happen!\n");
+        fprintf(stderr, "Prepending a node with already-existing following content. "
+                "This probably shouldn't happen!\n");
         return;
     }
     if (seq->first == NULL) {
@@ -107,6 +108,29 @@ void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2) {
     } else {
         seq1->last->next = seq2->first;
         seq1->last = seq2->last;
+    }
+}
+
+/* Allocate a new AProtoList. */
+AProtoList *ast_protolist_new() {
+    AProtoList *newlist = malloc(sizeof(AProtoList));
+    newlist->first = NULL;
+    newlist->last = NULL;
+    return newlist;
+}
+
+/* Append a new word-sequence to an AProtoList. */
+void ast_protolist_append(AProtoList *list, AWordSeqNode *node) {
+    if (node == NULL) return;
+    if (list->last == NULL) {
+        list->first = list->last = node;
+    } else if (list->last->next == NULL) {
+        list->last->next = node;
+        list->last = node;
+    } else {
+        /* Somehow, we're appending to the middle of the list. */
+        fprintf(stderr, "Somehow appending to middle of a list. "
+                "This probably shouldn't happen.\n");
     }
 }
 
@@ -130,6 +154,17 @@ void print_linked_ast(AAstNode *x) {
 void print_wordseq_node(AWordSeqNode *x) {
     if (x == NULL) return;
     print_linked_ast(x->first);
+}
+
+/* Print out a protolist. */
+void print_protolist(AProtoList *pl) {
+    if (pl == NULL) return;
+    AWordSeqNode *current = pl->first;
+    while (current != NULL) {
+        print_wordseq_node(current);
+        if (current->next != NULL) printf(", ");
+        current = current->next;
+    }
 }
 
 /* Print out an AST node. */

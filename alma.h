@@ -40,11 +40,28 @@ typedef struct AUstr {
 /* Possible types of values. */
 typedef enum {
     int_val,
+        /* Integer, obvi. */
     float_val,
+        /* Floating point value. */
     str_val,
+        /* A unicode string (AUstr*) */
     sym_val,
+        /* A symbol (representing a word name, or w/e.) */
     list_val,
+        /* A fully instantiated list, holding only values. */
+        /* (Once we have actual lists.) */
     block_val,
+        /* A fully instantiated block that's bound to some closure. */
+        /* (When we have closures.) */
+    proto_list,
+        /* An unevaluated list that lives in the AST. Contains
+         * AST nodes to evaluate, rather than values. */
+        /* (Future optimization: detect constant lists and skip
+         * this step for them.) */
+    proto_block,
+        /* An un-bound block that has free variables and is waiting
+         * to be pushed inside a 'bind' to take on a concrete value.
+         * Uses the 'ast' pointer here. */
 } AValueType;
 
 /* Struct representing a value.
@@ -59,7 +76,7 @@ typedef struct AValue {
         AUstr *str;
         ASymbol *sym;
         struct AWordSeqNode *ast;
-        // we'll... do lists later
+        struct AProtoList *pl;
     } data;
 } AValue;
 
@@ -88,7 +105,14 @@ typedef struct AAstNode {
 typedef struct AWordSeqNode {
     AAstNode *first;
     AAstNode *last;
+    struct AWordSeqNode *next; // for when they're in a list
 } AWordSeqNode;
+
+/* Struct representing a list yet-to-be-evaluated. */
+typedef struct AProtoList {
+    AWordSeqNode *first;    // first thing *evaluated* (last thing in list)
+    AWordSeqNode *last;     // (not sure exec. order matters here but w/e)
+} AProtoList;
 
 /* Struct representing a declaration node. */
 typedef struct ADeclNode {

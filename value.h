@@ -18,6 +18,9 @@ AValue *val_sym(ASymbol *sym);
 /* Create a value holding a block */
 AValue *val_block(AWordSeqNode *block);
 
+/* Create a value holding a proto-list (when parsing) */
+AValue *val_protolist(AProtoList *pl);
+
 /* Print out a value */
 void print_val(AValue *v);
 

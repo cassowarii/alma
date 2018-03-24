@@ -30,8 +30,20 @@ void ast_wordseq_prepend(AWordSeqNode *seq, AAstNode *node);
 /* Concatenate two AWordSeqNodes together. Doesn't free the second one! */
 void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2);
 
+/* Create a new node representing a list. */
+void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2);
+
+/* Allocate a new AProtoList. */
+AProtoList *ast_protolist_new();
+
+/* Append a new word-sequence to an AProtoList. */
+void ast_protolist_append(AProtoList *list, AWordSeqNode *node);
+
 /* Print out an AST node. */
 void print_ast_node(AAstNode *x);
+
+/* Print out a protolist. */
+void print_protolist(AProtoList *pl);
 
 /* Print out a single declaration. */
 void print_declaration(ADeclNode *a);

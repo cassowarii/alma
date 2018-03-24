@@ -40,21 +40,34 @@ AValue *val_sym(ASymbol *sym) {
 }
 
 AValue *val_block(AWordSeqNode *block) {
-    // TODO This is going to need lexical scoping, eventally.
+    // this does not bind lexical variables - later we can write another
+    // function that creates a true block_val from this one
+    // (it should leave this one untouched tho because we might want
+    //  to reuse it)
+    // (That's just uh, how lexical closures work)
     AValue *v = alloc_val();
-    v->type = block_val;
+    v->type = proto_block;
     v->data.ast = block;
+    return v;
+}
+
+/* Create a value holding a proto-list (when parsing) */
+AValue *val_protolist(AProtoList *pl) {
+    AValue *v = alloc_val();
+    v->type = proto_list;
+    v->data.pl = pl;
     return v;
 }
 
 extern void print_wordseq_node(AWordSeqNode *ast);
 extern void print_symbol(ASymbol *s);
 extern void ustr_print(AUstr *u);
+extern void print_protolist(AProtoList *pl);
 
 void print_val(AValue *v) {
     if (v->type == int_val) {
         printf("%d", v->data.i);
-    } else if (v->type == block_val) {
+    } else if (v->type == block_val || v->type == proto_block) {
         printf("[ ");
         print_wordseq_node(v->data.ast);
         printf(" ]");
@@ -64,7 +77,10 @@ void print_val(AValue *v) {
         printf("\"");
     } else if (v->type == float_val) {
         printf("%g", v->data.fl);
-    } else if (v->type == list_val) {
+    } else if (v->type == proto_list) {
+        printf("{ ");
+        print_protolist(v->data.pl);
+        printf(" }");
     } else if (v->type == sym_val) {
         printf("/");
         print_symbol(v->data.sym);
