@@ -128,4 +128,13 @@ typedef struct ADeclSeqNode {
     ADeclNode *last;        // last one, to append to
 } ADeclSeqNode;
 
+/*-*-* stack.h *-*-*/
+
+/* Struct representing the stack. */
+typedef struct AStack {
+    AValue **content;
+    int size;
+    int capacity;
+} AStack;
+
 #endif
