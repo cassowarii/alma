@@ -81,6 +81,7 @@ AWordSeqNode *ast_wordseq_new() {
     AWordSeqNode *newnode = malloc(sizeof(AWordSeqNode));
     newnode->first = NULL;
     newnode->last = NULL;
+    newnode->next = NULL;
     return newnode;
 }
 
