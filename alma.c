@@ -20,4 +20,6 @@ int main (int argc, char **argv) {
     yylex_destroy(scanner);
 
     print_decl_seq(program);
+
+    free_decl_seq(program);
 }

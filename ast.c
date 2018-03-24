@@ -199,3 +199,60 @@ void print_decl_seq(ADeclSeqNode *x) {
         current = current->next;
     }
 }
+
+extern void free_symbol(ASymbol*);
+extern void free_value(AValue*);
+
+void free_wordseq_node(AWordSeqNode *to_free);
+
+/* Free an AST node. */
+void free_ast_node(AAstNode *to_free) {
+    if (to_free->type == value_node) {
+        free_value(to_free->data.val);
+    } else if (to_free->type == word_node) {
+        // do nothing, symbols freed at end!
+    } else if (to_free->type == paren_node) {
+        free_wordseq_node(to_free->data.inside);
+    }
+    free(to_free);
+}
+
+/* Free a protolist. */
+void free_protolist(AProtoList *to_free) {
+    AWordSeqNode *current = to_free->first;
+    while (current != NULL) {
+        AWordSeqNode *next = current->next;
+        free_wordseq_node(current);
+        current = next;
+    }
+    free(to_free);
+}
+
+/* Free a word-sequence node. */
+void free_wordseq_node(AWordSeqNode *to_free) {
+    AAstNode *current = to_free->first;
+    while (current != NULL) {
+        AAstNode *next = current->next;
+        free_ast_node(current);
+        current = next;
+    }
+    free(to_free);
+}
+
+/* Free a declaration node COMPLETELY. (Careful!) */
+void free_decl_node(ADeclNode *to_free) {
+    free_symbol(to_free->sym);
+    free_wordseq_node(to_free->node);
+    free(to_free);
+}
+
+/* Free a declaration sequence node COMPLETELY. (Careful!) */
+void free_decl_seq(ADeclSeqNode *to_free) {
+    ADeclNode *current = to_free->first;
+    while (current != NULL) {
+        ADeclNode *next = current->next;
+        free_decl_node(current);
+        current = next;
+    }
+    free(to_free);
+}

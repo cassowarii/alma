@@ -154,7 +154,7 @@ declaration
     :   "func" WORD ':' words '.' {
         ASymbol *sym = get_symbol(&symtab, $2);
         $$ = ast_decl(@2.first_line, sym, $4);
-        //free($2);
+        free($2);
     }
 
 block
@@ -213,7 +213,7 @@ word
     } | WORD {
         ASymbol *sym = get_symbol(&symtab, $1);
         $$ = ast_wordnode(@1.first_line, sym);
-        //free($1);
+        free($1);
     } | "let" dirlist "in" nlo word {
     } | "bind" names nlo "in" nlo word {
     } | '(' words ')' {

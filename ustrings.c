@@ -165,3 +165,9 @@ AUstr *parse_string(const char *bytes, unsigned int length) {
 
     return newstr;
 }
+
+/* free a ustring. */
+void free_ustring(AUstr *str) {
+    free(str->data);
+    free(str);
+}

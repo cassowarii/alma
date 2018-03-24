@@ -39,3 +39,9 @@ ASymbol *get_symbol(ASymbolTable *t, const char *name) {
 void print_symbol(ASymbol *s) {
     printf("%s", s->name);
 }
+
+/* Free a symbol. (Should only be called at the end.) */
+void free_symbol(ASymbol *to_free) {
+    free(to_free->name);
+    free(to_free);
+}

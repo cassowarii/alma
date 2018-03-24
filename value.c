@@ -88,3 +88,38 @@ void print_val(AValue *v) {
         printf("?");
     }
 }
+
+extern void free_wordseq_node(AWordSeqNode *to_free);
+extern void free_ustring(AUstr *str);
+extern void free_protolist(AProtoList *pl);
+
+/* Free a value. */
+void free_value(AValue *to_free) {
+    switch(to_free->type) {
+        case int_val:
+        case float_val:
+        case sym_val:
+            /* if int, float, or symbol ptr, we just free this one
+             * which will free attached int or float. Symbols are
+             * all freed at program exit. */
+            free(to_free);
+            break;
+        case proto_block:
+            free_wordseq_node(to_free->data.ast);
+            free(to_free);
+            break;
+        case str_val:
+            free_ustring(to_free->data.str);
+            free(to_free);
+            break;
+        case proto_list:
+            free_protolist(to_free->data.pl);
+            free(to_free);
+            break;
+        default:
+            fprintf(stderr,
+                    "warning, freeing node of unrecognized type %d.",
+                    to_free->type);
+            free(to_free);
+    }
+}

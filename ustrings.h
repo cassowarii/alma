@@ -22,5 +22,7 @@ void    ustr_print(AUstr *u);
 uint32_t char_parse(const char *utf8, unsigned int length);
 /* Parse a const char * into an AUstr using char_parse */
 AUstr   *parse_string(const char *bytes, unsigned int length);
+/* Free a ustring. */
+void free_ustring(AUstr *str);
 
 #endif

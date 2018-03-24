@@ -24,4 +24,7 @@ AValue *val_protolist(AProtoList *pl);
 /* Print out a value */
 void print_val(AValue *v);
 
+/* Free a symbol value. */
+void free_symbol(ASymbol *sym);
+
 #endif

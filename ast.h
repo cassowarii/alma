@@ -39,16 +39,38 @@ AProtoList *ast_protolist_new();
 /* Append a new word-sequence to an AProtoList. */
 void ast_protolist_append(AProtoList *list, AWordSeqNode *node);
 
+/*--- Printing ---*/
+
 /* Print out an AST node. */
 void print_ast_node(AAstNode *x);
 
 /* Print out a protolist. */
 void print_protolist(AProtoList *pl);
 
+/* Print out an AST sequence. */
+void print_wordseq_node(AWordSeqNode *x);
+
 /* Print out a single declaration. */
 void print_declaration(ADeclNode *a);
 
 /* Print out a declaration sequence. */
 void print_decl_seq(ADeclSeqNode *x);
+
+/*--- Freeing ---*/
+
+/* Free an AST node. */
+void free_ast_node(AAstNode *to_free);
+
+/* Free a protolist. */
+void free_protolist(AProtoList *pl);
+
+/* Free a word-sequence node. */
+void free_wordseq_node(AWordSeqNode *to_free);
+
+/* Free a declaration node COMPLETELY. (Careful!) */
+void free_decl_node(ADeclNode *to_free);
+
+/* Free a declaration sequence node COMPLETELY. (Careful!) */
+void free_decl_seq(ADeclSeqNode *to_free);
 
 #endif
