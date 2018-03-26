@@ -1,0 +1,3 @@
+func main : 1 2 3 4 | "hello world".
+
+func second : 4 | print "hi" | println. # stack should be empty

@@ -4,29 +4,26 @@
 #include "eval.h"
 #include "scope.h"
 #include "lib.h"
+#include "parse.h"
 #include "grammar.tab.h"
 
-typedef void* yyscan_t;
-
-int yyparse(yyscan_t scanner, ADeclSeqNode **out, ASymbolTable *t);
-int yylex_init(yyscan_t scanner);
-int yylex_destroy(yyscan_t scanner);
-
 int main (int argc, char **argv) {
-    yyscan_t scanner;
-
-    yylex_init(&scanner);
-
     ADeclSeqNode *program = NULL;
     ASymbolTable symtab = NULL;
 
-    yyparse(scanner, &program, &symtab);
+    FILE *infile = NULL;
+    if (argc == 2) {
+        infile = fopen(argv[1], "r");
+    } else {
+        fprintf(stderr, "Please supply a file name.\n");
+        return 0;
+    }
+
+    parse_file(infile, &program, &symtab);
 
     if (program == NULL) {
         fprintf(stderr, "Compilation aborted.\n");
     } else {
-        yylex_destroy(scanner);
-
         AStack *stack = stack_new(20);
 
         AScope *scope = scope_new(NULL);
@@ -44,4 +41,6 @@ int main (int argc, char **argv) {
         free_scope(scope);
         free_symbol_table(&symtab);
     }
+
+    fclose(infile);
 }

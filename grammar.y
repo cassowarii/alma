@@ -140,7 +140,6 @@ directive
         $$ = $1;
     } | import '.' {
     } | error sep {
-        yyerrok ;
     }
 
 import
@@ -154,6 +153,8 @@ declaration
         ASymbol *sym = get_symbol(symtab, $2);
         $$ = ast_decl(@2.first_line, sym, $4);
         free($2);
+    } | error '.' {
+        $$ = NULL;
     }
 
 block
@@ -252,6 +253,9 @@ listcontent
         ast_protolist_append($$, $1);
     } | listcontent ',' wordseq_opt {
         $$ = $1;
+        ast_protolist_append($$, $3);
+    } | error ',' wordseq_opt {
+        $$ = ast_protolist_new();
         ast_protolist_append($$, $3);
     }
 

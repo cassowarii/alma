@@ -166,6 +166,15 @@ AUstr *parse_string(const char *bytes, unsigned int length) {
     return newstr;
 }
 
+/* Compare two ustrings to see if they're equal. */
+int ustr_eq(AUstr *str1, AUstr *str2) {
+    if (str1->length != str2->length) return 0;
+    for (int i = 0; i < str1->length; i++) {
+        if (str1->data[i] != str2->data[i]) return 0;
+    }
+    return 1;
+}
+
 /* free a ustring. */
 void free_ustring(AUstr *str) {
     free(str->data);

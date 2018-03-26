@@ -1,5 +1,5 @@
 language: c
-script: make
+script: make && make test
 compiler:
     - clang
     - gcc
