@@ -5,6 +5,8 @@
 Alma
 ====
 
+[![Build Status](https://travis-ci.org/broomweed/alma.svg?branch=master)](https://travis-ci.org/broomweed/alma)
+
 Alma is a statically-typed, stack-based, functional programming language
 heavily inspired by Forth, Standard ML, and the language [Cat][cat] created
 by Christopher Diggins.
