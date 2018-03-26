@@ -24,4 +24,6 @@ test_alma: $(ALMAREQS) test.o
 	$(CC) $(CFLAGS) -o $@ $^ `pkg-config --cflags --libs check`
 
 test: test_alma
+	@echo ""
+	@echo "== SELF TEST =="
 	./test_alma

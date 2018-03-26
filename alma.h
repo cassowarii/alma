@@ -164,13 +164,13 @@ typedef struct AStack {
 struct AScope;
 
 /* Typedef for built-in functions. */
-typedef void (*ABuiltInFunc)(AStack *, struct AScope*);
+typedef void (*APrimitiveFunc)(AStack *, struct AScope*);
 
 /* Builtin or declared function bound to symbol? */
 typedef enum {
-    builtin_func,
-    declared_func,
-    dummy_func,     // found in scope but not yet compiled
+    primitive_func, // function written in C
+    const_func,     // function with no free variables
+    dummy_func,     // function found in scope but not yet compiled
 } AFuncType;
 
 /* Struct representing a callable function
@@ -179,8 +179,8 @@ typedef enum {
 typedef struct AFunc {
     AFuncType type;
     union {
-        ABuiltInFunc builtin;
-        // some declared func type
+        APrimitiveFunc primitive;
+        AWordSeqNode *func;
     } data;
 } AFunc;
 

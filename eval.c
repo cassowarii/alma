@@ -31,9 +31,9 @@ void eval_node(AStack *st, AScope *sc, AAstNode *node) {
 /* Evaluate a given word (whether declared or built-in)
  * on the stack. */
 void eval_word(AStack *st, AScope *sc, AFunc *f) {
-    if (f->type == builtin_func) {
-        f->data.builtin(st, sc);
-    } else if (f->type == declared_func) {
+    if (f->type == primitive_func) {
+        f->data.primitive(st, sc);
+    } else if (f->type == const_func) {
         fprintf(stderr, "declared func calls not yet implemented!\n"
                 "also how are you even doing this\n");
     } else {

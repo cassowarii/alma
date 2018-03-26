@@ -34,10 +34,10 @@ void lib_add(AStack* stack, AScope *scope) {
 
 /* Add built in func to scope by wrapping it in a newly allocated AFunc */
 static
-void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, ABuiltInFunc f) {
+void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, APrimitiveFunc f) {
     AFunc *newfunc = malloc(sizeof(AFunc));
-    newfunc->type = builtin_func;
-    newfunc->data.builtin = f;
+    newfunc->type = primitive_func;
+    newfunc->data.primitive = f;
     ASymbol *sym = get_symbol(&symtab, name);
     scope_register(sc, sym, newfunc);
 }

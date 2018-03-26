@@ -5,6 +5,9 @@
 Alma
 ====
 
+*don't download this yet! :(* check back a little later, I'm still working on the rewrite.
+(seriously, right now it has three functions: `print`, `println`, and `+`.)
+
 [![Build Status](https://travis-ci.org/broomweed/alma.svg?branch=master)](https://travis-ci.org/broomweed/alma)
 
 Alma is a statically-typed, stack-based, functional programming language

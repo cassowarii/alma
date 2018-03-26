@@ -87,6 +87,8 @@ START_TEST(test_stack_pop_print) {
     ACompileStatus stat = compile(scope, program);
     ck_assert(stat == compile_success);
 
+    printf("\nThe next thing printed should be ‘hi4’.\n");
+
     eval_sequence(stack, scope, program->first->node);
 
     ck_assert_int_eq(stack->size, 0);
@@ -120,6 +122,8 @@ START_TEST(test_duplicate_func_error) {
     ALMATESTINTRO("tests/dupfunc.alma");
     ALMATESTSET();
 
+    printf("\nThe next thing printed should be an error message.\n");
+
     ACompileStatus stat = compile(scope, program);
     /* Compilation should fail due to duplicate function name. */
     ck_assert_int_eq(stat, compile_fail);
@@ -130,6 +134,8 @@ START_TEST(test_duplicate_func_error) {
 START_TEST(test_unknown_func_error) {
     ALMATESTINTRO("tests/unknownfunc.alma");
     ALMATESTSET();
+
+    printf("\nThe next thing printed should be an error message.\n");
 
     ACompileStatus stat = compile(scope, program);
     /* Compilation should fail due to unknown function name. */
