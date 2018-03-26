@@ -154,6 +154,7 @@ void print_linked_ast(AAstNode *x) {
 /* Print out an AST sequence. */
 void print_wordseq_node(AWordSeqNode *x) {
     if (x == NULL) return;
+    if (x->first == NULL) return;
     print_linked_ast(x->first);
 }
 

@@ -17,9 +17,13 @@ int main (int argc, char **argv) {
     ADeclSeqNode *program = NULL;
     yyparse(scanner, &program);
 
-    yylex_destroy(scanner);
+    if (program == NULL) {
+        fprintf(stderr, "Compilation aborted.\n");
+    } else {
+        yylex_destroy(scanner);
 
-    print_decl_seq(program);
+        print_decl_seq(program);
 
-    free_decl_seq(program);
+        free_decl_seq(program);
+    }
 }

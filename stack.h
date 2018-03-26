@@ -3,13 +3,16 @@
 
 #include "alma.h"
 
+/* Allocate and initialize a new AStack. */
+AStack *stack_new(size_t initial_size);
+
 /* Get a value 'n' places down from the top of the stack. */
 AValue *stack_get(AStack *st, int n);
 
 /* Push something onto the stack. */
-AValue *stack_push(AStack *st, AValue *v);
+void stack_push(AStack *st, AValue *v);
 
 /* Reduce the stack size by 'n'. */
-AValue *stack_pop(AStack *st, int n);
+void stack_pop(AStack *st, int n);
 
 #endif
