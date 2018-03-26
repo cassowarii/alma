@@ -47,8 +47,6 @@ int main (int argc, char **argv) {
          * call the first declared function... */
         eval_sequence(stack, scope, program->first->node);
 
-        print_stack(stack);
-
         free_stack(stack);
         free_decl_seq(program);
         free_scope(scope);
