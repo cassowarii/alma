@@ -99,8 +99,9 @@ typedef struct AAstNode {
     ANodeType type;         // is it a value push or a word call?
     union {
         AValue *val;        // if value
-        ASymbol *sym;       // if word -- TODO replace with AFunc* when we have proper scope etc
+        ASymbol *sym;       // free variable
         struct AWordSeqNode *inside; // if parentheses
+        struct AFunc *word; // word known at compile time
     } data;
     struct AAstNode *next;  // these are a linked list
     unsigned int linenum;   // location of the thing, for debugging
