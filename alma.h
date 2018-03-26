@@ -191,9 +191,13 @@ typedef struct AFunc {
     union {
         APrimitiveFunc primitive;
         AUserFunc *userfunc;
-            /* using a ScopeEntry here means that the underlying
-             * function can be defined later and this one will
-             * update automatically */
+            /* using a UserFunc here rather than just a WordSeq
+             * pointer, means that the underlying function can
+             * be defined later and this one will update
+             * automatically */
+            /* this is still gonna cause problems for functions
+             * that call each other and need to know their
+             * types though :( */
     } data;
 } AFunc;
 
