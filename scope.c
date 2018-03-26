@@ -54,6 +54,7 @@ void free_scope_entry(AScopeEntry *entry) {
 
 /* Free a lexical scope at the end. */
 void free_scope(AScope *sc) {
+    if (sc == NULL) return;
     AScopeEntry *current, *tmp;
     HASH_ITER(hh, sc->content, current, tmp) {
         HASH_DEL(sc->content, current);

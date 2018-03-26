@@ -12,15 +12,17 @@
 
 #define ALMATESTINTRO(filename) \
     FILE *in = fopen(filename, "r"); \
-    ADeclSeqNode *program; \
-    ASymbolTable symtab; \
-    AStack *stack; \
-    AScope *scope; \
+    ADeclSeqNode *program = NULL; \
+    ASymbolTable symtab = NULL; \
+    AStack *stack = NULL; \
+    AScope *scope = NULL; \
     program = NULL; \
     symtab = NULL; \
     parse_file(in, &program, &symtab);
 
 #define ALMATESTSET() \
+    free_stack(stack); \
+    free_scope(scope); \
     stack = stack_new(20); \
     scope = scope_new(NULL); \
     lib_init(symtab, scope)
@@ -84,6 +86,32 @@ START_TEST(test_stack_pop_print) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_addition) {
+    ALMATESTINTRO("tests/basicmath.alma");
+    ALMATESTSET();
+
+    eval_sequence(stack, scope, program->first->node);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_get(stack, 0)->data.i, 9);
+
+    ALMATESTSET();
+
+    eval_sequence(stack, scope, program->first->node);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_get(stack, 0)->data.i, 9);
+
+    ALMATESTSET();
+
+    eval_sequence(stack, scope, program->first->next->node);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_get(stack, 0)->data.i, 27);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 Suite *simple_suite(void) {
     Suite *s;
     TCase *tc_core;
@@ -95,6 +123,7 @@ Suite *simple_suite(void) {
 
     tcase_add_test(tc_core, test_stack_push);
     tcase_add_test(tc_core, test_stack_pop_print);
+    tcase_add_test(tc_core, test_addition);
     suite_add_tcase(s, tc_core);
 
     return s;

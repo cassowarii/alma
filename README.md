@@ -23,6 +23,6 @@ Simple example
 --------------
 
 ```
-func main : print "Hello world!\n" .
+func main : println "Hello world!" .
 ```
 This program prints "Hello world!" to the console, followed by a newline.

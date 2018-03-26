@@ -51,6 +51,7 @@ void print_stack(AStack *st) {
  * then free the stack.
  * For cleanup at the end of the program. */
 void free_stack(AStack *st) {
+    if (st == NULL) return;
     while (st->size > 0) {
         AValue *to_clear = stack_get(st, 0);
         delete_ref(to_clear);

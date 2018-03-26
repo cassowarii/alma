@@ -17,6 +17,21 @@ void lib_println(AStack* stack, AScope *scope) {
     printf("\n");
 }
 
+/* Add the top two values on the stack. */
+void lib_add(AStack* stack, AScope *scope) {
+    AValue *a = stack_get(stack, 0);
+    AValue *b = stack_get(stack, 1);
+    stack_pop(stack, 2);
+
+    // We don't do typechecking yet, so this might be garbage
+    // if it's not actually an int... we'll fix this later!
+    AValue *c = val_int(a->data.i + b->data.i);
+
+    stack_push(stack, c);
+    delete_ref(a);
+    delete_ref(b);
+}
+
 /* Add built in func to scope by wrapping it in a newly allocated AFunc */
 static
 void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, ABuiltInFunc f) {
@@ -31,4 +46,5 @@ void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, ABuiltInFunc 
 void lib_init(ASymbolTable st, AScope *sc) {
     addlibfunc(sc, st, "print", &lib_print);
     addlibfunc(sc, st, "println", &lib_print);
+    addlibfunc(sc, st, "+", &lib_add);
 }

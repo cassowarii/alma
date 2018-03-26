@@ -256,6 +256,7 @@ void free_decl_node(ADeclNode *to_free) {
 
 /* Free a declaration sequence node COMPLETELY. (Careful!) */
 void free_decl_seq(ADeclSeqNode *to_free) {
+    if (to_free == NULL) return;
     ADeclNode *current = to_free->first;
     while (current != NULL) {
         ADeclNode *next = current->next;
