@@ -45,6 +45,6 @@ void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, ABuiltInFunc 
 /* Initialize builtin library functions into scope sc. */
 void lib_init(ASymbolTable st, AScope *sc) {
     addlibfunc(sc, st, "print", &lib_print);
-    addlibfunc(sc, st, "println", &lib_print);
+    addlibfunc(sc, st, "println", &lib_println);
     addlibfunc(sc, st, "+", &lib_add);
 }
