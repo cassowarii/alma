@@ -17,3 +17,10 @@ I will probably end up cannibalizing for this version.)
 
   [cat]: https://www.codeproject.com/articles/16247/cat-a-statically-typed-programming-language-interp
 
+Simple example
+--------------
+
+```
+func main : print "Hello world!\n" .
+```
+This program prints "Hello world!" to the console, followed by a newline.
