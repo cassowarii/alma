@@ -1,4 +1,4 @@
-CC=gcc
+#CC=gcc
 CFLAGS=-std=c99 -Wall -pedantic -g -D_GNU_SOURCE
 
 ALMAREQS=ustrings.o symbols.o value.o ast.o stack.o scope.o eval.o parse.o lib.o grammar.tab.o lex.yy.o
