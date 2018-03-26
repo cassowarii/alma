@@ -78,6 +78,7 @@ typedef struct AValue {
         struct AWordSeqNode *ast;
         struct AProtoList *pl;
     } data;
+    int refs;         // refcounting
 } AValue;
 
 /*-*-* ast.h *-*-*/

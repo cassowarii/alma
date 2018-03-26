@@ -21,10 +21,17 @@ AValue *val_block(AWordSeqNode *block);
 /* Create a value holding a proto-list (when parsing) */
 AValue *val_protolist(AProtoList *pl);
 
+/* Get a fresh pointer to the object that counts as a reference. */
+AValue *ref(AValue *v);
+
+/* Delete a reference to the object, reducing its refcount and
+ * potentially freeing it. */
+void delete_ref(AValue *v);
+
 /* Print out a value */
 void print_val(AValue *v);
 
-/* Free a symbol value. */
-void free_symbol(ASymbol *sym);
+/* Free a value. */
+void free_value(AValue *to_free);
 
 #endif

@@ -8,6 +8,7 @@ AValue *alloc_val() {
         fprintf(stderr, "Couldn't allocate space for a new variable: Out of memory\n");
         return NULL;
     }
+    new_val->refs = 0;
     return new_val;
 }
 
@@ -57,6 +58,21 @@ AValue *val_protolist(AProtoList *pl) {
     v->type = proto_list;
     v->data.pl = pl;
     return v;
+}
+
+/* Get a fresh pointer to the object that counts as a reference. */
+AValue *ref(AValue *v) {
+    v->refs ++;
+    return v;
+}
+
+/* Delete a reference to the object, reducing its refcount and
+ * potentially freeing it. */
+void delete_ref(AValue *v) {
+    v->refs --;
+    if (v->refs < 1) {
+        free_value(v);
+    }
 }
 
 extern void print_wordseq_node(AWordSeqNode *ast);

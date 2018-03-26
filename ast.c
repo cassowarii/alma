@@ -203,14 +203,14 @@ void print_decl_seq(ADeclSeqNode *x) {
 }
 
 extern void free_symbol(ASymbol*);
-extern void free_value(AValue*);
+extern void delete_ref(AValue*);
 
 void free_wordseq_node(AWordSeqNode *to_free);
 
 /* Free an AST node. */
 void free_ast_node(AAstNode *to_free) {
     if (to_free->type == value_node) {
-        free_value(to_free->data.val);
+        delete_ref(to_free->data.val);
     } else if (to_free->type == word_node) {
         // do nothing, symbols freed at end!
     } else if (to_free->type == paren_node) {

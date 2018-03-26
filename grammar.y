@@ -209,7 +209,7 @@ wordseq
 
 word
     :   value {
-        $$ = ast_valnode(@1.first_line, $1);
+        $$ = ast_valnode(@1.first_line, ref($1));
     } | WORD {
         ASymbol *sym = get_symbol(&symtab, $1);
         $$ = ast_wordnode(@1.first_line, sym);
@@ -230,7 +230,7 @@ value
     } | SYMBOL {
         ASymbol *sym = get_symbol(&symtab, $1);
         $$ = val_sym(sym);
-        //free($1);
+        free($1);
     } | list {
         $$ = val_protolist($1);
     } | block {
