@@ -24,6 +24,10 @@ typedef struct ASymbolMapping {
     UT_hash_handle hh;
 } ASymbolMapping;
 
+/* Used for the actual table, since uthash just passes around an
+ * ASymbolMapping* for access to the hash table */
+typedef ASymbolMapping* ASymbolTable;
+
 /*-*-* ustrings.h *-*-*/
 
 /* A UTF32 string. Characters stored as an array of ints. */
@@ -95,7 +99,7 @@ typedef struct AAstNode {
     ANodeType type;         // is it a value push or a word call?
     union {
         AValue *val;        // if value
-        ASymbol *sym;       // if word
+        ASymbol *sym;       // if word -- TODO replace with AFunc* when we have proper scope etc
         struct AWordSeqNode *inside; // if parentheses
     } data;
     struct AAstNode *next;  // these are a linked list
@@ -137,5 +141,42 @@ typedef struct AStack {
     int size;
     int capacity;
 } AStack;
+
+/*-*-* scope.h *-*-*/
+
+struct AScope;
+
+/* Typedef for built-in functions. */
+typedef void (*ABuiltInFunc)(AStack *, struct AScope*);
+
+/* Builtin or declared function bound to symbol? */
+typedef enum {
+    builtin_func,
+    declared_func,
+} AFuncType;
+
+/* Struct representing a callable function
+ * (either built-in or defined) */
+/* (we only have built-in functions right now, tho */
+typedef struct AFunc {
+    AFuncType type;
+    union {
+        ABuiltInFunc builtin;
+        // some declared func type
+    } data;
+} AFunc;
+
+/* Struct representing a mapping between symbols and functions */
+typedef struct AScopeEntry {
+    ASymbol *sym;
+    AFunc *func;
+    UT_hash_handle hh;
+} AScopeEntry;
+
+/* Struct representing a (possibly nested) lexical scope. */
+typedef struct AScope {
+    struct AScope *parent;
+    AScopeEntry *content;
+} AScope;
 
 #endif

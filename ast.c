@@ -4,8 +4,11 @@
 static
 AAstNode *ast_newnode() {
     AAstNode *newnode = malloc(sizeof(AAstNode));
+    if (newnode == NULL) {
+        fprintf(stderr, "Error: can't allocate a new declaration node: out of memory");
+        return NULL;
+    }
     newnode->next = NULL;
-    // check
     return newnode;
 }
 
@@ -13,8 +16,11 @@ AAstNode *ast_newnode() {
 static
 ADeclNode *ast_newdecl() {
     ADeclNode *newnode = malloc(sizeof(ADeclNode));
+    if (newnode == NULL) {
+        fprintf(stderr, "Error: can't allocate a new declaration node: out of memory");
+        return NULL;
+    }
     newnode->next = NULL;
-    // check
     return newnode;
 }
 
@@ -202,7 +208,7 @@ void print_decl_seq(ADeclSeqNode *x) {
     }
 }
 
-extern void free_symbol(ASymbol*);
+//extern void free_symbol(ASymbol*);
 extern void delete_ref(AValue*);
 
 void free_wordseq_node(AWordSeqNode *to_free);
@@ -212,7 +218,7 @@ void free_ast_node(AAstNode *to_free) {
     if (to_free->type == value_node) {
         delete_ref(to_free->data.val);
     } else if (to_free->type == word_node) {
-        // do nothing, symbols freed at end!
+        /* do nothing, symbols freed at end! */
     } else if (to_free->type == paren_node) {
         free_wordseq_node(to_free->data.inside);
     }
@@ -243,7 +249,7 @@ void free_wordseq_node(AWordSeqNode *to_free) {
 
 /* Free a declaration node COMPLETELY. (Careful!) */
 void free_decl_node(ADeclNode *to_free) {
-    free_symbol(to_free->sym);
+    //free_symbol(to_free->sym);
     free_wordseq_node(to_free->node);
     free(to_free);
 }

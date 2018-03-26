@@ -2,11 +2,13 @@
 #include "alma.h"
 #include "ast.h"
 #include "eval.h"
+#include "scope.h"
+#include "lib.h"
 #include "grammar.tab.h"
 
 typedef void* yyscan_t;
 
-int yyparse(yyscan_t scanner, ADeclSeqNode **out);
+int yyparse(yyscan_t scanner, ADeclSeqNode **out, ASymbolTable *t);
 int yylex_init(yyscan_t scanner);
 int yylex_destroy(yyscan_t scanner);
 
@@ -16,20 +18,24 @@ int main (int argc, char **argv) {
     yylex_init(&scanner);
 
     ADeclSeqNode *program = NULL;
-    yyparse(scanner, &program);
+    ASymbolTable symtab = NULL;
+
+    yyparse(scanner, &program, &symtab);
 
     if (program == NULL) {
         fprintf(stderr, "Compilation aborted.\n");
     } else {
-        AStack *stack = stack_new(20);
-
         yylex_destroy(scanner);
 
-        print_decl_seq(program);
+        AStack *stack = stack_new(20);
+
+        AScope *scope = scope_new(NULL);
+
+        lib_init(symtab, scope);
 
         /* For now, we don't have declarations so just
          * call the first declared function... */
-        eval_sequence(stack, program->first->node);
+        eval_sequence(stack, scope, program->first->node);
 
         print_stack(stack);
 

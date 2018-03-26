@@ -105,6 +105,17 @@ void print_val(AValue *v) {
     }
 }
 
+/* Print out a value without quoting strings etc.
+ * (called by 'print' word) */
+void print_val_simple(AValue *v) {
+    if (v->type == str_val) {
+        /* no quotes!!! */
+        ustr_print(v->data.str);
+    } else {
+        print_val(v);
+    }
+}
+
 extern void free_wordseq_node(AWordSeqNode *to_free);
 extern void free_ustring(AUstr *str);
 extern void free_protolist(AProtoList *pl);

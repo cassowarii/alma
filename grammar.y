@@ -1,15 +1,16 @@
-%{
+%code requires {
 #include "alma.h"
 #include "value.h"
 #include "ast.h"
 #include "symbols.h"
+}
 
+%{
 #define YYERROR_VERBOSE
+#include <stdio.h>
 
 extern int yychar;
 extern int yylineno;
-
-struct ADeclSeqNode; // forward decl
 
 int yylex();
 int yyparse();
@@ -21,11 +22,9 @@ void do_error(const char *str, int linenum) {
     errors++;
 }
 
-ASymbolTable symtab = NULL;
-
 %}
 
-%parse-param {void *scanner} {struct ADeclSeqNode **out}
+%parse-param {void *scanner} {ADeclSeqNode **out} {ASymbolMapping **symtab}
 
 %lex-param {void *scanner}
 
@@ -85,7 +84,7 @@ ASymbolTable symtab = NULL;
 
 %{
 
-void yyerror(YYLTYPE *loc, void *scan, ADeclSeqNode **out, const char *str) {
+void yyerror(YYLTYPE *loc, void *scan, ADeclSeqNode **out, ASymbolTable *symtab, const char *str) {
     do_error(str, loc->first_line);
 }
 
@@ -152,7 +151,7 @@ import
 
 declaration
     :   "func" WORD ':' words '.' {
-        ASymbol *sym = get_symbol(&symtab, $2);
+        ASymbol *sym = get_symbol(symtab, $2);
         $$ = ast_decl(@2.first_line, sym, $4);
         free($2);
     }
@@ -211,7 +210,7 @@ word
     :   value {
         $$ = ast_valnode(@1.first_line, ref($1));
     } | WORD {
-        ASymbol *sym = get_symbol(&symtab, $1);
+        ASymbol *sym = get_symbol(symtab, $1);
         $$ = ast_wordnode(@1.first_line, sym);
         free($1);
     } | "let" dirlist "in" nlo word {
@@ -228,7 +227,7 @@ value
     } | FLOAT {
         $$ = val_float($1);
     } | SYMBOL {
-        ASymbol *sym = get_symbol(&symtab, $1);
+        ASymbol *sym = get_symbol(symtab, $1);
         $$ = val_sym(sym);
         free($1);
     } | list {

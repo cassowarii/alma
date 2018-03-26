@@ -31,6 +31,10 @@ void delete_ref(AValue *v);
 /* Print out a value */
 void print_val(AValue *v);
 
+/* Print out a value without quoting strings etc.
+ * (called by 'print' word) */
+void print_val_simple(AValue *v);
+
 /* Free a value. */
 void free_value(AValue *to_free);
 
