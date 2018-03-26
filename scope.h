@@ -6,8 +6,11 @@
 /* Create a new lexical scope with parent scope 'parent'. */
 AScope *scope_new(AScope *parent);
 
+/* Create an entry in the scope promising to fill in this function later. */
+ACompileStatus scope_placehold(AScope *sc, ASymbol *sym);
+
 /* Register a new function into scope using the symbol sym as a key. */
-void scope_register(AScope *sc, ASymbol *sym, AFunc *func);
+ACompileStatus scope_register(AScope *sc, ASymbol *sym, AFunc *func);
 
 /* Look up the function bound to a given symbol in a certain lexical scope. */
 AFunc *scope_lookup(AScope *sc, ASymbol *sym);

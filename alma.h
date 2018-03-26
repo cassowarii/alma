@@ -134,6 +134,13 @@ typedef struct ADeclSeqNode {
     ADeclNode *last;        // last one, to append to
 } ADeclSeqNode;
 
+/*-*-* compile.h *-*-*/
+
+typedef enum {
+    compile_success,
+    compile_fail,
+} ACompileStatus;
+
 /*-*-* stack.h *-*-*/
 
 /* Struct representing the stack. */
@@ -154,6 +161,7 @@ typedef void (*ABuiltInFunc)(AStack *, struct AScope*);
 typedef enum {
     builtin_func,
     declared_func,
+    dummy_func,     // found in scope but not yet compiled
 } AFuncType;
 
 /* Struct representing a callable function

@@ -8,6 +8,7 @@
 #include "scope.h"
 #include "lib.h"
 #include "parse.h"
+#include "compile.h"
 #include "grammar.tab.h"
 
 #define ALMATESTINTRO(filename) \
@@ -97,13 +98,6 @@ START_TEST(test_addition) {
 
     ALMATESTSET();
 
-    eval_sequence(stack, scope, program->first->node);
-
-    ck_assert_int_eq(stack->size, 1);
-    ck_assert_int_eq(stack_get(stack, 0)->data.i, 9);
-
-    ALMATESTSET();
-
     eval_sequence(stack, scope, program->first->next->node);
 
     ck_assert_int_eq(stack->size, 1);
@@ -112,9 +106,20 @@ START_TEST(test_addition) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_duplicate_func_error) {
+    ALMATESTINTRO("tests/dupfunc.alma");
+    ALMATESTSET();
+
+    ACompileStatus stat = compile(scope, program);
+    /* Compilation should fail due to duplicate function name. */
+    ck_assert(stat == compile_fail);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 Suite *simple_suite(void) {
     Suite *s;
-    TCase *tc_core;
+    TCase *tc_core, *tc_comp;
 
     s = suite_create("Basics");
 
@@ -125,6 +130,12 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_core, test_stack_pop_print);
     tcase_add_test(tc_core, test_addition);
     suite_add_tcase(s, tc_core);
+
+    /* test compilation */
+    tc_comp = tcase_create("Compilation");
+
+    tcase_add_test(tc_comp, test_duplicate_func_error);
+    suite_add_tcase(s, tc_comp);
 
     return s;
 }

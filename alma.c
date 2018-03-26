@@ -5,6 +5,7 @@
 #include "scope.h"
 #include "lib.h"
 #include "parse.h"
+#include "compile.h"
 #include "grammar.tab.h"
 
 int main (int argc, char **argv) {
@@ -29,6 +30,12 @@ int main (int argc, char **argv) {
         AScope *scope = scope_new(NULL);
 
         lib_init(symtab, scope);
+
+        ACompileStatus stat = compile(scope, program);
+
+        if (stat == compile_fail) {
+            return 1;
+        }
 
         /* For now, we don't have declarations so just
          * call the first declared function... */
