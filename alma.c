@@ -40,7 +40,8 @@ int main (int argc, char **argv) {
         print_stack(stack);
 
         free_stack(stack);
-
         free_decl_seq(program);
+        free_scope(scope);
+        free_symbol_table(&symtab);
     }
 }

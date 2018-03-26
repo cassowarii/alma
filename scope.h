@@ -12,4 +12,13 @@ void scope_register(AScope *sc, ASymbol *sym, AFunc *func);
 /* Look up the function bound to a given symbol in a certain lexical scope. */
 AFunc *scope_lookup(AScope *sc, ASymbol *sym);
 
+/* Free a function. */
+void free_func(AFunc *f);
+
+/* Free a scope entry. */
+void free_scope_entry(AScopeEntry *entry);
+
+/* Free a lexical scope at the end. */
+void free_scope(AScope *sc);
+
 #endif

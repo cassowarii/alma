@@ -35,3 +35,29 @@ AFunc *scope_lookup(AScope *sc, ASymbol *symbol) {
         return e->func;
     }
 }
+
+/* Free a function. */
+void free_func(AFunc *f) {
+    // Since we only have builtins for now, we don't need to free anything else.
+    free(f);
+}
+
+/* Free a scope entry. */
+void free_scope_entry(AScopeEntry *entry) {
+    // TODO When we have pointers to functions in the AST table rather than pointers
+    // to symbols, we'll be able to free scope before running the program (since all
+    // symbols will already be resolved.) When that happens, we'll need to give AFunc
+    // a reference counter and only free it at the end rather than here.
+    free_func(entry->func);
+    free(entry);
+}
+
+/* Free a lexical scope at the end. */
+void free_scope(AScope *sc) {
+    AScopeEntry *current, *tmp;
+    HASH_ITER(hh, sc->content, current, tmp) {
+        HASH_DEL(sc->content, current);
+        free_scope_entry(current);
+    }
+    free(sc);
+}

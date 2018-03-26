@@ -45,3 +45,19 @@ void free_symbol(ASymbol *to_free) {
     free(to_free->name);
     free(to_free);
 }
+
+/* Free a symbol mapping. (Likewise!) */
+void free_symbol_mapping(ASymbolMapping *to_free) {
+    free(to_free->name);
+    free_symbol(to_free->sym);
+    free(to_free);
+}
+
+/* Free the symbol table at the end of the program. */
+void free_symbol_table(ASymbolTable *t) {
+    ASymbolMapping *current, *tmp;
+    HASH_ITER(hh, *t, current, tmp) {
+        HASH_DEL(*t, current);
+        free_symbol_mapping(current);
+    }
+}

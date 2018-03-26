@@ -148,7 +148,7 @@ AUstr *parse_string(const char *bytes, unsigned int length) {
         if (checkbyte == '\\') {
             checkbyte = bytes[index + 1];
             char_length = 2; // by default
-            extra = 1;
+            extra = 1; // need to add 1 more byte to eat the \ as well
         }
         if (is_u2(checkbyte)) char_length = 2 + extra;
         if (is_u3(checkbyte)) char_length = 3 + extra;
