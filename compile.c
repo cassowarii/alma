@@ -1,5 +1,8 @@
 #include "compile.h"
 
+/* Mutate an AWordSeqNode by replacing compile-time-resolvable words
+ * by their corresponding AFunc*s found in scope. */
+static
 ACompileStatus compile_wordseq(AScope *scope, AWordSeqNode *seq) {
     if (seq == NULL) return compile_success;
     unsigned int errors = 0;
@@ -86,10 +89,21 @@ ACompileStatus compile(AScope *scope, ADeclSeqNode *program) {
         } else if (stat != compile_success) {
             fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", stat);
             current = current->next;
+            errors ++;
             continue;
         }
 
         // This is also where we'll eventually typecheck stuff before registering it.
+        // .. Or will we do that in a third pass? Hmm.
+
+        stat = scope_user_register(scope, current->sym, const_func, current->node);
+
+        if (stat == compile_fail) {
+            fprintf(stderr, "Failed to compile word ‘%s’.\n", current->sym->name);
+            errors ++;
+        } else if (stat != compile_success) {
+            fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", stat);
+        }
 
         current = current->next;
     }

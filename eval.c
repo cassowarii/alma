@@ -33,9 +33,12 @@ void eval_node(AStack *st, AScope *sc, AAstNode *node) {
 void eval_word(AStack *st, AScope *sc, AFunc *f) {
     if (f->type == primitive_func) {
         f->data.primitive(st, sc);
-    } else if (f->type == const_func) {
-        fprintf(stderr, "declared func calls not yet implemented!\n"
-                "also how are you even doing this\n");
+    } else if (f->type == user_func) {
+        if (f->data.userfunc->type == const_func) {
+            eval_sequence(st, sc, f->data.userfunc->words);
+        } else if (f->data.userfunc->type == dummy_func) {
+            fprintf(stderr, "internal error: dummy func made it to eval stage\n");
+        }
     } else {
         fprintf(stderr, "error: unrecognized word type: %d\n", f->type);
     }

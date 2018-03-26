@@ -1,0 +1,3 @@
+func main : add3 7 8 9.
+
+func add3 : + +.

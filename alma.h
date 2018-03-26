@@ -166,11 +166,21 @@ struct AScope;
 /* Typedef for built-in functions. */
 typedef void (*APrimitiveFunc)(AStack *, struct AScope*);
 
+typedef enum {
+    dummy_func,     // function found in scope but not yet compiled
+    const_func,     // function with no free variables
+} AUserFuncType;
+
+/* Struct representing a function defined by the user. */
+typedef struct AUserFunc {
+    AUserFuncType type;
+    AWordSeqNode *words;
+} AUserFunc;
+
 /* Builtin or declared function bound to symbol? */
 typedef enum {
     primitive_func, // function written in C
-    const_func,     // function with no free variables
-    dummy_func,     // function found in scope but not yet compiled
+    user_func,      // function defined in alma code
 } AFuncType;
 
 /* Struct representing a callable function
@@ -180,7 +190,10 @@ typedef struct AFunc {
     AFuncType type;
     union {
         APrimitiveFunc primitive;
-        AWordSeqNode *func;
+        AUserFunc *userfunc;
+            /* using a ScopeEntry here means that the underlying
+             * function can be defined later and this one will
+             * update automatically */
     } data;
 } AFunc;
 

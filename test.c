@@ -19,12 +19,10 @@
     AScope *scope = NULL; \
     program = NULL; \
     symtab = NULL; \
-    parse_file(in, &program, &symtab);
-
-#define ALMATESTSET() \
     stack = stack_new(20); \
     scope = scope_new(NULL); \
-    lib_init(symtab, scope)
+    parse_file(in, &program, &symtab); \
+    lib_init(symtab, scope);
 
 #define ALMATESTCLEAN() \
     free_stack(stack); \
@@ -41,12 +39,11 @@ int ustr_check(AUstr *ustr, const char *test) {
 
 START_TEST(test_stack_push) {
     ALMATESTINTRO("tests/simplepush.alma");
-    ALMATESTSET();
 
     ck_assert(program->first != NULL);
 
     ACompileStatus stat = compile(scope, program);
-    ck_assert(stat == compile_success);
+    ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, scope, program->first->node);
 
@@ -61,11 +58,12 @@ START_TEST(test_stack_push) {
     ck_assert(stack_get(stack, 3)->data.i == 3);
     ck_assert(stack_get(stack, 4)->type == int_val);
     ck_assert(stack_get(stack, 4)->data.i == 4);
+
+    ALMATESTCLEAN();
 } END_TEST
 
 START_TEST(test_stack_push2) {
     ALMATESTINTRO("tests/simplepush.alma");
-    ALMATESTSET();
 
     ck_assert(program->first->next != NULL);
 
@@ -82,10 +80,9 @@ START_TEST(test_stack_push2) {
 
 START_TEST(test_stack_pop_print) {
     ALMATESTINTRO("tests/simplepop.alma");
-    ALMATESTSET();
 
     ACompileStatus stat = compile(scope, program);
-    ck_assert(stat == compile_success);
+    ck_assert_int_eq(stat, compile_success);
 
     printf("\nThe next thing printed should be ‘hi4’.\n");
 
@@ -98,17 +95,23 @@ START_TEST(test_stack_pop_print) {
 
 START_TEST(test_addition) {
     ALMATESTINTRO("tests/basicmath.alma");
-    ALMATESTSET();
 
     ACompileStatus stat = compile(scope, program);
-    ck_assert(stat == compile_success);
+    ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, scope, program->first->node);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_get(stack, 0)->data.i, 9);
 
-    ALMATESTSET();
+    ALMATESTCLEAN();
+} END_TEST
+
+START_TEST(test_addition2) {
+    ALMATESTINTRO("tests/basicmath.alma");
+
+    ACompileStatus stat = compile(scope, program);
+    ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, scope, program->first->next->node);
 
@@ -120,7 +123,6 @@ START_TEST(test_addition) {
 
 START_TEST(test_duplicate_func_error) {
     ALMATESTINTRO("tests/dupfunc.alma");
-    ALMATESTSET();
 
     printf("\nThe next thing printed should be an error message.\n");
 
@@ -133,12 +135,37 @@ START_TEST(test_duplicate_func_error) {
 
 START_TEST(test_unknown_func_error) {
     ALMATESTINTRO("tests/unknownfunc.alma");
-    ALMATESTSET();
 
     printf("\nThe next thing printed should be an error message.\n");
 
     ACompileStatus stat = compile(scope, program);
     /* Compilation should fail due to unknown function name. */
+    ck_assert_int_eq(stat, compile_fail);
+
+    ALMATESTCLEAN();
+} END_TEST
+
+START_TEST(test_definition) {
+    ALMATESTINTRO("tests/definition.alma");
+
+    ACompileStatus stat = compile(scope, program);
+    ck_assert_int_eq(stat, compile_success);
+
+    eval_sequence(stack, scope, program->first->node);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_get(stack, 0)->data.i, 24);
+
+    ALMATESTCLEAN();
+} END_TEST
+
+START_TEST(test_redefine_primitive) {
+    ALMATESTINTRO("tests/redefineprint.alma");
+
+    printf("\nThe next thing printed should be an error message.\n");
+
+    ACompileStatus stat = compile(scope, program);
+    /* Should fail due to trying to redefine builtin word 'print' */
     ck_assert_int_eq(stat, compile_fail);
 
     ALMATESTCLEAN();
@@ -157,6 +184,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_core, test_stack_push2);
     tcase_add_test(tc_core, test_stack_pop_print);
     tcase_add_test(tc_core, test_addition);
+    tcase_add_test(tc_core, test_addition2);
     suite_add_tcase(s, tc_core);
 
     /* test compilation */
@@ -164,6 +192,8 @@ Suite *simple_suite(void) {
 
     tcase_add_test(tc_comp, test_duplicate_func_error);
     tcase_add_test(tc_comp, test_unknown_func_error);
+    tcase_add_test(tc_comp, test_redefine_primitive);
+    tcase_add_test(tc_comp, test_definition);
     suite_add_tcase(s, tc_comp);
 
     return s;
