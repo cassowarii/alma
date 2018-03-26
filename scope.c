@@ -14,22 +14,25 @@ AScopeEntry *scope_entry_new(ASymbol *sym, AFunc *func) {
     AScopeEntry *newentry = malloc(sizeof(AScopeEntry));
     newentry->sym = sym;
     newentry->func = func;
+    newentry->linenum = -1;
     return newentry;
 }
 
 /* Create an entry in the scope promising to fill in this function later. */
-ACompileStatus scope_placehold(AScope *sc, ASymbol *symbol) {
+ACompileStatus scope_placehold(AScope *sc, ASymbol *symbol, unsigned int linenum) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
     if (e == NULL) {
         AFunc *dummy = malloc(sizeof(AFunc));
         dummy->type = dummy_func;
         AScopeEntry *entry = scope_entry_new(symbol, dummy);
+        entry->linenum = linenum;
         /* 'sym' below is the field in the struct, not the variable 'symbol' here */
         HASH_ADD_PTR(sc->content, sym, entry);
     } else {
-        fprintf(stderr, "error: Attempt to register duplicate word '%s'.\n",
-                symbol->name);
+        fprintf(stderr, "error: duplicate definition of '%s' at line %d.\n"
+                "(it was previously defined at line %d.)\n",
+                symbol->name, linenum, e->linenum);
         return compile_fail;
     }
     return compile_success;

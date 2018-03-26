@@ -180,6 +180,7 @@ typedef struct AScopeEntry {
     ASymbol *sym;
     AFunc *func;
     UT_hash_handle hh;
+    unsigned int linenum;   // where was it declared?
 } AScopeEntry;
 
 /* Struct representing a (possibly nested) lexical scope. */

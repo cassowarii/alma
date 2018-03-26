@@ -8,8 +8,16 @@ ACompileStatus compile(AScope *scope, ADeclSeqNode *program) {
     ADeclNode *current = program->first;
 
     while (current != NULL) {
-        ACompileStatus stat = scope_placehold(scope, current->sym);
-        if (stat != compile_success) errors ++;
+        ACompileStatus stat = scope_placehold(scope, current->sym, current->linenum);
+
+        if (stat == compile_fail) {
+            errors ++;
+        } else if (stat != compile_success) {
+            /* in the future, i will probably add another status and
+             * forget to check for it here. future proofing */
+            fprintf(stderr, "internal error: unrecognized compile status %d.\n", stat);
+            errors ++;
+        }
 
         current = current->next;
     }
