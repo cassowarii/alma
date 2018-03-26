@@ -22,6 +22,8 @@ int main (int argc, char **argv) {
 
     parse_file(infile, &program, &symtab);
 
+    fclose(infile);
+
     if (program == NULL) {
         fprintf(stderr, "Compilation aborted.\n");
     } else {
@@ -34,6 +36,10 @@ int main (int argc, char **argv) {
         ACompileStatus stat = compile(scope, program);
 
         if (stat == compile_fail) {
+            free_stack(stack);
+            free_decl_seq(program);
+            free_scope(scope);
+            free_symbol_table(&symtab);
             return 1;
         }
 
@@ -48,6 +54,4 @@ int main (int argc, char **argv) {
         free_scope(scope);
         free_symbol_table(&symtab);
     }
-
-    fclose(infile);
 }

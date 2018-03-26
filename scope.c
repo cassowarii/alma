@@ -31,8 +31,8 @@ ACompileStatus scope_placehold(AScope *sc, ASymbol *symbol, unsigned int linenum
         HASH_ADD_PTR(sc->content, sym, entry);
     } else {
         fprintf(stderr, "error: duplicate definition of '%s' at line %d.\n"
-                "(it was previously defined at line %d.)\n",
-                symbol->name, linenum, e->linenum);
+                        "(it was previously defined at line %d.)\n",
+                        symbol->name, linenum, e->linenum);
         return compile_fail;
     }
     return compile_success;
