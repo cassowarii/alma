@@ -1,5 +1,5 @@
 language: c
-script: make && make test
+script: make alma && make test
 compiler:
     - clang
     - gcc
