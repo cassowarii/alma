@@ -37,3 +37,25 @@ void stack_push(AStack *st, AValue *v) {
 void stack_pop(AStack *st, int n) {
     st->size -= n;
 }
+
+/* Print the contents of the stack. */
+void print_stack(AStack *st) {
+    for (int i = 0; i < st->size; i++) {
+        if (i != 0) printf(" ; ");
+        print_val(stack_get(st, i));
+    }
+    printf("\n");
+}
+
+/* Clear the stack, dereferencing all the variables on it,
+ * then free the stack.
+ * For cleanup at the end of the program. */
+void free_stack(AStack *st) {
+    while (st->size > 0) {
+        AValue *to_clear = stack_get(st, 0);
+        delete_ref(to_clear);
+        stack_pop(st, 1);
+    }
+    free(st->content);
+    free(st);
+}

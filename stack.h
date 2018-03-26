@@ -2,6 +2,7 @@
 #define _AL_STACK_H__
 
 #include "alma.h"
+#include "value.h"
 
 /* Allocate and initialize a new AStack. */
 AStack *stack_new(size_t initial_size);
@@ -14,5 +15,13 @@ void stack_push(AStack *st, AValue *v);
 
 /* Reduce the stack size by 'n'. */
 void stack_pop(AStack *st, int n);
+
+/* Print the contents of the stack. */
+void print_stack(AStack *st);
+
+/* Clear the stack, dereferencing all the variables on it,
+ * then free the stack.
+ * For cleanup at the end of the program. */
+void free_stack(AStack *st);
 
 #endif

@@ -87,7 +87,7 @@ typedef struct AValue {
 typedef enum {
     value_node,
     word_node,
-    paren_node,
+    paren_node, // only used temporarily during compilation.
 } ANodeType;
 
 /* Struct representing an AST node. */

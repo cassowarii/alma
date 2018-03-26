@@ -41,11 +41,11 @@ AValue *val_sym(ASymbol *sym) {
 }
 
 AValue *val_block(AWordSeqNode *block) {
-    // this does not bind lexical variables - later we can write another
-    // function that creates a true block_val from this one
-    // (it should leave this one untouched tho because we might want
-    //  to reuse it)
-    // (That's just uh, how lexical closures work)
+    /* this does not bind lexical variables - later we can write another
+    .* function that creates a true block_val from this one
+    .* (it should leave this one untouched tho because we might want
+    .*  to reuse it)
+     * (That's just uh, how lexical closures work) */
     AValue *v = alloc_val();
     v->type = proto_block;
     v->data.ast = block;
