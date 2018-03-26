@@ -18,7 +18,7 @@ lex.yy.c: lexer.l
 	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f *.o alma lex.yy.* grammar.tab.*
+	rm -f *.o alma test_alma lex.yy.* grammar.tab.*
 
 test_alma: $(ALMAREQS) test.o
 	$(CC) $(CFLAGS) -o $@ $^ `pkg-config --cflags --libs check`

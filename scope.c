@@ -30,7 +30,7 @@ ACompileStatus scope_placehold(AScope *sc, ASymbol *symbol, unsigned int linenum
         /* 'sym' below is the field in the struct, not the variable 'symbol' here */
         HASH_ADD_PTR(sc->content, sym, entry);
     } else {
-        fprintf(stderr, "error: duplicate definition of '%s' at line %d.\n"
+        fprintf(stderr, "error: duplicate definition of ‘%s’ at line %d.\n"
                         "(it was previously defined at line %d.)\n",
                         symbol->name, linenum, e->linenum);
         return compile_fail;
@@ -49,7 +49,7 @@ ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
             free(e->func);
             free(e);
         } else if (e != NULL) {
-            fprintf(stderr, "error: Attempt to register duplicate function '%s'\n",
+            fprintf(stderr, "error: Attempt to register duplicate function ‘%s’\n",
                     symbol->name);
             return compile_fail;
         }
@@ -65,7 +65,6 @@ AFunc *scope_lookup(AScope *sc, ASymbol *symbol) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
     if (e == NULL) {
-        fprintf(stderr, "Error: Unrecognized word '%s'.\n", symbol->name);
         return NULL;
     } else {
         return e->func;

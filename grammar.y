@@ -151,7 +151,7 @@ import
 declaration
     :   "func" WORD ':' words '.' {
         ASymbol *sym = get_symbol(symtab, $2);
-        $$ = ast_decl(@2.first_line, sym, $4);
+        $$ = ast_declnode(@2.first_line, sym, $4);
         free($2);
     } | error '.' {
         $$ = NULL;
@@ -215,6 +215,15 @@ word
         $$ = ast_wordnode(@1.first_line, sym);
         free($1);
     } | "let" dirlist "in" nlo word {
+        AWordSeqNode *words;
+        if ($5->type == paren_node) {
+            words = $5->data.inside;
+            // free something
+        } else {
+            words = ast_wordseq_new();
+            ast_wordseq_prepend(words, $5);
+        }
+        $$ = ast_letnode(@1.first_line, $2, words);
     } | "bind" names nlo "in" nlo word {
     } | '(' words ')' {
         $$ = ast_parennode(@1.first_line, $2);

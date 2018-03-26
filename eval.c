@@ -15,9 +15,11 @@ void eval_sequence(AStack *st, AScope *sc, AWordSeqNode *seq) {
 /* Evaluate a single AST node on a stack, mutating
  * the stack.  */
 void eval_node(AStack *st, AScope *sc, AAstNode *node) {
-    if (node->type == word_node) {
-        AFunc *f = scope_lookup(sc, node->data.sym);
-        eval_word(st, sc, f);
+    if (node->type == func_node) {
+        /*AFunc *f = scope_lookup(sc, node->data.sym);*/
+        eval_word(st, sc, node->data.func);
+    } else if (node->type == word_node) {
+        /* do nothing (for now at least) */
     } else if (node->type == value_node) {
         AValue *put = ref(node->data.val);
         stack_push(st, put);

@@ -12,7 +12,8 @@ ACompileStatus scope_placehold(AScope *sc, ASymbol *symbol, unsigned int linenum
 /* Register a new function into scope using the symbol sym as a key. */
 ACompileStatus scope_register(AScope *sc, ASymbol *sym, AFunc *func);
 
-/* Look up the function bound to a given symbol in a certain lexical scope. */
+/* Look up the function bound to a given symbol in a certain lexical scope. 
+ * Returns NULL if not found. */
 AFunc *scope_lookup(AScope *sc, ASymbol *sym);
 
 /* Free a function. */

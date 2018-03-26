@@ -5,7 +5,7 @@ static
 AAstNode *ast_newnode() {
     AAstNode *newnode = malloc(sizeof(AAstNode));
     if (newnode == NULL) {
-        fprintf(stderr, "Error: can't allocate a new declaration node: out of memory");
+        fprintf(stderr, "Error: can't allocate a new AST node: out of memory");
         return NULL;
     }
     newnode->next = NULL;
@@ -21,6 +21,19 @@ ADeclNode *ast_newdecl() {
         return NULL;
     }
     newnode->next = NULL;
+    return newnode;
+}
+
+/* Allocate a new let node with no information */
+static
+ALetNode *ast_newlet() {
+    ALetNode *newnode = malloc(sizeof(ALetNode));
+    if (newnode == NULL) {
+        fprintf(stderr, "Error: can't allocate a new let node: out of memory");
+        return NULL;
+    }
+    newnode->decls = NULL;
+    newnode->words = NULL;
     return newnode;
 }
 
@@ -52,12 +65,24 @@ AAstNode *ast_parennode(unsigned int location, AWordSeqNode *content) {
 }
 
 /* A node representing a declaration. */
-ADeclNode *ast_decl(unsigned int location, ASymbol *sym, AWordSeqNode *body) {
+ADeclNode *ast_declnode(unsigned int location, ASymbol *sym, AWordSeqNode *body) {
     ADeclNode *newnode = ast_newdecl();
     newnode->sym = sym;
     newnode->node = body;
     newnode->linenum = location;
     return newnode;
+}
+
+/* A node representing a "let" introducing a scope. */
+AAstNode *ast_letnode(unsigned int location, ADeclSeqNode *decls, AWordSeqNode *words) {
+    ALetNode *newnode = ast_newlet();
+    newnode->decls = decls;
+    newnode->words = words;
+    AAstNode *wrap = ast_newnode();
+    wrap->type = let_node;
+    wrap->data.let = newnode;
+    wrap->linenum = location;
+    return wrap;
 }
 
 /* Create a new node representing a declaration sequence. */
@@ -219,6 +244,8 @@ void free_ast_node(AAstNode *to_free) {
         delete_ref(to_free->data.val);
     } else if (to_free->type == word_node) {
         /* do nothing, symbols freed at end! */
+    } else if (to_free->type == func_node) {
+        /* again do nothing! */
     } else if (to_free->type == paren_node) {
         free_wordseq_node(to_free->data.inside);
     }

@@ -89,19 +89,22 @@ typedef struct AValue {
 
 /* Possible types of AST nodes. */
 typedef enum {
-    value_node,
-    word_node,
-    paren_node, // only used temporarily during compilation.
+    value_node, // a value to push
+    word_node,  // a symbol pointer (non-looked-up function)
+    func_node,  // a function that's already been looked up
+    paren_node, // only used temporarily during parsing
+    let_node,   // let-block
 } ANodeType;
 
 /* Struct representing an AST node. */
 typedef struct AAstNode {
-    ANodeType type;         // is it a value push or a word call?
+    ANodeType type;         // what kind is it?
     union {
         AValue *val;        // if value
         ASymbol *sym;       // free variable
         struct AWordSeqNode *inside; // if parentheses
-        struct AFunc *word; // word known at compile time
+        struct AFunc *func; // word known at compile time
+        struct ALetNode *let; // if a new scope
     } data;
     struct AAstNode *next;  // these are a linked list
     unsigned int linenum;   // location of the thing, for debugging
@@ -133,6 +136,12 @@ typedef struct ADeclSeqNode {
     ADeclNode *first;       // first one to execute
     ADeclNode *last;        // last one, to append to
 } ADeclSeqNode;
+
+/* Struct representing a "let" introducing a new scope. */
+typedef struct ALetNode {
+    ADeclSeqNode *decls;
+    AWordSeqNode *words;
+} ALetNode;
 
 /*-*-* compile.h *-*-*/
 

@@ -22,8 +22,6 @@
     parse_file(in, &program, &symtab);
 
 #define ALMATESTSET() \
-    free_stack(stack); \
-    free_scope(scope); \
     stack = stack_new(20); \
     scope = scope_new(NULL); \
     lib_init(symtab, scope)
@@ -47,6 +45,9 @@ START_TEST(test_stack_push) {
 
     ck_assert(program->first != NULL);
 
+    ACompileStatus stat = compile(scope, program);
+    ck_assert(stat == compile_success);
+
     eval_sequence(stack, scope, program->first->node);
 
     ck_assert_int_eq(stack->size, 5);
@@ -60,7 +61,10 @@ START_TEST(test_stack_push) {
     ck_assert(stack_get(stack, 3)->data.i == 3);
     ck_assert(stack_get(stack, 4)->type == int_val);
     ck_assert(stack_get(stack, 4)->data.i == 4);
+} END_TEST
 
+START_TEST(test_stack_push2) {
+    ALMATESTINTRO("tests/simplepush.alma");
     ALMATESTSET();
 
     ck_assert(program->first->next != NULL);
@@ -80,6 +84,9 @@ START_TEST(test_stack_pop_print) {
     ALMATESTINTRO("tests/simplepop.alma");
     ALMATESTSET();
 
+    ACompileStatus stat = compile(scope, program);
+    ck_assert(stat == compile_success);
+
     eval_sequence(stack, scope, program->first->node);
 
     ck_assert_int_eq(stack->size, 0);
@@ -90,6 +97,9 @@ START_TEST(test_stack_pop_print) {
 START_TEST(test_addition) {
     ALMATESTINTRO("tests/basicmath.alma");
     ALMATESTSET();
+
+    ACompileStatus stat = compile(scope, program);
+    ck_assert(stat == compile_success);
 
     eval_sequence(stack, scope, program->first->node);
 
@@ -112,7 +122,18 @@ START_TEST(test_duplicate_func_error) {
 
     ACompileStatus stat = compile(scope, program);
     /* Compilation should fail due to duplicate function name. */
-    ck_assert(stat == compile_fail);
+    ck_assert_int_eq(stat, compile_fail);
+
+    ALMATESTCLEAN();
+} END_TEST
+
+START_TEST(test_unknown_func_error) {
+    ALMATESTINTRO("tests/unknownfunc.alma");
+    ALMATESTSET();
+
+    ACompileStatus stat = compile(scope, program);
+    /* Compilation should fail due to unknown function name. */
+    ck_assert_int_eq(stat, compile_fail);
 
     ALMATESTCLEAN();
 } END_TEST
@@ -127,6 +148,7 @@ Suite *simple_suite(void) {
     tc_core = tcase_create("Core");
 
     tcase_add_test(tc_core, test_stack_push);
+    tcase_add_test(tc_core, test_stack_push2);
     tcase_add_test(tc_core, test_stack_pop_print);
     tcase_add_test(tc_core, test_addition);
     suite_add_tcase(s, tc_core);
@@ -135,6 +157,7 @@ Suite *simple_suite(void) {
     tc_comp = tcase_create("Compilation");
 
     tcase_add_test(tc_comp, test_duplicate_func_error);
+    tcase_add_test(tc_comp, test_unknown_func_error);
     suite_add_tcase(s, tc_comp);
 
     return s;
@@ -148,7 +171,7 @@ int main(void) {
     s = simple_suite();
     sr = srunner_create(s);
 
-    srunner_run_all(sr, CK_VERBOSE);
+    srunner_run_all(sr, CK_NORMAL);
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;

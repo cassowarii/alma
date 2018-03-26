@@ -12,8 +12,11 @@ AAstNode *ast_wordnode(unsigned int location, ASymbol *sym);
 /* A sequence of words inside parentheses - we have a pointer to the first one */
 AAstNode *ast_parennode(unsigned int location, AWordSeqNode *content);
 
+/* A node representing a "let" introducing a scope. */
+AAstNode *ast_letnode(unsigned int location, ADeclSeqNode *decls, AWordSeqNode *words);
+
 /* A node representing a declaration. */
-ADeclNode *ast_decl(unsigned int location, ASymbol *sym, AWordSeqNode *body);
+ADeclNode *ast_declnode(unsigned int location, ASymbol *sym, AWordSeqNode *body);
 
 /* Create a new node representing a declaration sequence. */
 ADeclSeqNode *ast_declseq_new();
