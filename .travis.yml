@@ -3,3 +3,6 @@ script: make && make test
 compiler:
     - clang
     - gcc
+before_install:
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq check
