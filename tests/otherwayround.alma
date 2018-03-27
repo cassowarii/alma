@@ -1,4 +1,0 @@
-func print-twice : println println dup.
-
-# Should be able to find main when it's not the first function.
-func main : print-twice "Hello world!".
