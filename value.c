@@ -132,6 +132,7 @@ void free_value(AValue *to_free) {
             free(to_free);
             break;
         case proto_block:
+        case block_val:
             free_wordseq_node(to_free->data.ast);
             free(to_free);
             break;

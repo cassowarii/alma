@@ -10,7 +10,21 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
     AAstNode *current = seq->first;
     while (current != NULL) {
         if (current->type == value_node) {
-            // for now we just assume these are ok
+            if (current->data.val->type == proto_block) {
+                /* Compile the block. */
+                ACompileStatus blockstat = compile_wordseq(scope,
+                        reg, current->data.val->data.ast);
+                if (blockstat == compile_fail) {
+                    errors ++;
+                } else if (blockstat != compile_success) {
+                    fprintf(stderr, "internal error: unrecognized compile status %d "
+                                    "while compiling a block.\n", blockstat);
+                    errors ++;
+                } else {
+                    /* The block is compiled. */
+                    current->data.val->type = block_val;
+                }
+            }
         } else if (current->type == func_node) {
             fprintf(stderr, "internal error: node already compiled\n");
             errors ++;
