@@ -85,6 +85,44 @@ AAstNode *ast_letnode(unsigned int location, ADeclSeqNode *decls, AWordSeqNode *
     return wrap;
 }
 
+/* Create a new node representing name sequence. */
+ANameNode *ast_namenode(unsigned int location, ASymbol *symbol) {
+    ANameNode *newnode = malloc(sizeof(ANameNode));
+    newnode->sym = symbol;
+    newnode->next = NULL;
+    newnode->linenum = location;
+    return newnode;
+}
+
+/* Create a new node representing a name binding. */
+AAstNode *ast_bindnode(unsigned int location, ANameSeqNode *names, AWordSeqNode *words) {
+    ABindNode *newnode = malloc(sizeof(ABindNode));
+    newnode->names = names;
+    newnode->words = words;
+    AAstNode *wrap = ast_newnode();
+    wrap->type = bind_node;
+    wrap->data.bind = newnode;
+    wrap->linenum = location;
+    return wrap;
+}
+
+/* Create a new node representing a word/value sequence. */
+AWordSeqNode *ast_wordseq_new() {
+    AWordSeqNode *newnode = malloc(sizeof(AWordSeqNode));
+    newnode->first = NULL;
+    newnode->last = NULL;
+    newnode->next = NULL;
+    return newnode;
+}
+
+/* Create a new node representing name sequence. */
+ANameSeqNode *ast_nameseq_new() {
+    ANameSeqNode *newnode = malloc(sizeof(ANameSeqNode));
+    newnode->first = NULL;
+    newnode->last = NULL;
+    return newnode;
+}
+
 /* Create a new node representing a declaration sequence. */
 ADeclSeqNode *ast_declseq_new() {
     ADeclSeqNode *newnode = malloc(sizeof(ADeclSeqNode));
@@ -105,15 +143,6 @@ void ast_declseq_append(ADeclSeqNode *seq, ADeclNode *node) {
         fprintf(stderr, "Somehow appending to middle of declaration list. "
                 "This probably shouldn't happen.\n");
     }
-}
-
-/* Create a new node representing a word/value sequence. */
-AWordSeqNode *ast_wordseq_new() {
-    AWordSeqNode *newnode = malloc(sizeof(AWordSeqNode));
-    newnode->first = NULL;
-    newnode->last = NULL;
-    newnode->next = NULL;
-    return newnode;
 }
 
 /* Prepend a new node to the beginning of an AWordSeqNode. */
@@ -140,6 +169,21 @@ void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2) {
     } else if (seq2->first != NULL) {
         seq1->last->next = seq2->first;
         seq1->last = seq2->last;
+    }
+}
+
+/* Prepend a new node to the beginning of an ANameSeqNode. */
+void ast_nameseq_append(ANameSeqNode *seq, ANameNode *node) {
+    if (node == NULL) return;
+    if (seq->last == NULL) {
+        seq->first = seq->last = node;
+    } else if (seq->last->next == NULL) {
+        seq->last->next = node;
+        seq->last = node;
+    } else {
+        /* Somehow, we're appending to the middle of the name-list. */
+        fprintf(stderr, "Somehow appending to middle of name list. "
+                "This probably shouldn't happen.\n");
     }
 }
 

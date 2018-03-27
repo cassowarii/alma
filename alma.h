@@ -94,6 +94,7 @@ typedef enum {
     func_node,  // a function that's already been looked up
     paren_node, // only used temporarily during parsing
     let_node,   // let-block
+    bind_node,  // bind-block
 } ANodeType;
 
 /* Struct representing an AST node. */
@@ -105,6 +106,7 @@ typedef struct AAstNode {
         struct AWordSeqNode *inside; // if parentheses
         struct AFunc *func; // word known at compile time
         struct ALetNode *let; // if a new scope
+        struct ABindNode *bind; // if a new lexical binding
     } data;
     struct AAstNode *next;  // these are a linked list
     unsigned int linenum;   // location of the thing, for debugging
@@ -139,9 +141,28 @@ typedef struct ADeclSeqNode {
 
 /* Struct representing a "let" introducing a new scope. */
 typedef struct ALetNode {
-    ADeclSeqNode *decls;
-    AWordSeqNode *words;
+    ADeclSeqNode *decls;    // things to declare
+    AWordSeqNode *words;    // words to execute in scope
 } ALetNode;
+
+/* Struct representing a "bind" binding variables from top of stack. */
+typedef struct ANameNode {
+    ASymbol *sym;
+    struct ANameNode *next;
+    unsigned int linenum;
+} ANameNode;
+
+/* Struct representing a series of names that can be bound with a 'bind'. */
+typedef struct ANameSeqNode {
+    ANameNode *first;
+    ANameNode *last;
+} ANameSeqNode;
+
+/* Struct representing a "bind" binding variables from top of stack. */
+typedef struct ABindNode {
+    ANameSeqNode *names;    // names to bind
+    AWordSeqNode *words;    // words to execute
+} ABindNode;
 
 /*-*-* compile.h *-*-*/
 

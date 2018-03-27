@@ -56,6 +56,7 @@ void do_error(const char *str, int linenum) {
     struct AValue* val;
     struct AAstNode* ast;
     struct AProtoList* pls;
+    struct ANameSeqNode *nsq;
     struct AWordSeqNode *wsq;
     struct ADeclNode *dec;
     struct ADeclSeqNode *dsq;
@@ -71,6 +72,7 @@ void do_error(const char *str, int linenum) {
 %type <wsq> block;
 %type <pls> listcontent;
 %type <pls> list;
+%type <nsq> names;
 %type <ast> word;
 %type <wsq> words;
 %type <wsq> wordseq;
@@ -224,6 +226,15 @@ word
         }
         $$ = ast_letnode(@1.first_line, $2, words);
     } | "bind" names nlo "in" nlo word {
+        AWordSeqNode *words;
+        if ($6->type == paren_node) {
+            words = $6->data.inside;
+            free($6);
+        } else {
+            words = ast_wordseq_new();
+            ast_wordseq_prepend(words, $6);
+        }
+        $$ = ast_bindnode(@1.first_line, $2, words);
     } | '(' words ')' {
         $$ = ast_parennode(@1.first_line, $2);
     }
@@ -247,7 +258,17 @@ value
 
 names
     :   WORD {
+        $$ = ast_nameseq_new();
+        ASymbol *sym = get_symbol(symtab, $1);
+        ANameNode *namenode = ast_namenode(@1.first_line, sym);
+        ast_nameseq_append($$, namenode);
+        free($1);
     } | names WORD {
+        $$ = $1;
+        ASymbol *sym = get_symbol(symtab, $2);
+        ANameNode *namenode = ast_namenode(@2.first_line, sym);
+        ast_nameseq_append($$, namenode);
+        free($2);
     }
 
 list
