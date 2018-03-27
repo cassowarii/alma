@@ -1,11 +1,15 @@
 func main :
     let
-        func message :
-            print "The square of "
+        func say-message :
+            print "The "
+            print # prints message
+            print " of "
             print dup
             print " is ".
     in (
-        (message | println square) 2
+        (say-message "double" | println double) 4
+        (say-message "square" | println square) 4
     ).
 
+func double : * 2.
 func square : * dup.
