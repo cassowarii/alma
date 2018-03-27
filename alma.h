@@ -210,6 +210,7 @@ typedef enum {
 /* (we only have built-in functions right now, tho */
 typedef struct AFunc {
     AFuncType type;
+    ASymbol *sym;   // we might want to print it at runtime
     union {
         APrimitiveFunc primitive;
         AUserFunc *userfunc;

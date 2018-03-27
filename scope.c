@@ -48,6 +48,7 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
         AFunc *dummyfunc = malloc(sizeof(AFunc));
         dummyfunc->type = user_func;
         dummyfunc->data.userfunc = dummy;
+        dummyfunc->sym = symbol;
         registry_register(reg, dummyfunc);
 
         AScopeEntry *entry = scope_entry_new(symbol, dummyfunc);

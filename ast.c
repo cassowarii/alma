@@ -43,6 +43,13 @@ AAstNode *ast_valnode(unsigned int location, AValue *val) {
     newnode->type = value_node;
     newnode->data.val = val;
     newnode->linenum = location;
+
+    /* We want to store an extra reference to 'val' so it
+     * doesn't get freed. Because it lives in the AST, it
+     * will get freed at program end, as opposed to being
+     * created dynamically. */
+    val->refs ++;
+
     return newnode;
 }
 
@@ -254,6 +261,8 @@ void print_ast_node(AAstNode *x) {
         printf("(");
         print_wordseq_node(x->data.inside);
         printf(")");
+    } else if (x->type == func_node) {
+        printf("%s", x->data.func->sym->name);
     }
 }
 
