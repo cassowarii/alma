@@ -5,13 +5,17 @@
 func main :
     println "99 bottles of beer on the wall"
     println "99 bottles of beer"
+
     99 | while [> 0 dup] [
         println "Take one down, pass it around"
         - 1
         print dup | println " bottles of beer on the wall"
+
         println ""
+
         print dup | println " bottles of beer on the wall"
         print dup | println " bottles of beer"
     ]
+
     println "Go to the store, buy some more"
     println "99 bottles of beer on the wall!".

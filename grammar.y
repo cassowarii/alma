@@ -145,7 +145,6 @@ directive
 import
     :   "import" STRING {
     } | "import" STRING "as" WORD {
-    /* } | wrongimport { */
     }
 
 declaration

@@ -137,7 +137,7 @@ void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2) {
     if (seq1->last == NULL) {
         seq1->first = seq2->first;
         seq1->last = seq2->last;
-    } else {
+    } else if (seq2->first != NULL) {
         seq1->last->next = seq2->first;
         seq1->last = seq2->last;
     }
