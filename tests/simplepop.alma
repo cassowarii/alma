@@ -1,1 +1,1 @@
-func main : 4 | print "hi" | println. # stack should be empty
+func main: 4 | print "hi" | println. # stack should be empty

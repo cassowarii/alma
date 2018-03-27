@@ -1,4 +1,4 @@
-func main :
+func main:
     let
         func say-message :
             print "The "
@@ -11,5 +11,5 @@ func main :
         (say-message "square" | println square) 4
     ).
 
-func double : * 2.
-func square : * dup.
+func double: * 2.
+func square: * dup.

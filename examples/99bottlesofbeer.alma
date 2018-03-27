@@ -2,7 +2,7 @@
 # this is not the best version of this but it is one I can
 # do with just what I've got
 
-func main :
+func main:
     println "99 bottles of beer on the wall"
     println "99 bottles of beer"
 

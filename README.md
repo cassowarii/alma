@@ -21,6 +21,6 @@ Simple example
 --------------
 
 ```
-func main : println "Hello world!" .
+func main: println "Hello world!" .
 ```
 This program prints "Hello world!" to the console, followed by a newline.
