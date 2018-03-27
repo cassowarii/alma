@@ -22,7 +22,16 @@ AScopeEntry *scope_entry_new(ASymbol *sym, AFunc *func) {
 ACompileStatus scope_placehold(AScope *sc, ASymbol *symbol, unsigned int linenum) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
+
     if (e == NULL) {
+        AScopeEntry *f = scope_lookup(sc->parent, symbol);
+        if (f != NULL) {
+            fprintf(stderr, "warning: declaration of word ‘%s’ at line %d "
+                            "shadows previous definition at line %d\n",
+                            symbol->name, linenum, f->linenum);
+        }
+
+        HASH_FIND_PTR(sc->content, &symbol, e);
         AUserFunc *dummy = malloc(sizeof(AUserFunc));
         dummy->type = dummy_func;
         dummy->words = NULL;
@@ -93,7 +102,6 @@ ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
 /* Register a new user word into scope. Requires that scope_placehold was already called. */
 ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType type, AWordSeqNode *words) {
     AScopeEntry *e = NULL;
-    // TODO replace this with scope_lookup so we can warn about variable shadowing
     HASH_FIND_PTR(sc->content, &symbol, e);
 
     if (e == NULL) {
@@ -122,13 +130,16 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
 }
 
 /* Look up the word bound to a given symbol in a certain lexical scope. */
-AFunc *scope_lookup(AScope *sc, ASymbol *symbol) {
+AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol) {
+    if (sc == NULL) {
+        return NULL;
+    }
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
     if (e == NULL) {
-        return NULL;
+        return scope_lookup(sc->parent, symbol);
     } else {
-        return e->func;
+        return e;
     }
 }
 

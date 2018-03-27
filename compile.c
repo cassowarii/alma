@@ -19,14 +19,37 @@ ACompileStatus compile_wordseq(AScope *scope, AWordSeqNode *seq) {
             errors ++;
         } else if (current->type == word_node) {
             /* Find the function bound to its name. */
-            AFunc *f = scope_lookup(scope, current->data.sym);
-            if (f == NULL) {
+            AScopeEntry *e = scope_lookup(scope, current->data.sym);
+            if (e == NULL) {
                 fprintf(stderr, "error: unknown word ‘%s’ at line %d.\n",
                         current->data.sym->name, current->linenum);
                 errors ++;
             } else {
                 current->type = func_node;
-                current->data.func = f;
+                current->data.func = e->func;
+            }
+        } else if (current->type == let_node) {
+            /* Create a new lexical scope and fill it in! */
+            AScope *child_scope = scope_new(scope);
+
+            ACompileStatus stat = compile(child_scope, current->data.let->decls);
+
+            if (stat == compile_fail) {
+                errors ++;
+            } else if (stat != compile_success) {
+                fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n",
+                        stat);
+                errors ++;
+            }
+
+            stat = compile_wordseq(child_scope, current->data.let->words);
+
+            if (stat == compile_fail) {
+                errors ++;
+            } else if (stat != compile_success) {
+                fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n",
+                        stat);
+                errors ++;
             }
         } else {
             fprintf(stderr, "Don't yet know how to compile node type %d\n", current->type);
@@ -71,7 +94,6 @@ ACompileStatus compile(AScope *scope, ADeclSeqNode *program) {
     if (errors != 0) {
         /* If we accidentally defined two functions with the same name in the
          * same scope, bail out now. */
-        fprintf(stderr, "Compilation aborted.\n");
         return compile_fail;
     }
 

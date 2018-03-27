@@ -171,6 +171,20 @@ START_TEST(test_redefine_primitive) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_let) {
+    ALMATESTINTRO("tests/let.alma");
+
+    ACompileStatus stat = compile(scope, program);
+    ck_assert_int_eq(stat, compile_success);
+
+    eval_sequence(stack, scope, program->first->node);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_get(stack, 0)->data.i, 12);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 Suite *simple_suite(void) {
     Suite *s;
     TCase *tc_core, *tc_comp;
@@ -194,6 +208,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_comp, test_unknown_func_error);
     tcase_add_test(tc_comp, test_redefine_primitive);
     tcase_add_test(tc_comp, test_definition);
+    tcase_add_test(tc_comp, test_let);
     suite_add_tcase(s, tc_comp);
 
     return s;

@@ -23,6 +23,8 @@ void eval_node(AStack *st, AScope *sc, AAstNode *node) {
     } else if (node->type == value_node) {
         AValue *put = ref(node->data.val);
         stack_push(st, put);
+    } else if (node->type == let_node) {
+        eval_sequence(st, sc, node->data.let->words);
     } else {
         fprintf(stderr, "error: unrecognized AST node type: %d\n", node->type);
     }

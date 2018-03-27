@@ -17,7 +17,7 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
 
 /* Look up the function bound to a given symbol in a certain lexical scope.
  * Returns NULL if not found. */
-AFunc *scope_lookup(AScope *sc, ASymbol *sym);
+AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol);
 
 /* Free a function. */
 void free_func(AFunc *f);
