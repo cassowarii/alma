@@ -13,7 +13,6 @@
         free_stack(stack); \
         free_registry(reg); \
         free_decl_seq(program); \
-        free_scope(real_scope); \
         free_lib_scope(lib_scope); \
         free_symbol_table(&symtab)
 
@@ -55,6 +54,8 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
         AScope *real_scope = scope_new(lib_scope);
 
         ACompileStatus stat = compile(real_scope, reg, program);
+
+        free_scope(real_scope);
 
         if (stat == compile_fail) {
             CLEANUP();
