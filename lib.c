@@ -32,6 +32,44 @@ void lib_add(AStack* stack, AScope *scope) {
     delete_ref(b);
 }
 
+/* Subtract the top value on the stack from the second value on the stack. */
+void lib_subtract(AStack* stack, AScope *scope) {
+    AValue *a = stack_get(stack, 0);
+    AValue *b = stack_get(stack, 1);
+    stack_pop(stack, 2);
+
+    // We don't do typechecking yet, so this might be garbage
+    // if it's not actually an int... we'll fix this later!
+    AValue *c = val_int(b->data.i - a->data.i);
+
+    stack_push(stack, c);
+    delete_ref(a);
+    delete_ref(b);
+}
+
+/* Multiply the top two values on the stack. */
+void lib_multiply(AStack* stack, AScope *scope) {
+    AValue *a = stack_get(stack, 0);
+    AValue *b = stack_get(stack, 1);
+    stack_pop(stack, 2);
+
+    // We don't do typechecking yet, so this might be garbage
+    // if it's not actually an int... we'll fix this later!
+    AValue *c = val_int(a->data.i * b->data.i);
+
+    stack_push(stack, c);
+    delete_ref(a);
+    delete_ref(b);
+}
+
+/* Duplicate the top value on the stack. */
+void lib_dup(AStack* stack, AScope *scope) {
+    AValue *a = stack_get(stack, 0);
+    AValue *b = ref(a);
+
+    stack_push(stack, b);
+}
+
 /* Add built in func to scope by wrapping it in a newly allocated AFunc */
 static
 void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, APrimitiveFunc f) {
@@ -46,5 +84,10 @@ void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, APrimitiveFun
 void lib_init(ASymbolTable st, AScope *sc) {
     addlibfunc(sc, st, "print", &lib_print);
     addlibfunc(sc, st, "println", &lib_println);
+
     addlibfunc(sc, st, "+", &lib_add);
+    addlibfunc(sc, st, "-", &lib_subtract);
+    addlibfunc(sc, st, "*", &lib_multiply);
+
+    addlibfunc(sc, st, "dup", &lib_dup);
 }
