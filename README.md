@@ -2,13 +2,8 @@
   <img src="almalogo.svg" title="(alma logo)" width="324" height="119" />
 </p>
 
-Alma
+Alma [![Build Status](https://travis-ci.org/broomweed/alma.svg?branch=master)](https://travis-ci.org/broomweed/alma)
 ====
-
-*don't download this yet! :(* check back a little later, I'm still working on the rewrite.
-(seriously, right now it has three functions: `print`, `println`, and `+`.)
-
-[![Build Status](https://travis-ci.org/broomweed/alma.svg?branch=master)](https://travis-ci.org/broomweed/alma)
 
 Alma is a statically-typed, stack-based, functional programming language
 heavily inspired by Forth, Standard ML, and the language [Cat][cat] created
