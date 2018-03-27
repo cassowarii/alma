@@ -122,6 +122,24 @@ START_TEST(test_addition2) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_apply) {
+    ALMATESTINTRO("tests/applyfunc.alma");
+
+    ACompileStatus stat = compile(scope, reg, program);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, scope, mainfunc);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_get(stack, 0)->data.i, 9);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 START_TEST(test_duplicate_func_error) {
     ALMATESTINTRO("tests/dupfunc.alma");
 
@@ -188,6 +206,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_core, test_stack_pop_print);
     tcase_add_test(tc_core, test_addition);
     tcase_add_test(tc_core, test_addition2);
+    tcase_add_test(tc_core, test_apply);
     suite_add_tcase(s, tc_core);
 
     /* test compilation */

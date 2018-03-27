@@ -3,6 +3,7 @@
 
 #include "alma.h"
 #include "registry.h"
+#include "symbols.h"
 
 /* Create a new lexical scope with parent scope 'parent'. */
 AScope *scope_new(AScope *parent);
@@ -19,6 +20,9 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
 /* Look up the function bound to a given symbol in a certain lexical scope.
  * Returns NULL if not found. */
 AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol);
+
+/* Look up a function by name in the scope. */
+AFunc *scope_find_func(AScope *sc, ASymbolTable symtab, const char *name);
 
 /* Free a function. */
 void free_func(AFunc *f);

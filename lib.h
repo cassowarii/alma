@@ -5,6 +5,7 @@
 #include "scope.h"
 #include "symbols.h"
 #include "stack.h"
+#include "eval.h"
 
 /* Initialize builtin library functions into scope sc. */
 void lib_init(ASymbolTable symtab, AScope *sc);

@@ -44,12 +44,6 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
         fprintf(stderr, "Compilation aborted.\n");
         return 0;
     } else {
-        ASymbol *mainsym = get_symbol(&symtab, "main");
-        if (mainsym == NULL) {
-            fprintf(stderr, "error: cannot find main function\n");
-            return 1;
-        }
-
         AStack *stack = stack_new(20);
         AScope *lib_scope = scope_new(NULL);
 
@@ -67,9 +61,11 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
             return 1;
         }
 
-        AScopeEntry *main_entry = scope_lookup(real_scope, mainsym);
-        if (main_entry == NULL) {
-            fprintf(stderr, "error: cannot find main function\n");
+        /* Find main, before we free top-level scope.. */
+        AFunc *mainfunc = scope_find_func(real_scope, symtab, "main");
+
+        if (mainfunc == NULL) {
+            fprintf(stderr, "error: cannot find ‘main’ function\n");
             CLEANUP();
             return 1;
         }
@@ -77,7 +73,7 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
         free_scope(real_scope);
 
         /* Call main. */
-        eval_word(stack, real_scope, main_entry->func);
+        eval_word(stack, real_scope, mainfunc);
 
         CLEANUP();
         return 0;

@@ -149,6 +149,21 @@ AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol) {
     }
 }
 
+/* Look up a function by name in the scope. */
+AFunc *scope_find_func(AScope *sc, ASymbolTable symtab, const char *name) {
+    ASymbol *sym = get_symbol(&symtab, "main");
+    if (sym == NULL) {
+        return NULL;
+    }
+
+    AScopeEntry *entry = scope_lookup(sc, sym);
+    if (entry == NULL) {
+        return NULL;
+    }
+
+    return entry->func;
+}
+
 /* Free a function. */
 void free_user_func(AUserFunc *f) {
     if (f->type == const_func) {
