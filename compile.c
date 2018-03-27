@@ -39,13 +39,15 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                         current->data.sym->name, current->linenum);
                 errors ++;
             } else {
+                /* Change symbol pointer to function pointer. */
                 current->type = func_node;
                 current->data.func = e->func;
             }
         } else if (current->type == let_node) {
-            /* Create a new lexical scope and fill it in! */
+            /* Create a new lexical scope! */
             AScope *child_scope = scope_new(scope);
 
+            /* Compile the declarations into this lexical scope. */
             ACompileStatus stat = compile(child_scope, reg, current->data.let->decls);
 
             if (stat == compile_fail) {
@@ -56,6 +58,7 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 errors ++;
             }
 
+            /* Compile the executed part using the new scope. */
             stat = compile_wordseq(child_scope, reg, current->data.let->words);
 
             if (stat == compile_fail) {
@@ -66,6 +69,7 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 errors ++;
             }
 
+            /* Free the new scope. (Don't worry, its functions will stay behind!) */
             free_scope(child_scope);
         } else {
             fprintf(stderr, "Don't yet know how to compile node type %d\n", current->type);
