@@ -24,12 +24,11 @@
     lib_init(symtab, lib_scope);
 
 #define ALMATESTCLEAN() \
-    free_registry(reg); \
     free_stack(stack); \
+    free_registry(reg); \
     free_decl_seq(program); \
-    free_scope(scope); \
     free_lib_scope(lib_scope); \
-    free_symbol_table(&symtab);
+    free_symbol_table(&symtab)
 
 int ustr_check(AUstr *ustr, const char *test) {
     AUstr *tester = parse_string(test, strlen(test));
@@ -49,16 +48,16 @@ START_TEST(test_stack_push) {
     eval_sequence(stack, scope, program->first->node);
 
     ck_assert_int_eq(stack->size, 5);
-    ck_assert(stack_get(stack, 0)->type == str_val);
-    ck_assert(ustr_check(stack_get(stack, 0)->data.str, "hello world"));
-    ck_assert(stack_get(stack, 1)->type == int_val);
-    ck_assert(stack_get(stack, 1)->data.i == 1);
-    ck_assert(stack_get(stack, 2)->type == int_val);
-    ck_assert(stack_get(stack, 2)->data.i == 2);
-    ck_assert(stack_get(stack, 3)->type == int_val);
-    ck_assert(stack_get(stack, 3)->data.i == 3);
-    ck_assert(stack_get(stack, 4)->type == int_val);
-    ck_assert(stack_get(stack, 4)->data.i == 4);
+    ck_assert(stack_peek(stack, 0)->type == str_val);
+    ck_assert(ustr_check(stack_peek(stack, 0)->data.str, "hello world"));
+    ck_assert(stack_peek(stack, 1)->type == int_val);
+    ck_assert(stack_peek(stack, 1)->data.i == 1);
+    ck_assert(stack_peek(stack, 2)->type == int_val);
+    ck_assert(stack_peek(stack, 2)->data.i == 2);
+    ck_assert(stack_peek(stack, 3)->type == int_val);
+    ck_assert(stack_peek(stack, 3)->data.i == 3);
+    ck_assert(stack_peek(stack, 4)->type == int_val);
+    ck_assert(stack_peek(stack, 4)->data.i == 4);
 
     ALMATESTCLEAN();
 } END_TEST
@@ -71,10 +70,10 @@ START_TEST(test_stack_push2) {
     eval_sequence(stack, scope, program->first->next->node);
 
     ck_assert_int_eq(stack->size, 3);
-    ck_assert(stack_get(stack, 0)->type == proto_block);
-    ck_assert(stack_get(stack, 1)->type == proto_list);
-    ck_assert(stack_get(stack, 2)->type == sym_val);
-    ck_assert_str_eq(stack_get(stack, 2)->data.sym->name, "asdf");
+    ck_assert(stack_peek(stack, 0)->type == proto_block);
+    ck_assert(stack_peek(stack, 1)->type == proto_list);
+    ck_assert(stack_peek(stack, 2)->type == sym_val);
+    ck_assert_str_eq(stack_peek(stack, 2)->data.sym->name, "asdf");
 
     ALMATESTCLEAN();
 } END_TEST
@@ -103,7 +102,7 @@ START_TEST(test_addition) {
     eval_sequence(stack, scope, program->first->node);
 
     ck_assert_int_eq(stack->size, 1);
-    ck_assert_int_eq(stack_get(stack, 0)->data.i, 9);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 9);
 
     ALMATESTCLEAN();
 } END_TEST
@@ -117,7 +116,7 @@ START_TEST(test_addition2) {
     eval_sequence(stack, scope, program->first->next->node);
 
     ck_assert_int_eq(stack->size, 1);
-    ck_assert_int_eq(stack_get(stack, 0)->data.i, 27);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 27);
 
     ALMATESTCLEAN();
 } END_TEST
@@ -135,7 +134,7 @@ START_TEST(test_apply) {
     eval_word(stack, scope, mainfunc);
 
     ck_assert_int_eq(stack->size, 1);
-    ck_assert_int_eq(stack_get(stack, 0)->data.i, 9);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 9);
 
     ALMATESTCLEAN();
 } END_TEST
@@ -173,7 +172,7 @@ START_TEST(test_definition) {
     eval_sequence(stack, scope, program->first->node);
 
     ck_assert_int_eq(stack->size, 1);
-    ck_assert_int_eq(stack_get(stack, 0)->data.i, 24);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 24);
 
     ALMATESTCLEAN();
 } END_TEST
@@ -187,7 +186,7 @@ START_TEST(test_let) {
     eval_sequence(stack, scope, program->first->node);
 
     ck_assert_int_eq(stack->size, 1);
-    ck_assert_int_eq(stack_get(stack, 0)->data.i, 12);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 12);
 
     ALMATESTCLEAN();
 } END_TEST

@@ -62,6 +62,9 @@ AValue *val_protolist(AProtoList *pl) {
 
 /* Get a fresh pointer to the object that counts as a reference. */
 AValue *ref(AValue *v) {
+    printf("[");
+    print_val(v);
+    printf("] increasing refcount of %p\n", (void*)v);
     v->refs ++;
     return v;
 }
@@ -71,6 +74,10 @@ AValue *ref(AValue *v) {
 void delete_ref(AValue *v) {
     v->refs --;
     if (v->refs < 1) {
+        printf("[");
+        print_val(v);
+        printf("]");
+        printf("Freeing %p.\n", (void*)v);
         free_value(v);
     }
 }

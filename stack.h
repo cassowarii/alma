@@ -10,6 +10,10 @@ AStack *stack_new(size_t initial_size);
 /* Get a value 'n' places down from the top of the stack. */
 AValue *stack_get(AStack *st, int n);
 
+/* Peek at the value on the stack, but don't get a fresh reference to it.
+ * (Useful in the unit tests) */
+AValue *stack_peek(AStack *st, int n);
+
 /* Push something onto the stack. */
 void stack_push(AStack *st, AValue *v);
 

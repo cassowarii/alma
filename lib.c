@@ -26,6 +26,10 @@ void lib_add(AStack* stack, AScope *scope) {
     // We don't do typechecking yet, so this might be garbage
     // if it's not actually an int... we'll fix this later!
     AValue *c = ref(val_int(a->data.i + b->data.i));
+    printf("[");
+    print_val(c);
+    printf("]");
+    printf("Refs to <ADDED> %p: %d\n", (void*)c, c->refs);
 
     stack_push(stack, c);
     delete_ref(a);
@@ -95,9 +99,12 @@ void lib_greaterthan(AStack* stack, AScope *scope) {
 /* Duplicate the top value on the stack. */
 void lib_dup(AStack* stack, AScope *scope) {
     AValue *a = stack_get(stack, 0);
-    AValue *b = ref(a);
+    stack_push(stack, a);
+}
 
-    stack_push(stack, b);
+/* Drop the top value off the stack. */
+void lib_drop(AStack* stack, AScope *scope) {
+    stack_pop(stack, 1);
 }
 
 /* Apply the block value on top of the stack. */
@@ -150,17 +157,55 @@ void lib_if(AStack *stack, AScope *scope) {
     delete_ref(elsepart);
 }
 
+/* Given stack [A B C ..., apply A to the stack
+ * below B and C, take the top element, and run
+ * B if truthy, C if falsy. But put the top element
+ * of the stack back before running B or C. */
+void lib_ifstar(AStack *stack, AScope *scope) {
+    AValue *ifpart = stack_get(stack, 0);
+    AValue *thenpart = stack_get(stack, 1);
+    AValue *elsepart = stack_get(stack, 2);
+    AValue *top = ref(stack_get(stack, 3));
+
+    /* don't pop off 'top' */
+    stack_pop(stack, 3);
+
+    eval_sequence(stack, scope, ifpart->data.ast);
+
+    AValue *condition = stack_get(stack, 0);
+    stack_pop(stack, 1);
+
+    stack_push(stack, top);
+
+    if (condition->data.i) {
+        eval_sequence(stack, scope, thenpart->data.ast);
+    } else {
+        eval_sequence(stack, scope, elsepart->data.ast);
+    }
+
+    delete_ref(ifpart);
+    delete_ref(condition);
+    delete_ref(thenpart);
+    delete_ref(elsepart);
+}
+
 /* Given stack [A B ..., repeatedly apply A to
  * the stack below B and apply B over and over
  * again until applying A gives a falsy value. */
-void lib_while(AStack *stack, AScope *scope) {
+void lib_while (AStack *stack, AScope *scope) {
     AValue *condpart = stack_get(stack, 0);
     AValue *looppart = stack_get(stack, 1);
     stack_pop(stack, 2);
 
+    print_val(condpart);
+    print_val(looppart);
+
     eval_sequence(stack, scope, condpart->data.ast);
 
     AValue *condition = stack_get(stack, 0);
+
+    printf("Condition: ");
+    print_val(condition);
     stack_pop(stack, 1);
 
     while (condition->data.i) {
@@ -179,13 +224,52 @@ void lib_while(AStack *stack, AScope *scope) {
     delete_ref(looppart);
 }
 
+/* Given stack [A B ..., repeatedly apply A to
+ * the stack below B and apply B over and over
+ * again until applying A gives a falsy value.
+ * But keep the top value on the stack after
+ * applying A each time. */
+void lib_whilestar(AStack *stack, AScope *scope) {
+    AValue *condpart = stack_get(stack, 0);
+    AValue *looppart = stack_get(stack, 1);
+    AValue *top = ref(stack_get(stack, 2));
+
+    /* don't pop 'top' */
+    stack_pop(stack, 2);
+
+    eval_sequence(stack, scope, condpart->data.ast);
+
+    AValue *condition = stack_get(stack, 0);
+    stack_pop(stack, 1);
+
+    while (condition->data.i) {
+        delete_ref(condition);
+
+        stack_push(stack, top);
+
+        eval_sequence(stack, scope, looppart->data.ast);
+
+        top = ref(stack_get(stack, 0));
+
+        eval_sequence(stack, scope, condpart->data.ast);
+
+        condition = stack_get(stack, 0);
+        stack_pop(stack, 1);
+    }
+
+    delete_ref(condpart);
+    delete_ref(condition);
+    delete_ref(looppart);
+}
+
 /* Add built in func to scope by wrapping it in a newly allocated AFunc */
 static
 void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, APrimitiveFunc f) {
+    ASymbol *sym = get_symbol(&symtab, name);
     AFunc *newfunc = malloc(sizeof(AFunc));
     newfunc->type = primitive_func;
     newfunc->data.primitive = f;
-    ASymbol *sym = get_symbol(&symtab, name);
+    newfunc->sym = sym;
     scope_register(sc, sym, newfunc);
 }
 
@@ -202,8 +286,11 @@ void lib_init(ASymbolTable st, AScope *sc) {
 
     addlibfunc(sc, st, "dup", &lib_dup);
     addlibfunc(sc, st, "dip", &lib_dip);
+    addlibfunc(sc, st, "drop", &lib_drop);
     addlibfunc(sc, st, "apply", &lib_apply);
 
     addlibfunc(sc, st, "if", &lib_if);
+    addlibfunc(sc, st, "if*", &lib_ifstar);
     addlibfunc(sc, st, "while", &lib_while);
+    addlibfunc(sc, st, "while*", &lib_whilestar);
 }

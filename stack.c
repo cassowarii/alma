@@ -16,6 +16,19 @@ AValue *stack_get(AStack *st, int n) {
                         "(element accessed: #%d; stack size: %d)\n", n, st->size);
         return NULL;
     }
+    /* Return a fresh reference. This allows us to then pop
+     * stuff off and delete those references. */
+    return ref(st->content[st->size - 1 - n]);
+}
+
+/* Peek at the value on the stack, but don't get a fresh reference to it.
+ * (Useful in the unit tests) */
+AValue *stack_peek(AStack *st, int n) {
+    if (n >= st->size) {
+        fprintf(stderr, "Error: attempt to access too many elements from stack\n"
+                        "(element accessed: #%d; stack size: %d)\n", n, st->size);
+        return NULL;
+    }
     return st->content[st->size - 1 - n];
 }
 
@@ -35,6 +48,15 @@ void stack_push(AStack *st, AValue *v) {
 
 /* Reduce the stack size by 'n'. */
 void stack_pop(AStack *st, int n) {
+    for (unsigned int i = 0; i < n; i++) {
+        /* Decrease the reference counter when values
+         * get popped off. */
+        printf("[");
+        print_val(st->content[st->size - 1 - i]);
+        printf("]");
+        printf("Refs to <POP> %p: %d\n", (void*)st->content[st->size - 1 - i], st->content[st->size - 1 - i]->refs - 1);
+        delete_ref(st->content[st->size - 1 - i]);
+    }
     st->size -= n;
 }
 
@@ -47,16 +69,12 @@ void print_stack(AStack *st) {
     printf("\n");
 }
 
-/* Clear the stack, dereferencing all the variables on it,
+/* Clear the stack, un-referencing all the variables on it,
  * then free the stack.
  * For cleanup at the end of the program. */
 void free_stack(AStack *st) {
     if (st == NULL) return;
-    while (st->size > 0) {
-        AValue *to_clear = stack_get(st, 0);
-        delete_ref(to_clear);
-        stack_pop(st, 1);
-    }
+    stack_pop(st, st->size);
     free(st->content);
     free(st);
 }
