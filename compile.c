@@ -147,7 +147,6 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program)
     }
 
     if (errors != 0) {
-        fprintf(stderr, "Compilation aborted.\n");
         return compile_fail;
     }
 

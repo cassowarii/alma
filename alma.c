@@ -62,6 +62,7 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
         ACompileStatus stat = compile(real_scope, reg, program);
 
         if (stat == compile_fail) {
+            fprintf(stderr, "Compilation aborted.\n");
             CLEANUP();
             return 1;
         }

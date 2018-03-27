@@ -148,7 +148,6 @@ typedef struct ALetNode {
 typedef enum {
     compile_success,    // Compilation succeeded. Great.
     compile_fail,       // Oh no, compilation failed :(
-    compile_const,      // Compilation succeeded and it was a 'constant' list/block/func/whatever
 } ACompileStatus;
 
 /*-*-* stack.h *-*-*/
