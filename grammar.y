@@ -218,7 +218,7 @@ word
         AWordSeqNode *words;
         if ($5->type == paren_node) {
             words = $5->data.inside;
-            // free something
+            free($5);
         } else {
             words = ast_wordseq_new();
             ast_wordseq_prepend(words, $5);

@@ -9,25 +9,26 @@
 #include "lib.h"
 #include "parse.h"
 #include "compile.h"
+#include "registry.h"
 #include "grammar.tab.h"
 
 #define ALMATESTINTRO(filename) \
     FILE *in = fopen(filename, "r"); \
     ADeclSeqNode *program = NULL; \
     ASymbolTable symtab = NULL; \
-    AStack *stack = NULL; \
-    AScope *scope = NULL; \
-    program = NULL; \
-    symtab = NULL; \
-    stack = stack_new(20); \
-    scope = scope_new(NULL); \
+    AStack *stack = stack_new(20); \
+    AScope *lib_scope = scope_new(NULL); \
+    AScope *scope = scope_new(lib_scope); \
+    AFuncRegistry *reg = registry_new(20); \
     parse_file(in, &program, &symtab); \
-    lib_init(symtab, scope);
+    lib_init(symtab, lib_scope);
 
 #define ALMATESTCLEAN() \
+    free_registry(reg); \
     free_stack(stack); \
     free_decl_seq(program); \
     free_scope(scope); \
+    free_lib_scope(lib_scope); \
     free_symbol_table(&symtab);
 
 int ustr_check(AUstr *ustr, const char *test) {
@@ -42,7 +43,7 @@ START_TEST(test_stack_push) {
 
     ck_assert(program->first != NULL);
 
-    ACompileStatus stat = compile(scope, program);
+    ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, scope, program->first->node);
@@ -81,7 +82,7 @@ START_TEST(test_stack_push2) {
 START_TEST(test_stack_pop_print) {
     ALMATESTINTRO("tests/simplepop.alma");
 
-    ACompileStatus stat = compile(scope, program);
+    ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
     printf("\nThe next thing printed should be ‘hi4’.\n");
@@ -96,7 +97,7 @@ START_TEST(test_stack_pop_print) {
 START_TEST(test_addition) {
     ALMATESTINTRO("tests/basicmath.alma");
 
-    ACompileStatus stat = compile(scope, program);
+    ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, scope, program->first->node);
@@ -110,7 +111,7 @@ START_TEST(test_addition) {
 START_TEST(test_addition2) {
     ALMATESTINTRO("tests/basicmath.alma");
 
-    ACompileStatus stat = compile(scope, program);
+    ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, scope, program->first->next->node);
@@ -126,7 +127,7 @@ START_TEST(test_duplicate_func_error) {
 
     printf("\nThe next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, program);
+    ACompileStatus stat = compile(scope, reg, program);
     /* Compilation should fail due to duplicate function name. */
     ck_assert_int_eq(stat, compile_fail);
 
@@ -138,7 +139,7 @@ START_TEST(test_unknown_func_error) {
 
     printf("\nThe next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, program);
+    ACompileStatus stat = compile(scope, reg, program);
     /* Compilation should fail due to unknown function name. */
     ck_assert_int_eq(stat, compile_fail);
 
@@ -148,7 +149,7 @@ START_TEST(test_unknown_func_error) {
 START_TEST(test_definition) {
     ALMATESTINTRO("tests/definition.alma");
 
-    ACompileStatus stat = compile(scope, program);
+    ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, scope, program->first->node);
@@ -159,22 +160,10 @@ START_TEST(test_definition) {
     ALMATESTCLEAN();
 } END_TEST
 
-START_TEST(test_redefine_primitive) {
-    ALMATESTINTRO("tests/redefineprint.alma");
-
-    printf("\nThe next thing printed should be an error message.\n");
-
-    ACompileStatus stat = compile(scope, program);
-    /* Should fail due to trying to redefine builtin word 'print' */
-    ck_assert_int_eq(stat, compile_fail);
-
-    ALMATESTCLEAN();
-} END_TEST
-
 START_TEST(test_let) {
     ALMATESTINTRO("tests/let.alma");
 
-    ACompileStatus stat = compile(scope, program);
+    ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, scope, program->first->node);
@@ -206,7 +195,6 @@ Suite *simple_suite(void) {
 
     tcase_add_test(tc_comp, test_duplicate_func_error);
     tcase_add_test(tc_comp, test_unknown_func_error);
-    tcase_add_test(tc_comp, test_redefine_primitive);
     tcase_add_test(tc_comp, test_definition);
     tcase_add_test(tc_comp, test_let);
     suite_add_tcase(s, tc_comp);

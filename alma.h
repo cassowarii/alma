@@ -166,6 +166,7 @@ struct AScope;
 /* Typedef for built-in functions. */
 typedef void (*APrimitiveFunc)(AStack *, struct AScope*);
 
+/* Tag for user functions: have we compiled them yet? */
 typedef enum {
     dummy_func,     // function found in scope but not yet compiled
     const_func,     // function with no free variables
@@ -214,5 +215,14 @@ typedef struct AScope {
     struct AScope *parent;
     AScopeEntry *content;
 } AScope;
+
+/* Struct that keeps track of all user-defined functions, so that
+ * we can free them at the end without keeping track of the number
+ * of references to them. */
+typedef struct AFuncRegistry {
+    AFunc **funcs;
+    int size;
+    int capacity;
+} AFuncRegistry;
 
 #endif

@@ -1,12 +1,23 @@
 #include <stdio.h>
 #include "alma.h"
+#include "parse.h"
 #include "ast.h"
 #include "eval.h"
 #include "scope.h"
 #include "lib.h"
-#include "parse.h"
 #include "compile.h"
 #include "grammar.tab.h"
+#include "registry.h"
+
+#define CLEANUP() \
+        free_stack(stack); \
+        free_registry(reg); \
+        free_decl_seq(program); \
+        free_scope(real_scope); \
+        free_lib_scope(lib_scope); \
+        free_symbol_table(&symtab)
+
+int run_program(ADeclSeqNode *program, ASymbolTable symtab);
 
 int main (int argc, char **argv) {
     ADeclSeqNode *program = NULL;
@@ -24,32 +35,37 @@ int main (int argc, char **argv) {
 
     fclose(infile);
 
+    int result = run_program(program, symtab);
+
+    return result;
+}
+
+int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
     if (program == NULL) {
         fprintf(stderr, "Compilation aborted.\n");
+        return 0;
     } else {
         AStack *stack = stack_new(20);
+        AScope *lib_scope = scope_new(NULL);
 
-        AScope *scope = scope_new(NULL);
+        AFuncRegistry *reg = registry_new(20);
 
-        lib_init(symtab, scope);
+        lib_init(symtab, lib_scope);
 
-        ACompileStatus stat = compile(scope, program);
+        AScope *real_scope = scope_new(lib_scope);
+
+        ACompileStatus stat = compile(real_scope, reg, program);
 
         if (stat == compile_fail) {
-            free_stack(stack);
-            free_decl_seq(program);
-            free_scope(scope);
-            free_symbol_table(&symtab);
+            CLEANUP();
             return 1;
         }
 
         /* For now, we don't have declarations so just
          * call the first declared function... */
-        eval_sequence(stack, scope, program->first->node);
+        eval_sequence(stack, real_scope, program->first->node);
 
-        free_stack(stack);
-        free_decl_seq(program);
-        free_scope(scope);
-        free_symbol_table(&symtab);
+        CLEANUP();
+        return 0;
     }
 }

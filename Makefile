@@ -1,7 +1,7 @@
 #CC=gcc
 CFLAGS=-std=c99 -Wall -pedantic -g -D_GNU_SOURCE
 
-ALMAREQS=ustrings.o symbols.o value.o ast.o stack.o scope.o eval.o parse.o lib.o compile.o grammar.tab.o lex.yy.o
+ALMAREQS=ustrings.o symbols.o value.o ast.o stack.o scope.o eval.o parse.o lib.o registry.o compile.o grammar.tab.o lex.yy.o
 
 all: alma test
 
@@ -18,7 +18,7 @@ lex.yy.c: lexer.l
 	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f *.o alma test_alma lex.yy.* grammar.tab.*
+	rm -f *.o test_alma lex.yy.* grammar.tab.*
 
 test_alma: $(ALMAREQS) test.o
 	$(CC) $(CFLAGS) -o $@ $^ `pkg-config --cflags --libs check`

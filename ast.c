@@ -237,6 +237,7 @@ void print_decl_seq(ADeclSeqNode *x) {
 extern void delete_ref(AValue*);
 
 void free_wordseq_node(AWordSeqNode *to_free);
+void free_let(ALetNode *to_free);
 
 /* Free an AST node. */
 void free_ast_node(AAstNode *to_free) {
@@ -248,6 +249,11 @@ void free_ast_node(AAstNode *to_free) {
         /* again do nothing! */
     } else if (to_free->type == paren_node) {
         free_wordseq_node(to_free->data.inside);
+    } else if (to_free->type == let_node) {
+        free_let(to_free->data.let);
+    } else {
+        fprintf(stderr, "internal error: don't know how to free "
+                "ast node of type %d\n", to_free->type);
     }
     free(to_free);
 }
@@ -290,5 +296,12 @@ void free_decl_seq(ADeclSeqNode *to_free) {
         free_decl_node(current);
         current = next;
     }
+    free(to_free);
+}
+
+/* Free a let node. */
+void free_let(ALetNode *to_free) {
+    free_decl_seq(to_free->decls);
+    free_wordseq_node(to_free->words);
     free(to_free);
 }

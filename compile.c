@@ -3,7 +3,7 @@
 /* Mutate an AWordSeqNode by replacing compile-time-resolvable words
  * by their corresponding AFunc*s found in scope. */
 static
-ACompileStatus compile_wordseq(AScope *scope, AWordSeqNode *seq) {
+ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *seq) {
     if (seq == NULL) return compile_success;
     unsigned int errors = 0;
 
@@ -32,7 +32,7 @@ ACompileStatus compile_wordseq(AScope *scope, AWordSeqNode *seq) {
             /* Create a new lexical scope and fill it in! */
             AScope *child_scope = scope_new(scope);
 
-            ACompileStatus stat = compile(child_scope, current->data.let->decls);
+            ACompileStatus stat = compile(child_scope, reg, current->data.let->decls);
 
             if (stat == compile_fail) {
                 errors ++;
@@ -42,7 +42,7 @@ ACompileStatus compile_wordseq(AScope *scope, AWordSeqNode *seq) {
                 errors ++;
             }
 
-            stat = compile_wordseq(child_scope, current->data.let->words);
+            stat = compile_wordseq(child_scope, reg, current->data.let->words);
 
             if (stat == compile_fail) {
                 errors ++;
@@ -51,6 +51,8 @@ ACompileStatus compile_wordseq(AScope *scope, AWordSeqNode *seq) {
                         stat);
                 errors ++;
             }
+
+            free_scope(child_scope);
         } else {
             fprintf(stderr, "Don't yet know how to compile node type %d\n", current->type);
         }
@@ -66,7 +68,7 @@ ACompileStatus compile_wordseq(AScope *scope, AWordSeqNode *seq) {
 
 /* Mutate an ADeclSeqNode by replacing compile-time-resolvable
  * symbol references with references to AFunc*'s. */
-ACompileStatus compile(AScope *scope, ADeclSeqNode *program) {
+ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program) {
     if (program == NULL) return compile_success;
     unsigned int errors = 0;
     ADeclNode *current;
@@ -77,7 +79,7 @@ ACompileStatus compile(AScope *scope, ADeclSeqNode *program) {
      * refer to functions later without fear. */
     while (current != NULL) {
         /* Mark that the function will be compiled later. */
-        ACompileStatus stat = scope_placehold(scope, current->sym, current->linenum);
+        ACompileStatus stat = scope_placehold(scope, reg, current->sym, current->linenum);
 
         if (stat == compile_fail) {
             errors ++;
@@ -100,7 +102,7 @@ ACompileStatus compile(AScope *scope, ADeclSeqNode *program) {
     /*-- PASS 2: compile symbols we can resolve, convert to func ptrs --*/
     current = program->first;
     while (current != NULL) {
-        ACompileStatus stat = compile_wordseq(scope, current->node);
+        ACompileStatus stat = compile_wordseq(scope, reg, current->node);
 
         /* ... check for errors ... */
         if (stat == compile_fail) {
