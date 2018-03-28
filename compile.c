@@ -71,6 +71,26 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
 
             /* Free the new scope. (Don't worry, its functions will stay behind!) */
             free_scope(child_scope);
+        } else if (current->type == bind_node) {
+            /* Create a new bind instruction */
+            AVarBind *newbind = varbind_new(current->data.bind->names, current->data.bind->words);
+
+            AScope *scope_with_vars = scope_new(scope);
+
+            /* ... TODO register the names into this scope ... */
+
+            ACompileStatus stat = compile_wordseq(scope_with_vars, reg, newbind->words);
+
+            if (stat == compile_fail) {
+                errors ++;
+            } else if (stat != compile_success) {
+                fprintf(stderr, "internal error: unrecognized compile status %d compiling bindnode\n",
+                        stat);
+                errors ++;
+            }
+
+            /* Free scope. */
+            free_scope(scope_with_vars);
         } else {
             fprintf(stderr, "Don't yet know how to compile node type %d\n", current->type);
         }

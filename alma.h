@@ -97,12 +97,13 @@ typedef struct AVarBuffer {
     struct VarBuffer *parent;   // where to find more vars
 } AVarBuffer;
 
-/* An instruction telling the interpreter to place the top <num>
- * elements from the stack into a var-buffer. compile() replaces
- * BindNodes with instances of this. */
+/* An instruction telling the interpreter to place the top <count>
+ * elements from the stack into a var-buffer while executing the
+ * word-sequence <words>. compile() replaces* BindNodes with this. */
 typedef struct AVarBind {
     ASymbol **syms;
-    int num;
+    int count;
+    struct AWordSeqNode *words;
 } AVarBind;
 
 /*-*-* ast.h *-*-*/

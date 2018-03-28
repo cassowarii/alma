@@ -3,6 +3,7 @@
 
 #include "alma.h"
 #include "scope.h"
+#include "vars.h"
 
 /* Mutate an ADeclSeqNode by replacing compile-time-resolvable
  * symbol references with references to AFunc*'s. */
