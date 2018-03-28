@@ -106,6 +106,7 @@ AAstNode *ast_bindnode(unsigned int location, ANameSeqNode *names, AWordSeqNode 
     ABindNode *newnode = malloc(sizeof(ABindNode));
     newnode->names = names;
     newnode->words = words;
+    newnode->length = names->length;
     AAstNode *wrap = ast_newnode();
     wrap->type = bind_node;
     wrap->data.bind = newnode;
@@ -127,6 +128,7 @@ ANameSeqNode *ast_nameseq_new() {
     ANameSeqNode *newnode = malloc(sizeof(ANameSeqNode));
     newnode->first = NULL;
     newnode->last = NULL;
+    newnode->length = 0;
     return newnode;
 }
 
@@ -184,9 +186,11 @@ void ast_nameseq_append(ANameSeqNode *seq, ANameNode *node) {
     if (node == NULL) return;
     if (seq->last == NULL) {
         seq->first = seq->last = node;
+        seq->length ++;
     } else if (seq->last->next == NULL) {
         seq->last->next = node;
         seq->last = node;
+        seq->length ++;
     } else {
         /* Somehow, we're appending to the middle of the name-list. */
         fprintf(stderr, "Somehow appending to middle of name list. "

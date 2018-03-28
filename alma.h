@@ -97,6 +97,14 @@ typedef struct AVarBuffer {
     struct VarBuffer *parent;   // where to find more vars
 } AVarBuffer;
 
+/* An instruction telling the interpreter to place the top <num>
+ * elements from the stack into a var-buffer. compile() replaces
+ * BindNodes with instances of this. */
+typedef struct AVarBind {
+    ASymbol **syms;
+    int num;
+}
+
 /*-*-* ast.h *-*-*/
 
 /* Possible types of AST nodes. */
@@ -168,12 +176,14 @@ typedef struct ANameNode {
 typedef struct ANameSeqNode {
     ANameNode *first;
     ANameNode *last;
+    unsigned int length;
 } ANameSeqNode;
 
 /* Struct representing a "bind" binding variables from top of stack. */
 typedef struct ABindNode {
     ANameSeqNode *names;    // names to bind
     AWordSeqNode *words;    // words to execute
+    unsigned int length;    // how many words get bound here?
 } ABindNode;
 
 /*-*-* compile.h *-*-*/
