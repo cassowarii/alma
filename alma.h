@@ -103,7 +103,7 @@ typedef struct AVarBuffer {
 typedef struct AVarBind {
     ASymbol **syms;
     int num;
-}
+} AVarBind;
 
 /*-*-* ast.h *-*-*/
 
@@ -115,21 +115,23 @@ typedef enum {
     paren_node, // only used temporarily during parsing
     let_node,   // let-block
     bind_node,  // bind-block
+    var_bind,   // bind-instruction
 } ANodeType;
 
 /* Struct representing an AST node. */
 typedef struct AAstNode {
-    ANodeType type;         // what kind is it?
+    ANodeType type;             // what kind is it?
     union {
-        AValue *val;        // if value
-        ASymbol *sym;       // free variable
+        AValue *val;            // if value
+        ASymbol *sym;           // free variable
         struct AWordSeqNode *inside; // if parentheses
-        struct AFunc *func; // word known at compile time
-        struct ALetNode *let; // if a new scope
-        struct ABindNode *bind; // if a new lexical binding
+        struct AFunc *func;     // word known at compile time
+        struct ALetNode *let;   // if a new scope
+        struct ABindNode *bind; // if a new lexical binding (uncompiled)
+        struct AVarBind *vbind; // if a compiled binding
     } data;
-    struct AAstNode *next;  // these are a linked list
-    unsigned int linenum;   // location of the thing, for debugging
+    struct AAstNode *next;      // these are a linked list
+    unsigned int linenum;       // location of the thing, for debugging
 } AAstNode;
 
 /* Struct representing a sequence of AST nodes. */
