@@ -51,10 +51,6 @@ void stack_pop(AStack *st, int n) {
     for (unsigned int i = 0; i < n; i++) {
         /* Decrease the reference counter when values
          * get popped off. */
-        printf("[");
-        print_val(st->content[st->size - 1 - i]);
-        printf("]");
-        printf("Refs to <POP> %p: %d\n", (void*)st->content[st->size - 1 - i], st->content[st->size - 1 - i]->refs - 1);
         delete_ref(st->content[st->size - 1 - i]);
     }
     st->size -= n;

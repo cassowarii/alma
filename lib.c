@@ -26,10 +26,6 @@ void lib_add(AStack* stack, AScope *scope) {
     // We don't do typechecking yet, so this might be garbage
     // if it's not actually an int... we'll fix this later!
     AValue *c = ref(val_int(a->data.i + b->data.i));
-    printf("[");
-    print_val(c);
-    printf("]");
-    printf("Refs to <ADDED> %p: %d\n", (void*)c, c->refs);
 
     stack_push(stack, c);
     delete_ref(a);
@@ -74,14 +70,14 @@ void lib_lessthan(AStack* stack, AScope *scope) {
 
     // We don't do typechecking yet, so this might be garbage
     // if it's not actually an int... we'll fix this later!
-    AValue *c = ref(val_int(a->data.i < b->data.i));
+    AValue *c = ref(val_int(b->data.i < a->data.i));
 
     stack_push(stack, c);
     delete_ref(a);
     delete_ref(b);
 }
 
-/* given stack [A B ..., is B < A? */
+/* given stack [A B ..., is B > A? */
 void lib_greaterthan(AStack* stack, AScope *scope) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
@@ -89,7 +85,7 @@ void lib_greaterthan(AStack* stack, AScope *scope) {
 
     // We don't do typechecking yet, so this might be garbage
     // if it's not actually an int... we'll fix this later!
-    AValue *c = ref(val_int(a->data.i < b->data.i));
+    AValue *c = ref(val_int(b->data.i > a->data.i));
 
     stack_push(stack, c);
     delete_ref(a);
@@ -124,6 +120,10 @@ void lib_dip(AStack *stack, AScope *scope) {
     AValue *b = stack_get(stack, 1);
     stack_pop(stack, 2);
 
+    if (a->type != block_val) {
+        fprintf(stderr, "dip needs a block! (got %d)\n", a->type);
+        return;
+    }
     eval_sequence(stack, scope, a->data.ast);
 
     delete_ref(a);
@@ -197,15 +197,10 @@ void lib_while (AStack *stack, AScope *scope) {
     AValue *looppart = stack_get(stack, 1);
     stack_pop(stack, 2);
 
-    print_val(condpart);
-    print_val(looppart);
-
     eval_sequence(stack, scope, condpart->data.ast);
 
     AValue *condition = stack_get(stack, 0);
 
-    printf("Condition: ");
-    print_val(condition);
     stack_pop(stack, 1);
 
     while (condition->data.i) {
@@ -232,9 +227,8 @@ void lib_while (AStack *stack, AScope *scope) {
 void lib_whilestar(AStack *stack, AScope *scope) {
     AValue *condpart = stack_get(stack, 0);
     AValue *looppart = stack_get(stack, 1);
-    AValue *top = ref(stack_get(stack, 2));
+    AValue *top = stack_get(stack, 2);
 
-    /* don't pop 'top' */
     stack_pop(stack, 2);
 
     eval_sequence(stack, scope, condpart->data.ast);
@@ -249,7 +243,7 @@ void lib_whilestar(AStack *stack, AScope *scope) {
 
         eval_sequence(stack, scope, looppart->data.ast);
 
-        top = ref(stack_get(stack, 0));
+        top = stack_get(stack, 0);
 
         eval_sequence(stack, scope, condpart->data.ast);
 

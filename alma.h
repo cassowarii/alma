@@ -85,6 +85,18 @@ typedef struct AValue {
     int refs;         // refcounting
 } AValue;
 
+/*-*-* vars.h *-*-*/
+
+/* A struct representing the vars bound to names at a given point
+ * in the program at runtime. It has a size, and a parent scope
+ * containing variables declared in any outer lexical scopes. */
+typedef struct AVarBuffer {
+    AValue **vars;              // values of vars
+    ASymbol **syms;             // names of vars, for printing
+    int size;                   // number of vars in this one
+    struct VarBuffer *parent;   // where to find more vars
+} AVarBuffer;
+
 /*-*-* ast.h *-*-*/
 
 /* Possible types of AST nodes. */
