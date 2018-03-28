@@ -57,6 +57,7 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
 
         if (stat == compile_fail) {
             fprintf(stderr, "Compilation aborted.\n");
+            free_scope(real_scope);
             CLEANUP();
             return 1;
         }
@@ -66,6 +67,7 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
 
         if (mainfunc == NULL) {
             fprintf(stderr, "error: cannot find ‘main’ function\n");
+            free_scope(real_scope);
             CLEANUP();
             return 1;
         }

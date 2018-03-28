@@ -27,6 +27,7 @@
     free_stack(stack); \
     free_registry(reg); \
     free_decl_seq(program); \
+    free_scope(scope); \
     free_lib_scope(lib_scope); \
     free_symbol_table(&symtab)
 
