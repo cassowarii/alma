@@ -206,6 +206,43 @@ START_TEST(test_2let) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_bind) {
+    ALMATESTINTRO("tests/bind.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, 0);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 12);
+
+    ALMATESTCLEAN();
+} END_TEST
+
+START_TEST(test_2bind) {
+    ALMATESTINTRO("tests/doublebind.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, 0);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 2);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 20);
+    ck_assert_int_eq(stack_peek(stack, 1)->data.i, 24);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 Suite *simple_suite(void) {
     Suite *s;
     TCase *tc_core, *tc_comp;
@@ -231,6 +268,8 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_comp, test_definition);
     tcase_add_test(tc_comp, test_let);
     tcase_add_test(tc_comp, test_2let);
+    tcase_add_test(tc_comp, test_bind);
+    tcase_add_test(tc_comp, test_2bind);
     suite_add_tcase(s, tc_comp);
 
     return s;

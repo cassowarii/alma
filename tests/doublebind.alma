@@ -1,0 +1,7 @@
+func quadruple:
+    (→ a:
+        + a a
+        (→ 2xa: + 2xa 2xa)
+    ).
+
+func main: quadruple 6 | quadruple 5.

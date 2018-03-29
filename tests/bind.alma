@@ -1,0 +1,3 @@
+func triple: → a (+ + a a a).
+
+func main: triple 4.

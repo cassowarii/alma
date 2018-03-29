@@ -92,7 +92,8 @@ typedef struct AValue {
  * containing variables declared in any outer lexical scopes. */
 typedef struct AVarBuffer {
     AValue **vars;              // values of vars
-    int size;                   // number of vars in this one
+    unsigned int size;          // number of vars in this one
+    unsigned int base;          // number of vars below this one (for looking up in scopes below)
     struct AVarBuffer *parent;  // where to find more vars
 } AVarBuffer;
 
@@ -189,6 +190,7 @@ typedef struct ABindNode {
 
 /*-*-* compile.h *-*-*/
 
+/* Possible compile statuses */
 typedef enum {
     compile_success,    // Compilation succeeded. Great.
     compile_fail,       // Oh no, compilation failed :(

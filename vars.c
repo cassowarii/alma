@@ -29,8 +29,13 @@ AVarBind *varbind_new(ANameSeqNode *names, AWordSeqNode *words) {
 AVarBuffer *varbuf_new(AVarBuffer *parent, unsigned int size) {
     AVarBuffer *newbuf = malloc(sizeof(AVarBuffer));
     // TODO check buf alloc
-    newbuf->vars = malloc(size * sizeof(AValue*));
+    newbuf->vars = calloc(size, sizeof(AValue*));
     newbuf->size = size;
+    if (parent != NULL) {
+        newbuf->base = parent->base + parent->size;
+    } else {
+        newbuf->base = 0;
+    }
     newbuf->parent = parent;
     return newbuf;
 }
@@ -42,6 +47,10 @@ void varbuf_put(AVarBuffer *buf, unsigned int index, AValue *val) {
                         "(bufsize: %d, index %d)\n", buf->size, index);
         return;
     }
+    if (buf->vars[index] != NULL) {
+        fprintf(stderr, "internal error: trying to put value in same slot in varbuf (%d)", index);
+        return;
+    }
     buf->vars[index] = val;
 }
 
@@ -50,14 +59,19 @@ void varbuf_put(AVarBuffer *buf, unsigned int index, AValue *val) {
 /* Returns a new reference to the value. */
 AValue *varbuf_get(AVarBuffer *buf, unsigned int index) {
     if (buf == NULL) {
-        /* this means there are no more variables to look at! :( */
-        /* this shouldn't happen because we only look for variables within the range */
         fprintf(stderr, "internal error: attempt to get nonexistent variable\n");
         return NULL;
     }
-    if (index < buf->size) {
-        return ref(buf->vars[index]);
+    if (index >= buf->base) {
+        if (index - buf->base < buf->size) {
+            return ref(buf->vars[index - buf->base]);
+        } else {
+            /* this shouldn't happen because we only create 'get' instructions
+             * whose number is less than the max. varbuf index */
+            fprintf(stderr, "internal error: attempt to get var with too-high index %d", index);
+            return NULL;
+        }
     } else {
-        return varbuf_get(buf->parent, index - buf->size);
+        return varbuf_get(buf->parent, index);
     }
 }
