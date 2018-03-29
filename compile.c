@@ -11,6 +11,7 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
     while (current != NULL) {
         if (current->type == value_node) {
             if (current->data.val->type == proto_block) {
+                /* Block values need special extra compilation. */
                 /* Compile the block. */
                 ACompileStatus blockstat = compile_wordseq(scope,
                         reg, current->data.val->data.ast);
@@ -25,10 +26,13 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                     current->data.val->type = block_val;
                 }
             }
+            /* For now, we otherwise just assume the value is fine as is. */
         } else if (current->type == func_node) {
+            /* we shouldn't find this in an uncompiled AST! */
             fprintf(stderr, "internal error: node already compiled\n");
             errors ++;
         } else if (current->type == paren_node) {
+            /* these should all be gone by this point (only used in parse stage) */
             fprintf(stderr, "internal error: paren_node found in compilation stage\n");
             errors ++;
         } else if (current->type == word_node) {
@@ -114,7 +118,7 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program)
     /*-- PASS 1: check names being defined --*/
     current = program->first;
     /* (We do this in a separate pass so that functions being defined can
-     * refer to functions later without fear. */
+     * refer to functions later without fear.) */
     while (current != NULL) {
         /* Mark that the function will be compiled later. */
         ACompileStatus stat = scope_placehold(scope, reg, current->sym, current->linenum);

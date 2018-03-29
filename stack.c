@@ -9,7 +9,7 @@ AStack *stack_new(size_t initial_size) {
     return st;
 }
 
-/* Get a value 'n' places down from the top of the stack. */
+/* Get a value 'n' places down from the top of the stack. Returns a fresh reference */
 AValue *stack_get(AStack *st, int n) {
     if (n >= st->size) {
         fprintf(stderr, "Error: attempt to access too many elements from stack\n"
@@ -22,7 +22,7 @@ AValue *stack_get(AStack *st, int n) {
 }
 
 /* Peek at the value on the stack, but don't get a fresh reference to it.
- * (Useful in the unit tests) */
+ * (Useful in the unit tests where we want to check the stack has a certain value) */
 AValue *stack_peek(AStack *st, int n) {
     if (n >= st->size) {
         fprintf(stderr, "Error: attempt to access too many elements from stack\n"
@@ -32,7 +32,7 @@ AValue *stack_peek(AStack *st, int n) {
     return st->content[st->size - 1 - n];
 }
 
-/* Push something onto the stack. */
+/* Push something onto the stack. Doesn't affect refcounter. */
 void stack_push(AStack *st, AValue *v) {
     if (st->size == st->capacity) {
         AValue **new_array = realloc(st->content, st->capacity * 2 * sizeof(AValue*));
@@ -46,7 +46,7 @@ void stack_push(AStack *st, AValue *v) {
     st->size ++;
 }
 
-/* Reduce the stack size by 'n'. */
+/* Reduce the stack size by 'n' and de-reference popped elements. */
 void stack_pop(AStack *st, int n) {
     for (unsigned int i = 0; i < n; i++) {
         /* Decrease the reference counter when values

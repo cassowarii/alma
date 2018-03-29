@@ -74,6 +74,7 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
 }
 
 /* Register a new word into scope using the symbol ‘symbol’ as a key. */
+/* Only used for stdlib/primitive functions, not user functions */
 ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
@@ -97,7 +98,7 @@ ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
             return compile_fail;
         }
     } else {
-        /* probably adding a primitive func */
+        /* create new entry */
         AScopeEntry *entry = scope_entry_new(symbol, func);
 
         /* 'sym' below is the field in the struct, not the variable 'symbol' here */
@@ -111,19 +112,27 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
 
+    /* handle various error conditions (which shouldn't happen if the other compilation
+     * code works right...) */
     if (e == NULL) {
+        /* If we end up here, we somehow skipped pass 1 of compilation. */
         fprintf(stderr, "internal error: registering non-dummied user word ‘%s’\n",
                 symbol->name);
         return compile_fail;
     } else if (e->func == NULL) {
+        /* not really sure what would cause this to happen tbh */
         fprintf(stderr, "internal error: somehow word ‘%s’ ended up with null func\n",
                 symbol->name);
         return compile_fail;
     } else if (e->func->type != user_func) {
-        fprintf(stderr, "error: cannot redefine builtin word ‘%s’\n",
+        /* this shouldn't happen, because builtin words live in a scope
+         * below all user funcs */
+        fprintf(stderr, "internal error: attempt to redefine builtin word ‘%s’ in lowest scope\n",
                 symbol->name);
         return compile_fail;
     } else if (e->func->data.userfunc->type != dummy_func) {
+        /* We should have caught this attempt to declare a duplicate function
+         * back when the thing was dummied in scope_placehold. */
         fprintf(stderr, "internal error: Attempt to create duplicate word ‘%s’\n",
                 symbol->name);
         return compile_fail;
@@ -136,7 +145,7 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
     return compile_success;
 }
 
-/* Look up the word bound to a given symbol in a certain lexical scope. */
+/* Look up the word that's bound to a given symbol in a certain lexical scope. */
 AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol) {
     if (sc == NULL) {
         return NULL;
@@ -144,6 +153,7 @@ AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
     if (e == NULL) {
+        /* If we didn't find it here, look it up in the parent. */
         return scope_lookup(sc->parent, symbol);
     } else {
         return e;
@@ -152,6 +162,8 @@ AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol) {
 
 /* Look up a function by name in the scope. */
 AFunc *scope_find_func(AScope *sc, ASymbolTable symtab, const char *name) {
+    /* this takes a const char* and looks up the symbol itself; mostly useful
+     * for calling user funcs from C code (ie: calling main) */
     ASymbol *sym = get_symbol(&symtab, "main");
     if (sym == NULL) {
         return NULL;
@@ -159,6 +171,7 @@ AFunc *scope_find_func(AScope *sc, ASymbolTable symtab, const char *name) {
 
     AScopeEntry *entry = scope_lookup(sc, sym);
     if (entry == NULL) {
+        /* We don't print an error message here -- calling code should handle it. */
         return NULL;
     }
 
