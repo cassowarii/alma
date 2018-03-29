@@ -43,7 +43,7 @@ START_TEST(test_stack_push) {
 
     ck_assert(program->first != NULL);
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->node);
@@ -82,7 +82,7 @@ START_TEST(test_stack_push2) {
 START_TEST(test_stack_pop_print) {
     ALMATESTINTRO("tests/simplepop.alma");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     ck_assert_int_eq(stat, compile_success);
 
     printf("\nThe next thing printed should be ‘hi4’.\n");
@@ -97,7 +97,7 @@ START_TEST(test_stack_pop_print) {
 START_TEST(test_addition) {
     ALMATESTINTRO("tests/basicmath.alma");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->node);
@@ -111,7 +111,7 @@ START_TEST(test_addition) {
 START_TEST(test_addition2) {
     ALMATESTINTRO("tests/basicmath.alma");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->next->node);
@@ -125,7 +125,7 @@ START_TEST(test_addition2) {
 START_TEST(test_apply) {
     ALMATESTINTRO("tests/applyfunc.alma");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -145,7 +145,7 @@ START_TEST(test_duplicate_func_error) {
 
     printf("\nThe next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     /* Compilation should fail due to duplicate function name. */
     ck_assert_int_eq(stat, compile_fail);
 
@@ -157,7 +157,7 @@ START_TEST(test_unknown_func_error) {
 
     printf("\nThe next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     /* Compilation should fail due to unknown function name. */
     ck_assert_int_eq(stat, compile_fail);
 
@@ -167,7 +167,7 @@ START_TEST(test_unknown_func_error) {
 START_TEST(test_definition) {
     ALMATESTINTRO("tests/definition.alma");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->node);
@@ -181,7 +181,7 @@ START_TEST(test_definition) {
 START_TEST(test_let) {
     ALMATESTINTRO("tests/let.alma");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->node);
@@ -195,7 +195,7 @@ START_TEST(test_let) {
 START_TEST(test_2let) {
     ALMATESTINTRO("tests/doublelet.alma");
 
-    ACompileStatus stat = compile(scope, reg, program);
+    ACompileStatus stat = compile(scope, reg, program, 0);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->node);

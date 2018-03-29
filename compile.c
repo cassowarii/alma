@@ -1,9 +1,11 @@
 #include "compile.h"
 
 /* Mutate an AWordSeqNode by replacing compile-time-resolvable words
- * by their corresponding AFunc*s found in scope. */
+ * by their corresponding AFunc*s found in scope. (var_depth is how
+ * many variables are in scopes below, so we can pass the correct indices
+ * to scope_create_push. */
 static
-ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *seq) {
+ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *seq, unsigned int var_depth) {
     if (seq == NULL) return compile_success;
     unsigned int errors = 0;
 
@@ -14,7 +16,7 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 /* Block values need special extra compilation. */
                 /* Compile the block. */
                 ACompileStatus blockstat = compile_wordseq(scope,
-                        reg, current->data.val->data.ast);
+                        reg, current->data.val->data.ast, var_depth);
                 if (blockstat == compile_fail) {
                     errors ++;
                 } else if (blockstat != compile_success) {
@@ -52,7 +54,7 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             AScope *child_scope = scope_new(scope);
 
             /* Compile the declarations into this lexical scope. */
-            ACompileStatus stat = compile(child_scope, reg, current->data.let->decls);
+            ACompileStatus stat = compile(child_scope, reg, current->data.let->decls, var_depth);
 
             if (stat == compile_fail) {
                 errors ++;
@@ -63,7 +65,7 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             }
 
             /* Compile the executed part using the new scope. */
-            stat = compile_wordseq(child_scope, reg, current->data.let->words);
+            stat = compile_wordseq(child_scope, reg, current->data.let->words, var_depth);
 
             if (stat == compile_fail) {
                 errors ++;
@@ -86,7 +88,7 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             ANameNode *currname = current->data.bind->names->first;
 
             for (int i = 0; i < newbind->count; i++) {
-                stat = scope_create_push(scope_with_vars, reg, currname->sym, i);
+                stat = scope_create_push(scope_with_vars, reg, currname->sym, i + var_depth);
                 if (stat == compile_fail) {
                     errors ++;
                 } else if (stat != compile_success) {
@@ -95,7 +97,8 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 currname = currname->next;
             }
 
-            stat = compile_wordseq(scope_with_vars, reg, newbind->words);
+            stat = compile_wordseq(scope_with_vars, reg, newbind->words,
+                                   var_depth + newbind->count);
 
             free_nameseq_node(current->data.bind->names);
 
@@ -129,7 +132,8 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
 
 /* Mutate an ADeclSeqNode by replacing compile-time-resolvable
  * symbol references with references to AFunc*'s. */
-ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program) {
+/* var_depth = how many variables are bound below this scope */
+ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program, unsigned int var_depth) {
     if (program == NULL) return compile_success;
     unsigned int errors = 0;
     ADeclNode *current;
@@ -163,7 +167,7 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program)
     /*-- PASS 2: compile symbols we can resolve, convert to func ptrs --*/
     current = program->first;
     while (current != NULL) {
-        ACompileStatus stat = compile_wordseq(scope, reg, current->node);
+        ACompileStatus stat = compile_wordseq(scope, reg, current->node, var_depth);
 
         /* ... check for errors ... */
         if (stat == compile_fail) {

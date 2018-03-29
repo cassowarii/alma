@@ -38,7 +38,7 @@ AVarBuffer *varbuf_new(AVarBuffer *parent, unsigned int size) {
 /* Put a value into <buf> at index <index> */
 void varbuf_put(AVarBuffer *buf, unsigned int index, AValue *val) {
     if (index >= buf->size) {
-        fprintf(stderr, "internal error: trying to put too many values into bind "
+        fprintf(stderr, "internal error: trying to put value too far into varbuf "
                         "(bufsize: %d, index %d)\n", buf->size, index);
         return;
     }
@@ -56,8 +56,8 @@ AValue *varbuf_get(AVarBuffer *buf, unsigned int index) {
         return NULL;
     }
     if (index < buf->size) {
-        return buf->vars[index];
+        return ref(buf->vars[index]);
     } else {
-        return ref(varbuf_get(buf->parent, index - buf->size));
+        return varbuf_get(buf->parent, index - buf->size);
     }
 }
