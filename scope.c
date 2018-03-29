@@ -66,8 +66,7 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
                         symbol->name, linenum, e->linenum);
         return compile_fail;
     } else {
-        fprintf(stderr, "internal error: trying to placehold, but ‘%s’ has null func\n",
-                        symbol->name);
+        assert(0 && "scope entry exists, but has null func pointer");
         return compile_fail;
     }
     return compile_success;
@@ -79,32 +78,15 @@ ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
 
-    if (e != NULL) {
-        if (e->func->type == user_func) {
-            /* we're clobbering the user's function here, while loading library somehow? */
-            /* this shouldn't happen */
-            fprintf(stderr, "internal error: calling scope_register rather than "
-                    "scope_user_register with a func that was declared as user "
-                    " (‘%s’)\n", symbol->name);
-            return compile_fail;
-        } else if (e != NULL) {
-            /* this means, I guess that we called addlibfunc with the same name twice */
-            fprintf(stderr, "internal error: Attempt to register duplicate word ‘%s’\n",
-                    symbol->name);
-            return compile_fail;
-        } else {
-            /* this won't happen but the compiler doesn't like leaving this off */
-            fprintf(stderr, "internal error: e is somehow null and not null\n");
-            return compile_fail;
-        }
-    } else {
-        /* create new entry */
-        AScopeEntry *entry = scope_entry_new(symbol, func);
+    assert(e == NULL && "trying to load two primitives with the same name. "
+                        "fix your dang library loading code");
 
-        /* 'sym' below is the field in the struct, not the variable 'symbol' here */
-        HASH_ADD_PTR(sc->content, sym, entry);
-        return compile_success;
-    }
+    /* create new entry */
+    AScopeEntry *entry = scope_entry_new(symbol, func);
+
+    /* 'sym' below is the field in the struct, not the variable 'symbol' here */
+    HASH_ADD_PTR(sc->content, sym, entry);
+    return compile_success;
 }
 
 /* Register a new user word into scope. Requires that scope_placehold was already called. */
@@ -114,33 +96,14 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
 
     /* handle various error conditions (which shouldn't happen if the other compilation
      * code works right...) */
-    if (e == NULL) {
-        /* If we end up here, we somehow skipped pass 1 of compilation. */
-        fprintf(stderr, "internal error: registering non-dummied user word ‘%s’\n",
-                symbol->name);
-        return compile_fail;
-    } else if (e->func == NULL) {
-        /* not really sure what would cause this to happen tbh */
-        fprintf(stderr, "internal error: somehow word ‘%s’ ended up with null func\n",
-                symbol->name);
-        return compile_fail;
-    } else if (e->func->type != user_func) {
-        /* this shouldn't happen, because builtin words live in a scope
-         * below all user funcs */
-        fprintf(stderr, "internal error: attempt to redefine builtin word ‘%s’ in lowest scope\n",
-                symbol->name);
-        return compile_fail;
-    } else if (e->func->data.userfunc->type != dummy_func) {
-        /* We should have caught this attempt to declare a duplicate function
-         * back when the thing was dummied in scope_placehold. */
-        fprintf(stderr, "internal error: Attempt to create duplicate word ‘%s’\n",
-                symbol->name);
-        return compile_fail;
-    } else {
-        /* ok i think we're good now */
-        e->func->data.userfunc->type = type;
-        e->func->data.userfunc->words = words;
-    }
+    assert (e != NULL && "registering non-dummied user word");
+    assert (e->func != NULL && "user func is null somehow");
+    assert (e->func->type == user_func && "somehow defining word in lowest scope, and shadowing builtin");
+    assert (e->func->data.userfunc->type == dummy_func && "creating duplicate word, but this wasn't "
+                                                          "caught in scope_placehold somehow");
+    /* ok i think we're good now */
+    e->func->data.userfunc->type = type;
+    e->func->data.userfunc->words = words;
 
     return compile_success;
 }

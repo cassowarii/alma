@@ -34,10 +34,10 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
 
         /* evaluate it with this new var-buffer */
         eval_sequence(st, newbuf, node->data.vbind->words);
-    } else if (node->type == word_node || node->type == bind_node || node->type == paren_node) {
-        fprintf(stderr, "internal error: node with obsolete type %d "
-                        "made it to eval stage\n", node->type);
     } else {
+        assert(node->type != word_node && "word-node in eval stage");
+        assert(node->type != bind_node && "bind-node in eval stage");
+        assert(node->type != paren_node && "paren-node in eval stage");
         fprintf(stderr, "error: unrecognized AST node type: %d\n", node->type);
     }
 }
@@ -51,7 +51,7 @@ void eval_word(AStack *st, AVarBuffer *buf, AFunc *f) {
         if (f->data.userfunc->type == const_func) {
             eval_sequence(st, buf, f->data.userfunc->words);
         } else if (f->data.userfunc->type == dummy_func) {
-            fprintf(stderr, "internal error: dummy func made it to eval stage\n");
+            assert(0 && "dummy-func in eval stage");
         }
     } else if (f->type == var_push) {
         /* varbuf_get increments reference count */

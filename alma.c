@@ -25,6 +25,10 @@ int main (int argc, char **argv) {
     FILE *infile = NULL;
     if (argc == 2) {
         infile = fopen(argv[1], "r");
+        if (infile == NULL) {
+            fprintf(stderr, "couldn't open file\n");
+            exit(1);
+        }
     } else {
         fprintf(stderr, "Please supply a file name.\n");
         return 0;

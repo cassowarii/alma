@@ -12,12 +12,7 @@ AVarBind *varbind_new(ANameSeqNode *names, AWordSeqNode *words) {
     ANameNode *curr = names->first;
     unsigned int index = 0;
     while (curr) {
-        if (index == newbind->count) {
-            fprintf(stderr, "internal error: received too many symbols at bind "
-                            "(expected %d)\n", newbind->count);
-            fprintf(stderr, "probably the nameseq misreported its length.\n");
-            return newbind;
-        }
+        assert(index < newbind->count && "received too many symbols at bind");
         index++;
         curr = curr->next;
     }
@@ -28,8 +23,11 @@ AVarBind *varbind_new(ANameSeqNode *names, AWordSeqNode *words) {
 /* Create a new VarBuffer with size <size> and parent <parent>. */
 AVarBuffer *varbuf_new(AVarBuffer *parent, unsigned int size) {
     AVarBuffer *newbuf = malloc(sizeof(AVarBuffer));
-    // TODO check buf alloc
-    newbuf->vars = calloc(size, sizeof(AValue*));
+    if (newbuf == NULL) {
+        fprintf(stderr, "error: cannot allocate space for a new var buffer: out of memory\n");
+        return NULL;
+    }
+    newbuf->vars = malloc(size * sizeof(AValue*));
     newbuf->size = size;
     if (parent != NULL) {
         newbuf->base = parent->base + parent->size;
@@ -42,15 +40,7 @@ AVarBuffer *varbuf_new(AVarBuffer *parent, unsigned int size) {
 
 /* Put a value into <buf> at index <index> */
 void varbuf_put(AVarBuffer *buf, unsigned int index, AValue *val) {
-    if (index >= buf->size) {
-        fprintf(stderr, "internal error: trying to put value too far into varbuf "
-                        "(bufsize: %d, index %d)\n", buf->size, index);
-        return;
-    }
-    if (buf->vars[index] != NULL) {
-        fprintf(stderr, "internal error: trying to put value in same slot in varbuf (%d)", index);
-        return;
-    }
+    assert(index < buf->size && "trying to put value too far into varbuf");
     buf->vars[index] = val;
 }
 
@@ -58,19 +48,12 @@ void varbuf_put(AVarBuffer *buf, unsigned int index, AValue *val) {
  * in the parent if necessary. */
 /* Returns a new reference to the value. */
 AValue *varbuf_get(AVarBuffer *buf, unsigned int index) {
-    if (buf == NULL) {
-        fprintf(stderr, "internal error: attempt to get nonexistent variable\n");
-        return NULL;
-    }
+    assert (buf != NULL);
     if (index >= buf->base) {
-        if (index - buf->base < buf->size) {
-            return ref(buf->vars[index - buf->base]);
-        } else {
-            /* this shouldn't happen because we only create 'get' instructions
-             * whose number is less than the max. varbuf index */
-            fprintf(stderr, "internal error: attempt to get var with too-high index %d", index);
-            return NULL;
-        }
+        /* this shouldn't happen because we only create 'get' instructions
+         * whose number is less than the max. varbuf index */
+        assert(index - buf->base < buf->size && "attempt to get var with too-high index");
+        return ref(buf->vars[index - buf->base]);
     } else {
         return varbuf_get(buf->parent, index);
     }
