@@ -39,7 +39,7 @@ void do_error(const char *str, int linenum) {
 %token T_IMPORT     "import"    /* "include" */
 %token T_AS         "as"        /* "as" (but only after an 'import') */
 %token T_LET        "let"       /* "let" */
-%token T_BIND       "bind"      /* "bind" */
+%token T_BIND       "->"        /* "->" or "→" */
 %token T_FUNC       "func"      /* "func" */
 %token T_IN         "in"        /* "in" */
 
@@ -53,7 +53,7 @@ void do_error(const char *str, int linenum) {
     char *cs; // cstring
     struct AUstr *s;
     double d;
-    struct ASymbol* sym;
+    struct ASymbol *sym;
     struct AValue* val;
     struct AAstNode* ast;
     struct AProtoList* pls;
@@ -69,15 +69,19 @@ void do_error(const char *str, int linenum) {
 %token <s>  STRING  "string"
 %token <d>  FLOAT   "float"
 
-%type <sym> name;
 %type <val> value;
+%type <sym> name;
 %type <wsq> block;
 %type <pls> listcontent;
 %type <pls> list;
-%type <nsq> names_colon;
+%type <nsq> names;
+%type <nsq> names_opt;
+%type <ast> word;
 %type <ast> cmplx_word;
 %type <wsq> words;
 %type <wsq> wordseq;
+%type <wsq> wordseq_opt;
+%type <wsq> words_nonempty;
 %type <dec> declaration;
 %type <dec> directive;
 %type <dsq> dirlist;
@@ -145,11 +149,8 @@ import
     }
 
 declaration
-    :   "func" WORD names_colon words '.' {
-        /* TODO add named parameters here */
-        ASymbol *sym = get_symbol(symtab, $2);
-        $$ = ast_declnode(@2.first_line, sym, $4);
-        free($2);
+    :   "func" name names_opt ':' words '.' {
+        $$ = ast_declnode(@2.first_line, $2, $5);
     } | error '.' {
         $$ = NULL;
     }
@@ -157,21 +158,46 @@ declaration
 block
     :   '[' words ']' {
         $$ = $2;
+    } | '[' "->" names ':' words ']' {
+        $$ = ast_wordseq_new();
+        ast_wordseq_prepend ($$, ast_bindnode(@2.first_line, $3, $5));
     }
 
 words
-    :   wordseq {
+    :   wordseq_opt {
         $$ = $1;
-    } | words sep wordseq {
+    } | words sep wordseq_opt {
         $$ = $1;
         ast_wordseq_concat($$, $3);
         free($3);
     }
 
-wordseq
+words_nonempty
+    :   wordseq {
+        $$ = $1;
+    } | words_nonempty sep wordseq_opt {
+        $$ = $1;
+        ast_wordseq_concat($$, $3);
+        free($3);
+    }
+
+wordseq_opt
     :   /* nothing */ {
         $$ = ast_wordseq_new();
-    } | wordseq cmplx_word {
+    } | wordseq {
+        $$ = $1;
+    }
+
+wordseq
+    :   word {
+        if ($1->type == paren_node) {
+            $$ = $1->data.inside;
+            free($1);
+        } else {
+            $$ = ast_wordseq_new();
+            ast_wordseq_prepend($$, $1);
+        }
+    } | wordseq word {
         if ($2->type == paren_node) {
             $$ = $2->data.inside;
             ast_wordseq_concat($$, $1);
@@ -180,26 +206,40 @@ wordseq
             $$ = $1;
             ast_wordseq_prepend($$, $2);
         }
-    } | wordseq name {
+    }
+
+word
+    :   name {
+        $$ = ast_wordnode(@1.first_line, $1);
+    } | cmplx_word {
         $$ = $1;
-        AAstNode *wn = ast_wordnode(@2.first_line, $2);
-        ast_wordseq_prepend($$, wn);
     }
 
 cmplx_word
     :   value {
         $$ = ast_valnode(@1.first_line, $1);
-    } | "let" dirlist "in" nlo '(' wordseq ')' {
-        $$ = ast_letnode(@1.first_line, $2, $6);
-    } | '(' names_colon nlo wordseq ')' {
-        /* NOTE: This syntax causes ambiguity: if we see a '(' and our
-         * lookahead token is a name, we don't know if it's the beginning
-         * of a parameter list or a word-sequence. I've gotten it to just
-         * be a shift/reduce conflict, where bison's default 'shift' does
-         * the right thing (I think?) but I still would like to figure out
-         * how to be explicit about that. Unfortunately names_colon therefore
-         * ends up being right-recursive... I really like this syntax tho :( */
-        $$ = ast_bindnode(@1.first_line, $2, $4);
+    } | "let" dirlist "in" nlo word {
+        AWordSeqNode *words;
+        if ($5->type == paren_node) {
+            words = $5->data.inside;
+            free($5);
+        } else {
+            words = ast_wordseq_new();
+            ast_wordseq_prepend(words, $5);
+        }
+        $$ = ast_letnode(@1.first_line, $2, words);
+    } | "->" names nlo cmplx_word {
+        AWordSeqNode *words;
+        if ($4->type == paren_node) {
+            words = $4->data.inside;
+            free($4);
+        } else {
+            words = ast_wordseq_new();
+            ast_wordseq_prepend(words, $4);
+        }
+        $$ = ast_bindnode(@1.first_line, $2, words);
+    } | '(' "->" names ':' words ')' {
+        $$ = ast_bindnode(@2.first_line, $3, $5);
     } | '(' words ')' {
         $$ = ast_parennode(@1.first_line, $2);
     }
@@ -221,17 +261,27 @@ value
         $$ = val_block($1);
     }
 
-name:   WORD {
+name
+    :   WORD {
         $$ = get_symbol(symtab, $1);
         free($1);
-     }
+    }
 
-names_colon
-    :   ':' {
+names_opt
+    :   /* nothing */ {
         $$ = ast_nameseq_new();
-    } | name names_colon {
-        $$ = $2;
-        ANameNode *namenode = ast_namenode(@2.first_line, $1);
+    } | names {
+        $$ = $1;
+    }
+
+names
+    :   name {
+        $$ = ast_nameseq_new();
+        ANameNode *namenode = ast_namenode(@1.first_line, $1);
+        ast_nameseq_append($$, namenode);
+    } | names name {
+        $$ = $1;
+        ANameNode *namenode = ast_namenode(@2.first_line, $2);
         ast_nameseq_append($$, namenode);
     }
 
@@ -241,13 +291,13 @@ list
     }
 
 listcontent
-    :   wordseq {
+    :   wordseq_opt {
         $$ = ast_protolist_new();
         ast_protolist_append($$, $1);
-    } | listcontent ',' wordseq {
-            $$ = $1;
+    } | listcontent ',' wordseq_opt {
+        $$ = $1;
         ast_protolist_append($$, $3);
-    } | error ',' wordseq {
+    } | error ',' wordseq_opt {
         $$ = ast_protolist_new();
         ast_protolist_append($$, $3);
     }
@@ -256,30 +306,5 @@ sep :   '|' | '\n'
 
  /* newline optional, but not | because it's silly */
 nlo :   /* nothing */ | nlo '\n'
-
-/* wrongimport
-    :   "import" WORD "as" WORD {
-        do_error("'import' directive expects a quoted path to the file to be imported.", @2.first_line);
-    } | "import" WORD {
-        do_error("'import' directive expects a quoted path to the file to be imported.", @2.first_line);
-    } | "import" STRING "as" STRING {
-        do_error("'import ... as' expects a bare name to prefix imported functions with.", @4.first_line);
-    } | "import" WORD "as" STRING {
-        do_error("'import' directive expects a quoted path to the file to be imported.", @2.first_line);
-        do_error("'import ... as' expects a bare name to prefix imported functions with.", @4.first_line);
-    } | "import" {
-        do_error("'import' needs the path to the file to be imported.", @1.first_line);
-    } */
-
-/*program_after_barewords
-    :   realdirlist {
-    } | realdirlist words_nonempty program_after_barewords {
-        / * Would be good to make this one somehow combine together, so we don't
-         * print it out backwards... hmm. * /
-        do_error("To run code at top level non-interactively, "
-                 "put it in a function called 'main'.", @2.first_line);
-    } | / * empty * / {
-        // do nothing
-    } */
 
 %%

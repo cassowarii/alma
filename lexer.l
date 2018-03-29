@@ -44,9 +44,10 @@ IDONECH [^{}[\]()\"\' \t\n.,]|{UONLY}
   /* Reserved words. */
 "import"                { BEGIN(IMPORT); return T_IMPORT; }
 "let"                   return T_LET;
-"bind"                  return T_BIND;
+->|→                    return T_BIND;
 "func"                  return T_FUNC;
 "in"                    return T_IN;
+\\[\r\n]                ; // allow escaping newlines
 <IMPORT>"as"            { BEGIN(INITIAL); return T_AS; }
 <IMPORT>\|              return '|';
 <IMPORT>[\r\n]          return '\n';
