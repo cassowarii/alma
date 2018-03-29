@@ -847,8 +847,8 @@ void add_lib_entry(library *l, lib_entry_t *entry) {
 void init_library(library *l) {
     l->table = NULL;
     add_lib_entry(l, construct("pop",       type_pop(),      &word_pop));
-    add_lib_entry(l, construct("print,",     type_print(),    &word_print));
-    add_lib_entry(l, construct("print",   type_println(),  &word_println));
+    add_lib_entry(l, construct("print",     type_print(),    &word_print));
+    add_lib_entry(l, construct("println",   type_println(),  &word_println));
     add_lib_entry(l, construct("list",      type_list(),     &word_list));
     add_lib_entry(l, construct("copy",      type_copy(),     &word_copy));
     add_lib_entry(l, construct("swap",      type_swap(),     &word_swap));

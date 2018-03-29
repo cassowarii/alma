@@ -1,0 +1,17 @@
+: tri [
+    dip [0]
+    while [> 0 copy] [
+        copy | dip [+]
+        - 1
+    ]
+    pop
+]
+
+1
+while [< 5000 copy] [
+    print "triangular number #"
+    print copy
+    print " is "
+    println tri copy
+    + 1
+]
