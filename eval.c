@@ -27,6 +27,11 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
         eval_sequence(st, buf, node->data.let->words);
     } else if (node->type == bind_node) {
         fprintf(stderr, "internal error: bind node made it to eval stage\n");
+    } else if (node->type == var_bind) {
+        AVarBuffer *newbuf = varbuf_new(buf, node->data.vbind->count);
+        /* ··· TODO put the variables into the buffer from stack ··· */
+        /* evaluate it with this new var-buffer */
+        eval_sequence(st, newbuf, node->data.vbind->words);
     } else {
         fprintf(stderr, "error: unrecognized AST node type: %d\n", node->type);
     }
@@ -43,6 +48,11 @@ void eval_word(AStack *st, AVarBuffer *buf, AFunc *f) {
         } else if (f->data.userfunc->type == dummy_func) {
             fprintf(stderr, "internal error: dummy func made it to eval stage\n");
         }
+    } else if (f->type == var_push) {
+        /* varbuf_get increments reference count */
+        AValue *var = varbuf_get(buf, f->data.varindex);
+        /* now put the variable on the stack */
+        stack_push(st, var);
     } else {
         fprintf(stderr, "error: unrecognized word type: %d\n", f->type);
     }

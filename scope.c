@@ -150,7 +150,7 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
 ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, unsigned int index) {
     AFunc *pushfunc = malloc(sizeof(AFunc));
     pushfunc->type = var_push;
-    pushfunc->data.push_index = index;
+    pushfunc->data.varindex = index;
     pushfunc->sym = symbol;
     registry_register(reg, pushfunc);
 

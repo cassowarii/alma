@@ -3,6 +3,7 @@
 
 #include "alma.h"
 #include "value.h"
+#include "vars.h"
 #include "stack.h"
 #include "scope.h"
 #include "ast.h"

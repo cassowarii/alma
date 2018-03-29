@@ -92,9 +92,8 @@ typedef struct AValue {
  * containing variables declared in any outer lexical scopes. */
 typedef struct AVarBuffer {
     AValue **vars;              // values of vars
-    ASymbol **syms;             // names of vars, for printing
     int size;                   // number of vars in this one
-    struct VarBuffer *parent;   // where to find more vars
+    struct AVarBuffer *parent;  // where to find more vars
 } AVarBuffer;
 
 /* An instruction telling the interpreter to place the top <count>
@@ -237,7 +236,7 @@ typedef struct AFunc {
     AFuncType type;
     ASymbol *sym;   // we might want to print it at runtime
     union {
-        int push_index; // if var_push, which var to push?
+        int varindex; // if var_push, which var to push?
         APrimitiveFunc primitive;
         AUserFunc *userfunc;
             /* using a UserFunc here rather than just a WordSeq
