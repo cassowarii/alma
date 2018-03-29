@@ -13,12 +13,13 @@ AVarBind *varbind_new(ANameSeqNode *names, AWordSeqNode *words) {
     ANameNode *curr = names->first;
     unsigned int index = 0;
     while (curr) {
-        new_bind->syms[index] = curr->sym;
-        index++;
         if (index == new_bind->count) {
-            fprintf(stderr, "internal error: received too many symbols at bind\n");
+            fprintf(stderr, "internal error: received too many symbols at bind "
+                            "(expected only %d)\n", new_bind->count);
             return new_bind;
         }
+        new_bind->syms[index] = curr->sym;
+        index++;
         curr = curr->next;
     }
 
