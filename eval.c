@@ -2,29 +2,29 @@
 
 /* Evaluate a sequence of commands on a stack,
  * mutating the stack. */
-void eval_sequence(AStack *st, AScope *sc, AWordSeqNode *seq) {
+void eval_sequence(AStack *st, AVarBuffer *buf, AWordSeqNode *seq) {
     if (seq == NULL) return;        // it doesn't exist
     if (seq->first == NULL) return; // it's empty
     AAstNode *current = seq->first;
     while (current != NULL) {
-        eval_node(st, sc, current);
+        eval_node(st, buf, current);
         current = current->next;
     }
 }
 
 /* Evaluate a single AST node on a stack, mutating
  * the stack.  */
-void eval_node(AStack *st, AScope *sc, AAstNode *node) {
+void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
     if (node->type == func_node) {
         /*AFunc *f = scope_lookup(sc, node->data.sym);*/
-        eval_word(st, sc, node->data.func);
+        eval_word(st, buf, node->data.func);
     } else if (node->type == word_node) {
         /* do nothing (for now at least) */
     } else if (node->type == value_node) {
         AValue *put = ref(node->data.val);
         stack_push(st, put);
     } else if (node->type == let_node) {
-        eval_sequence(st, sc, node->data.let->words);
+        eval_sequence(st, buf, node->data.let->words);
     } else if (node->type == bind_node) {
         fprintf(stderr, "internal error: bind node made it to eval stage\n");
     } else {
@@ -34,12 +34,12 @@ void eval_node(AStack *st, AScope *sc, AAstNode *node) {
 
 /* Evaluate a given word (whether declared or built-in)
  * on the stack. */
-void eval_word(AStack *st, AScope *sc, AFunc *f) {
+void eval_word(AStack *st, AVarBuffer *buf, AFunc *f) {
     if (f->type == primitive_func) {
-        f->data.primitive(st, sc);
+        f->data.primitive(st, buf);
     } else if (f->type == user_func) {
         if (f->data.userfunc->type == const_func) {
-            eval_sequence(st, sc, f->data.userfunc->words);
+            eval_sequence(st, buf, f->data.userfunc->words);
         } else if (f->data.userfunc->type == dummy_func) {
             fprintf(stderr, "internal error: dummy func made it to eval stage\n");
         }

@@ -1,29 +1,29 @@
 #include "lib.h"
 
 /* Duplicate the top value on the stack. */
-void lib_dup(AStack* stack, AScope *scope) {
+void lib_dup(AStack* stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     stack_push(stack, a);
 }
 
 /* Drop the top value off the stack. */
-void lib_drop(AStack* stack, AScope *scope) {
+void lib_drop(AStack* stack, AVarBuffer *buffer) {
     stack_pop(stack, 1);
 }
 
 /* Apply the block value on top of the stack. */
-void lib_apply(AStack *stack, AScope *scope) {
+void lib_apply(AStack *stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     stack_pop(stack, 1);
 
-    eval_sequence(stack, scope, a->data.ast);
+    eval_sequence(stack, buffer, a->data.ast);
 
     delete_ref(a);
 }
 
 /* Apply the block value on top of the stack, but
  * ignore the thing directly underneath. */
-void lib_dip(AStack *stack, AScope *scope) {
+void lib_dip(AStack *stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
     stack_pop(stack, 2);
@@ -32,7 +32,7 @@ void lib_dip(AStack *stack, AScope *scope) {
         fprintf(stderr, "dip needs a block! (got %d)\n", a->type);
         return;
     }
-    eval_sequence(stack, scope, a->data.ast);
+    eval_sequence(stack, buffer, a->data.ast);
 
     delete_ref(a);
 

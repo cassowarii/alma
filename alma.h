@@ -209,7 +209,7 @@ typedef struct AStack {
 struct AScope;
 
 /* Typedef for built-in functions. */
-typedef void (*APrimitiveFunc)(AStack *, struct AScope*);
+typedef void (*APrimitiveFunc)(AStack *, struct AVarBuffer*);
 
 /* Tag for user functions: have we compiled them yet? */
 typedef enum {

@@ -46,7 +46,7 @@ START_TEST(test_stack_push) {
     ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, scope, program->first->node);
+    eval_sequence(stack, NULL, program->first->node);
 
     ck_assert_int_eq(stack->size, 5);
     ck_assert(stack_peek(stack, 0)->type == str_val);
@@ -68,7 +68,7 @@ START_TEST(test_stack_push2) {
 
     ck_assert(program->first->next != NULL);
 
-    eval_sequence(stack, scope, program->first->next->node);
+    eval_sequence(stack, NULL, program->first->next->node);
 
     ck_assert_int_eq(stack->size, 3);
     ck_assert(stack_peek(stack, 0)->type == proto_block);
@@ -87,7 +87,7 @@ START_TEST(test_stack_pop_print) {
 
     printf("\nThe next thing printed should be ‘hi4’.\n");
 
-    eval_sequence(stack, scope, program->first->node);
+    eval_sequence(stack, NULL, program->first->node);
 
     ck_assert_int_eq(stack->size, 0);
 
@@ -100,7 +100,7 @@ START_TEST(test_addition) {
     ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, scope, program->first->node);
+    eval_sequence(stack, NULL, program->first->node);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 9);
@@ -114,7 +114,7 @@ START_TEST(test_addition2) {
     ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, scope, program->first->next->node);
+    eval_sequence(stack, NULL, program->first->next->node);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 27);
@@ -132,7 +132,7 @@ START_TEST(test_apply) {
 
     ck_assert(mainfunc != NULL);
 
-    eval_word(stack, scope, mainfunc);
+    eval_word(stack, NULL, mainfunc);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 9);
@@ -170,7 +170,7 @@ START_TEST(test_definition) {
     ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, scope, program->first->node);
+    eval_sequence(stack, NULL, program->first->node);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 24);
@@ -184,10 +184,24 @@ START_TEST(test_let) {
     ACompileStatus stat = compile(scope, reg, program);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, scope, program->first->node);
+    eval_sequence(stack, NULL, program->first->node);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 12);
+
+    ALMATESTCLEAN();
+} END_TEST
+
+START_TEST(test_2let) {
+    ALMATESTINTRO("tests/doublelet.alma");
+
+    ACompileStatus stat = compile(scope, reg, program);
+    ck_assert_int_eq(stat, compile_success);
+
+    eval_sequence(stack, NULL, program->first->node);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 18);
 
     ALMATESTCLEAN();
 } END_TEST
@@ -216,6 +230,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_comp, test_unknown_func_error);
     tcase_add_test(tc_comp, test_definition);
     tcase_add_test(tc_comp, test_let);
+    tcase_add_test(tc_comp, test_2let);
     suite_add_tcase(s, tc_comp);
 
     return s;

@@ -107,7 +107,6 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 errors ++;
             } else {
                 /* Successfully compiled the inner scope, so alter the node. */
-                // TODO Free old bind node?
                 free(current->data.bind);
                 current->type = var_bind;
                 current->data.vbind = newbind;

@@ -3,21 +3,21 @@
 /* Given stack [A B C ..., apply A to the stack
  * below B and C, take the top element, and run
  * B if truthy, C if falsy. (integerwise.) */
-void lib_if(AStack *stack, AScope *scope) {
+void lib_if(AStack *stack, AVarBuffer *buffer) {
     AValue *ifpart = stack_get(stack, 0);
     AValue *thenpart = stack_get(stack, 1);
     AValue *elsepart = stack_get(stack, 2);
     stack_pop(stack, 3);
 
-    eval_sequence(stack, scope, ifpart->data.ast);
+    eval_sequence(stack, buffer, ifpart->data.ast);
 
     AValue *condition = stack_get(stack, 0);
     stack_pop(stack, 1);
 
     if (condition->data.i) {
-        eval_sequence(stack, scope, thenpart->data.ast);
+        eval_sequence(stack, buffer, thenpart->data.ast);
     } else {
-        eval_sequence(stack, scope, elsepart->data.ast);
+        eval_sequence(stack, buffer, elsepart->data.ast);
     }
 
     delete_ref(ifpart);
@@ -30,7 +30,7 @@ void lib_if(AStack *stack, AScope *scope) {
  * below B and C, take the top element, and run
  * B if truthy, C if falsy. But put the top element
  * of the stack back before running B or C. */
-void lib_ifstar(AStack *stack, AScope *scope) {
+void lib_ifstar(AStack *stack, AVarBuffer *buffer) {
     AValue *ifpart = stack_get(stack, 0);
     AValue *thenpart = stack_get(stack, 1);
     AValue *elsepart = stack_get(stack, 2);
@@ -39,7 +39,7 @@ void lib_ifstar(AStack *stack, AScope *scope) {
     /* don't pop off 'top' */
     stack_pop(stack, 3);
 
-    eval_sequence(stack, scope, ifpart->data.ast);
+    eval_sequence(stack, buffer, ifpart->data.ast);
 
     AValue *condition = stack_get(stack, 0);
     stack_pop(stack, 1);
@@ -47,9 +47,9 @@ void lib_ifstar(AStack *stack, AScope *scope) {
     stack_push(stack, top);
 
     if (condition->data.i) {
-        eval_sequence(stack, scope, thenpart->data.ast);
+        eval_sequence(stack, buffer, thenpart->data.ast);
     } else {
-        eval_sequence(stack, scope, elsepart->data.ast);
+        eval_sequence(stack, buffer, elsepart->data.ast);
     }
 
     delete_ref(ifpart);
@@ -61,12 +61,12 @@ void lib_ifstar(AStack *stack, AScope *scope) {
 /* Given stack [A B ..., repeatedly apply A to
  * the stack below B and apply B over and over
  * again until applying A gives a falsy value. */
-void lib_while (AStack *stack, AScope *scope) {
+void lib_while (AStack *stack, AVarBuffer *buffer) {
     AValue *condpart = stack_get(stack, 0);
     AValue *looppart = stack_get(stack, 1);
     stack_pop(stack, 2);
 
-    eval_sequence(stack, scope, condpart->data.ast);
+    eval_sequence(stack, buffer, condpart->data.ast);
 
     AValue *condition = stack_get(stack, 0);
 
@@ -75,9 +75,9 @@ void lib_while (AStack *stack, AScope *scope) {
     while (condition->data.i) {
         delete_ref(condition);
 
-        eval_sequence(stack, scope, looppart->data.ast);
+        eval_sequence(stack, buffer, looppart->data.ast);
 
-        eval_sequence(stack, scope, condpart->data.ast);
+        eval_sequence(stack, buffer, condpart->data.ast);
 
         condition = stack_get(stack, 0);
         stack_pop(stack, 1);
@@ -93,14 +93,14 @@ void lib_while (AStack *stack, AScope *scope) {
  * again until applying A gives a falsy value.
  * But keep the top value on the stack after
  * applying A each time. */
-void lib_whilestar(AStack *stack, AScope *scope) {
+void lib_whilestar(AStack *stack, AVarBuffer *buffer) {
     AValue *condpart = stack_get(stack, 0);
     AValue *looppart = stack_get(stack, 1);
     AValue *top = stack_get(stack, 2);
 
     stack_pop(stack, 2);
 
-    eval_sequence(stack, scope, condpart->data.ast);
+    eval_sequence(stack, buffer, condpart->data.ast);
 
     AValue *condition = stack_get(stack, 0);
     stack_pop(stack, 1);
@@ -110,11 +110,11 @@ void lib_whilestar(AStack *stack, AScope *scope) {
 
         stack_push(stack, top);
 
-        eval_sequence(stack, scope, looppart->data.ast);
+        eval_sequence(stack, buffer, looppart->data.ast);
 
         top = stack_get(stack, 0);
 
-        eval_sequence(stack, scope, condpart->data.ast);
+        eval_sequence(stack, buffer, condpart->data.ast);
 
         condition = stack_get(stack, 0);
         stack_pop(stack, 1);

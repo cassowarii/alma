@@ -75,7 +75,7 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
         free_scope(real_scope);
 
         /* Call main. */
-        eval_word(stack, real_scope, mainfunc);
+        eval_word(stack, NULL, mainfunc);
 
         CLEANUP();
         return 0;

@@ -1,0 +1,4 @@
+func main:
+    let func sum: + .
+    in let func 4sum: sum sum dip [dip [sum]].
+       in (4sum 3 4 5 6).

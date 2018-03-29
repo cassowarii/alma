@@ -1,7 +1,7 @@
 #include "lib.h"
 
 /* Add the top two values on the stack. */
-void lib_add(AStack* stack, AScope *scope) {
+void lib_add(AStack* stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
     stack_pop(stack, 2);
@@ -16,7 +16,7 @@ void lib_add(AStack* stack, AScope *scope) {
 }
 
 /* Subtract the top value on the stack from the second value on the stack. */
-void lib_subtract(AStack* stack, AScope *scope) {
+void lib_subtract(AStack* stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
     stack_pop(stack, 2);
@@ -31,7 +31,7 @@ void lib_subtract(AStack* stack, AScope *scope) {
 }
 
 /* Multiply the top two values on the stack. */
-void lib_multiply(AStack* stack, AScope *scope) {
+void lib_multiply(AStack* stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
     stack_pop(stack, 2);
@@ -46,7 +46,7 @@ void lib_multiply(AStack* stack, AScope *scope) {
 }
 
 /* given stack [A B ..., is B < A? */
-void lib_lessthan(AStack* stack, AScope *scope) {
+void lib_lessthan(AStack* stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
     stack_pop(stack, 2);
@@ -61,7 +61,7 @@ void lib_lessthan(AStack* stack, AScope *scope) {
 }
 
 /* given stack [A B ..., is B > A? */
-void lib_greaterthan(AStack* stack, AScope *scope) {
+void lib_greaterthan(AStack* stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
     stack_pop(stack, 2);

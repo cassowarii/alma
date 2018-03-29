@@ -9,14 +9,14 @@
 
 /* Evaluate a sequence of commands on a stack,
  * mutating the stack. */
-void eval_sequence(AStack *st, AScope *sc, AWordSeqNode *seq);
+void eval_sequence(AStack *st, AVarBuffer *buf, AWordSeqNode *seq);
 
 /* Evaluate a single AST node on a stack, mutating
  * the stack.  */
-void eval_node(AStack *st, AScope *sc, AAstNode *seq);
+void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node);
 
 /* Evaluate a given word (whether declared or built-in)
  * on the stack. */
-void eval_word(AStack *st, AScope *sc, AFunc *f);
+void eval_word(AStack *st, AVarBuffer *buf, AFunc *f);
 
 #endif
