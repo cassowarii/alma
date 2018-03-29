@@ -81,7 +81,7 @@ void do_error(const char *str, int linenum) {
 %type <wsq> words;
 %type <wsq> wordseq;
 %type <wsq> wordseq_opt;
-%type <wsq> words_nonempty;
+/* %type <wsq> words_nonempty; */
 %type <dec> declaration;
 %type <dec> directive;
 %type <dsq> dirlist;
@@ -172,14 +172,14 @@ words
         free($3);
     }
 
-words_nonempty
+/* words_nonempty
     :   wordseq {
         $$ = $1;
     } | words_nonempty sep wordseq_opt {
         $$ = $1;
         ast_wordseq_concat($$, $3);
         free($3);
-    }
+    } */
 
 wordseq_opt
     :   /* nothing */ {
