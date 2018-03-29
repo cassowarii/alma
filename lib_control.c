@@ -120,6 +120,8 @@ void lib_whilestar(AStack *stack, AVarBuffer *buffer) {
         stack_pop(stack, 1);
     }
 
+    stack_push(stack, top);
+
     delete_ref(condpart);
     delete_ref(condition);
     delete_ref(looppart);

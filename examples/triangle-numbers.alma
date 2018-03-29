@@ -5,7 +5,8 @@ func trianglenum:
     while* [> 0] [
         dup | dip [+]
         - 1
-    ].
+    ]
+    drop .
 
 func main:
     1

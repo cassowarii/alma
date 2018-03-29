@@ -31,7 +31,7 @@ void lib_apply(AStack *stack, AVarBuffer *buffer) {
 }
 
 /* Apply the block value on top of the stack, but
- * ignore the thing directly underneath. */
+ * ignore the top value underneath said block. */
 void lib_dip(AStack *stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
@@ -48,6 +48,12 @@ void lib_dip(AStack *stack, AVarBuffer *buffer) {
     stack_push(stack, b);
 }
 
+/* Print out the current stack, for debugging. */
+void lib_stackprint(AStack* stack, AVarBuffer *buffer) {
+    AValue *a = stack_get(stack, 0);
+    stack_push(stack, a);
+}
+
 /* Initialize built-in stack operations. */
 void stacklib_init(ASymbolTable st, AScope *sc) {
     addlibfunc(sc, st, "dup", &lib_dup);
@@ -55,4 +61,5 @@ void stacklib_init(ASymbolTable st, AScope *sc) {
     addlibfunc(sc, st, "dip", &lib_dip);
     addlibfunc(sc, st, "drop", &lib_drop);
     addlibfunc(sc, st, "apply", &lib_apply);
+    addlibfunc(sc, st, "stack", &lib_stackprint);
 }
