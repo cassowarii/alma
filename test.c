@@ -243,6 +243,25 @@ START_TEST(test_2bind) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_funcargs) {
+    ALMATESTINTRO("tests/funcargs.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, 0);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 2);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 30);
+    ck_assert_int_eq(stack_peek(stack, 1)->data.i, 9);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 Suite *simple_suite(void) {
     Suite *s;
     TCase *tc_core, *tc_comp;
@@ -270,6 +289,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_comp, test_2let);
     tcase_add_test(tc_comp, test_bind);
     tcase_add_test(tc_comp, test_2bind);
+    tcase_add_test(tc_comp, test_funcargs);
     suite_add_tcase(s, tc_comp);
 
     return s;

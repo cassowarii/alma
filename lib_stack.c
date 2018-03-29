@@ -6,6 +6,15 @@ void lib_dup(AStack* stack, AVarBuffer *buffer) {
     stack_push(stack, a);
 }
 
+/* Swap the top two values on the stack. */
+void lib_swap(AStack* stack, AVarBuffer *buffer) {
+    AValue *a = stack_get(stack, 0);
+    AValue *b = stack_get(stack, 1);
+    stack_pop(stack, 2);
+    stack_push(stack, a);
+    stack_push(stack, b);
+}
+
 /* Drop the top value off the stack. */
 void lib_drop(AStack* stack, AVarBuffer *buffer) {
     stack_pop(stack, 1);
@@ -42,6 +51,7 @@ void lib_dip(AStack *stack, AVarBuffer *buffer) {
 /* Initialize built-in stack operations. */
 void stacklib_init(ASymbolTable st, AScope *sc) {
     addlibfunc(sc, st, "dup", &lib_dup);
+    addlibfunc(sc, st, "swap", &lib_drop);
     addlibfunc(sc, st, "dip", &lib_dip);
     addlibfunc(sc, st, "drop", &lib_drop);
     addlibfunc(sc, st, "apply", &lib_apply);

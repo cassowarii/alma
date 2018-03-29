@@ -150,9 +150,13 @@ import
 
 declaration
     :   "func" name names_opt ':' words '.' {
-        /* TODO vvv we just throw away function params right now */
-        free_nameseq_node($3);
-        $$ = ast_declnode(@2.first_line, $2, $5);
+        if ($3 == NULL) {
+            $$ = ast_declnode(@2.first_line, $2, $5);
+        } else {
+            AWordSeqNode *wrapper = ast_wordseq_new();
+            ast_wordseq_prepend(wrapper, ast_bindnode(@3.first_line, $3, $5));
+            $$ = ast_declnode(@2.first_line, $2, wrapper);
+        }
     } | error '.' {
         $$ = NULL;
     }
@@ -271,7 +275,7 @@ name
 
 names_opt
     :   /* nothing */ {
-        $$ = ast_nameseq_new();
+        $$ = NULL; // won't need it
     } | names {
         $$ = $1;
     }
