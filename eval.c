@@ -25,6 +25,8 @@ void eval_node(AStack *st, AScope *sc, AAstNode *node) {
         stack_push(st, put);
     } else if (node->type == let_node) {
         eval_sequence(st, sc, node->data.let->words);
+    } else if (node->type == bind_node) {
+        fprintf(stderr, "internal error: bind node made it to eval stage\n");
     } else {
         fprintf(stderr, "error: unrecognized AST node type: %d\n", node->type);
     }

@@ -81,9 +81,23 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
 
             AScope *scope_with_vars = scope_new(scope);
 
-            /* ... TODO register the names into this scope ... */
+            ACompileStatus stat;
 
-            ACompileStatus stat = compile_wordseq(scope_with_vars, reg, newbind->words);
+            ANameNode *currname = current->data.bind->names->first;
+
+            for (int i = 0; i < newbind->count; i++) {
+                stat = scope_create_push(scope_with_vars, reg, currname->sym, i);
+                if (stat == compile_fail) {
+                    errors ++;
+                } else if (stat != compile_success) {
+                    fprintf(stderr, "internal error: scope_create_push returned weird status %d", stat);
+                }
+                currname = currname->next;
+            }
+
+            stat = compile_wordseq(scope_with_vars, reg, newbind->words);
+
+            free_nameseq_node(current->data.bind->names);
 
             if (stat == compile_fail) {
                 errors ++;
@@ -91,6 +105,12 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 fprintf(stderr, "internal error: unrecognized compile status %d compiling bindnode\n",
                         stat);
                 errors ++;
+            } else {
+                /* Successfully compiled the inner scope, so alter the node. */
+                // TODO Free old bind node?
+                free(current->data.bind);
+                current->type = var_bind;
+                current->data.vbind = newbind;
             }
 
             /* Free scope. */

@@ -308,6 +308,9 @@ void free_ast_node(AAstNode *to_free) {
         free_wordseq_node(to_free->data.inside);
     } else if (to_free->type == let_node) {
         free_let(to_free->data.let);
+    } else if (to_free->type == var_bind) {
+        free_wordseq_node(to_free->data.vbind->words);
+        free(to_free->data.vbind);
     } else {
         fprintf(stderr, "internal error: don't know how to free "
                 "ast node of type %d\n", to_free->type);
@@ -332,6 +335,17 @@ void free_wordseq_node(AWordSeqNode *to_free) {
     while (current != NULL) {
         AAstNode *next = current->next;
         free_ast_node(current);
+        current = next;
+    }
+    free(to_free);
+}
+
+/* Free a name-sequence node. */
+void free_nameseq_node(ANameSeqNode *to_free) {
+    ANameNode *current = to_free->first;
+    while (current != NULL) {
+        ANameNode *next = current->next;
+        free(current);
         current = next;
     }
     free(to_free);

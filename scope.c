@@ -145,6 +145,24 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
     return compile_success;
 }
 
+/* Create an entry in the scope telling it to push the
+ * <num>'th bound variable to the stack. */
+ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, unsigned int index) {
+    AFunc *pushfunc = malloc(sizeof(AFunc));
+    pushfunc->type = var_push;
+    pushfunc->data.push_index = index;
+    pushfunc->sym = symbol;
+    registry_register(reg, pushfunc);
+
+    AScopeEntry *entry = scope_entry_new(symbol, pushfunc);
+    entry->linenum = -1;
+
+    /* 'sym' below is the field in the struct, not the variable 'symbol' here */
+    HASH_ADD_PTR(sc->content, sym, entry);
+
+    return compile_success;
+}
+
 /* Look up the word that's bound to a given symbol in a certain lexical scope. */
 AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol) {
     if (sc == NULL) {

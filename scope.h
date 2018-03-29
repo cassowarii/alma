@@ -17,6 +17,10 @@ ACompileStatus scope_register(AScope *sc, ASymbol *sym, AFunc *func);
 /* Register a new user word into scope. Requires that scope_placehold was already called. */
 ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType type, AWordSeqNode *words);
 
+/* Create an entry in the scope telling it to push the
+ * <num>'th bound variable to the stack. */
+ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, unsigned int index);
+
 /* Look up the function bound to a given symbol in a certain lexical scope.
  * Returns NULL if not found. */
 AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol);

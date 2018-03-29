@@ -101,7 +101,6 @@ typedef struct AVarBuffer {
  * elements from the stack into a var-buffer while executing the
  * word-sequence <words>. compile() replaces* BindNodes with this. */
 typedef struct AVarBind {
-    ASymbol **syms;
     int count;
     struct AWordSeqNode *words;
 } AVarBind;
@@ -228,6 +227,7 @@ typedef struct AUserFunc {
 typedef enum {
     primitive_func, // function written in C
     user_func,      // function defined in alma code
+    var_push,       // just an instruction to push a named variable
 } AFuncType;
 
 /* Struct representing a callable function
@@ -237,6 +237,7 @@ typedef struct AFunc {
     AFuncType type;
     ASymbol *sym;   // we might want to print it at runtime
     union {
+        int push_index; // if var_push, which var to push?
         APrimitiveFunc primitive;
         AUserFunc *userfunc;
             /* using a UserFunc here rather than just a WordSeq

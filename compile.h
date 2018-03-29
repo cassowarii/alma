@@ -2,6 +2,7 @@
 #define _AL_COMP_H__
 
 #include "alma.h"
+#include "ast.h"
 #include "scope.h"
 #include "vars.h"
 

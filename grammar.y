@@ -150,6 +150,8 @@ import
 
 declaration
     :   "func" name names_opt ':' words '.' {
+        /* TODO vvv we just throw away function params right now */
+        free_nameseq_node($3);
         $$ = ast_declnode(@2.first_line, $2, $5);
     } | error '.' {
         $$ = NULL;

@@ -7,7 +7,6 @@ AVarBind *varbind_new(ANameSeqNode *names, AWordSeqNode *words) {
 
     AVarBind *new_bind = malloc(sizeof(AVarBind));
     new_bind->count = names->length;
-    new_bind->syms = malloc(new_bind->count * sizeof(ASymbol*));
     new_bind->words = words;
 
     ANameNode *curr = names->first;
@@ -18,7 +17,6 @@ AVarBind *varbind_new(ANameSeqNode *names, AWordSeqNode *words) {
                             "(expected only %d)\n", new_bind->count);
             return new_bind;
         }
-        new_bind->syms[index] = curr->sym;
         index++;
         curr = curr->next;
     }

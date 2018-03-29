@@ -82,6 +82,9 @@ void free_protolist(AProtoList *pl);
 /* Free a word-sequence node. */
 void free_wordseq_node(AWordSeqNode *to_free);
 
+/* Free a name-sequence node. */
+void free_nameseq_node(ANameSeqNode *to_free);
+
 /* Free a declaration node COMPLETELY. (Careful!) */
 void free_decl_node(ADeclNode *to_free);
 
