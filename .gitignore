@@ -7,3 +7,4 @@ lex.yy.*
 grammar.output
 test_alma
 newcodesample*
+countlines.zsh
