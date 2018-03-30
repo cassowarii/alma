@@ -29,6 +29,13 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 } else if (blockstat == compile_free) {
                     /* The block is compiled, but it'll need to hold onto a closure. */
                     current->data.val->type = free_block_val;
+                    /* TODO Adding this line makes it work for nested block closures
+                     * (see github issue #4), but it does it by just making every function
+                     * that interacts with this block (even across a super long call chain)
+                     * claim to have free variables, even if they're completely in a separate
+                     * scope or if they are *outside* the place where said variables are
+                     * declared. So, this is probably not the best long-term solution. */
+                    free_variables = 1;
                 } else {
                     fprintf(stderr, "internal error: unrecognized compile status %d "
                                     "while compiling a block.\n", blockstat);
