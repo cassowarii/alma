@@ -9,15 +9,15 @@ void lib_if(AStack *stack, AVarBuffer *buffer) {
     AValue *elsepart = stack_get(stack, 2);
     stack_pop(stack, 3);
 
-    eval_sequence(stack, buffer, ifpart->data.ast);
+    eval_block(stack, buffer, ifpart);
 
     AValue *condition = stack_get(stack, 0);
     stack_pop(stack, 1);
 
     if (condition->data.i) {
-        eval_sequence(stack, buffer, thenpart->data.ast);
+        eval_block(stack, buffer, thenpart);
     } else {
-        eval_sequence(stack, buffer, elsepart->data.ast);
+        eval_block(stack, buffer, elsepart);
     }
 
     delete_ref(ifpart);
@@ -39,7 +39,7 @@ void lib_ifstar(AStack *stack, AVarBuffer *buffer) {
     /* don't pop off 'top' */
     stack_pop(stack, 3);
 
-    eval_sequence(stack, buffer, ifpart->data.ast);
+    eval_block(stack, buffer, ifpart);
 
     AValue *condition = stack_get(stack, 0);
     stack_pop(stack, 1);
@@ -47,9 +47,9 @@ void lib_ifstar(AStack *stack, AVarBuffer *buffer) {
     stack_push(stack, top);
 
     if (condition->data.i) {
-        eval_sequence(stack, buffer, thenpart->data.ast);
+        eval_block(stack, buffer, thenpart);
     } else {
-        eval_sequence(stack, buffer, elsepart->data.ast);
+        eval_block(stack, buffer, elsepart);
     }
 
     delete_ref(ifpart);
@@ -66,7 +66,7 @@ void lib_while (AStack *stack, AVarBuffer *buffer) {
     AValue *looppart = stack_get(stack, 1);
     stack_pop(stack, 2);
 
-    eval_sequence(stack, buffer, condpart->data.ast);
+    eval_block(stack, buffer, condpart);
 
     AValue *condition = stack_get(stack, 0);
 
@@ -75,9 +75,9 @@ void lib_while (AStack *stack, AVarBuffer *buffer) {
     while (condition->data.i) {
         delete_ref(condition);
 
-        eval_sequence(stack, buffer, looppart->data.ast);
+        eval_block(stack, buffer, looppart);
 
-        eval_sequence(stack, buffer, condpart->data.ast);
+        eval_block(stack, buffer, condpart);
 
         condition = stack_get(stack, 0);
         stack_pop(stack, 1);
@@ -100,7 +100,7 @@ void lib_whilestar(AStack *stack, AVarBuffer *buffer) {
 
     stack_pop(stack, 2);
 
-    eval_sequence(stack, buffer, condpart->data.ast);
+    eval_block(stack, buffer, condpart);
 
     AValue *condition = stack_get(stack, 0);
     stack_pop(stack, 1);
@@ -110,11 +110,11 @@ void lib_whilestar(AStack *stack, AVarBuffer *buffer) {
 
         stack_push(stack, top);
 
-        eval_sequence(stack, buffer, looppart->data.ast);
+        eval_block(stack, buffer, looppart);
 
         top = stack_get(stack, 0);
 
-        eval_sequence(stack, buffer, condpart->data.ast);
+        eval_block(stack, buffer, condpart);
 
         condition = stack_get(stack, 0);
         stack_pop(stack, 1);

@@ -50,8 +50,7 @@ void lib_dip(AStack *stack, AVarBuffer *buffer) {
 
 /* Print out the current stack, for debugging. */
 void lib_stackprint(AStack* stack, AVarBuffer *buffer) {
-    AValue *a = stack_get(stack, 0);
-    stack_push(stack, a);
+    print_stack(stack);
 }
 
 /* Initialize built-in stack operations. */

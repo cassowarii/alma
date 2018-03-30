@@ -1,0 +1,3 @@
+func bind: → a (let func f: a. in [f]).
+
+func main: apply bind 5.

@@ -1,0 +1,7 @@
+# result should be 12
+
+func main: warble 5.
+
+func warble x: bloople + 1 x.
+
+func bloople y: * 2 y.

@@ -276,6 +276,42 @@ START_TEST(test_closure) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_multibuf) {
+    ALMATESTINTRO("tests/multibuf.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 12);
+
+    ALMATESTCLEAN();
+} END_TEST
+
+START_TEST(test_namedclosure) {
+    ALMATESTINTRO("tests/namedclosure.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 12);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 Suite *simple_suite(void) {
     Suite *s;
     TCase *tc_core, *tc_comp, *tc_bind;
@@ -309,6 +345,8 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_bind, test_funcargs);
     tcase_add_test(tc_bind, test_blockparam);
     tcase_add_test(tc_bind, test_closure);
+    tcase_add_test(tc_bind, test_multibuf);
+    tcase_add_test(tc_bind, test_namedclosure);
     suite_add_tcase(s, tc_bind);
 
     return s;

@@ -34,6 +34,7 @@ void eval_block(AStack *st, AVarBuffer *buf, AValue *block) {
  * the stack.  */
 void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
     if (node->type == func_node) {
+        /* TODO Functions need to be evaluated in their own separate scope. */
         eval_word(st, buf, node->data.func);
     } else if (node->type == value_node) {
         AValue *put;
