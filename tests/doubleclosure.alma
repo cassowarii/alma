@@ -1,0 +1,3 @@
+func close: → x y [ [ + x y ] ].
+
+func main: apply apply close 6 4.
