@@ -54,6 +54,7 @@ void lib_ifstar(AStack *stack, AVarBuffer *buffer) {
 
     delete_ref(ifpart);
     delete_ref(condition);
+    delete_ref(top);
     delete_ref(thenpart);
     delete_ref(elsepart);
 }

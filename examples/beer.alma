@@ -1,5 +1,6 @@
 # 99 Bottles of Beer
 
+# string int → int, prints correct bottle # for the int
 func quantified-bottles msg:
     if* [> 0] [
         print dup
@@ -9,16 +10,16 @@ func quantified-bottles msg:
     ]
     println msg.
 
+# int → , sings the song for how-many verses
 func bottles-of-beer how-many:
-    how-many
-    while* [≥ 0] [
+    how-many | while* [≥ 0] [
         quantified-bottles "of beer on the wall"
         quantified-bottles "of beer"
         if* [> 0] [
             println "Take one down, pass it around"
             - 1
             quantified-bottles "of beer on the wall!"
-            println "" # between-verse marker
+            println "" # between-verse empty line
         ] [
             println "Go to the store, buy some more"
             print how-many

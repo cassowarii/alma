@@ -54,8 +54,8 @@ AValue *val_block(AWordSeqNode *block) {
 
 /* A block with bound variables, created from a value of type free_block_val */
 AValue *val_boundblock(AValue *fb, AVarBuffer *buf) {
-    assert(fb->type == free_block_val
-            && "can't create a bound block from a not free block");
+    assert(fb->type == free_block_val && "can't create a bound block from a not free block");
+
     AValue *v = alloc_val();
     v->type = bound_block_val;
 
@@ -111,7 +111,7 @@ void print_val(AValue *v) {
         /* the '*' means it's attached to a closure.
          * does this make sense? idk. */
         printf("*[ ");
-        print_wordseq_node(v->data.ast);
+        print_wordseq_node(v->data.uf->words);
         printf(" ]");
     } else if (v->type == str_val) {
         printf("\"");
