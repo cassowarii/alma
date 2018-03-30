@@ -15,10 +15,10 @@ but will be cleaned up at some point in the future. (It does have a working
 type-inference system, which the current version so far lacks and which
 I will probably end up cannibalizing for this version.)
 
-However, the new version is approximately ***16.6*** times faster than
+However, the new version is approximately ***20*** times faster than
 the old version. So I'm thinking the rewrite was a good idea. (compare
 old/tritest with examples/triangle-numbers.alma: on my computer, the
-old one takes 43.3s to run, while the new one takes about 2.6s.) This
+old one takes 43.3s to run, while the new one takes about 2.1s.) This
 speedup is due to a couple things that have changed in the new version:
 
   * no runtime name lookup (functions looked up at compile time)

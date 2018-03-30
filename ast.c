@@ -217,7 +217,7 @@ void ast_protolist_append(AProtoList *list, AWordSeqNode *node) {
     } else {
         /* Somehow, we're appending to the middle of the list. */
         fprintf(stderr, "Somehow appending to middle of a list. "
-                "This probably shouldn't happen.\n");
+                        "This probably shouldn't happen.\n");
     }
 }
 

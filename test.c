@@ -307,7 +307,7 @@ START_TEST(test_namedclosure) {
     eval_word(stack, NULL, mainfunc);
 
     ck_assert_int_eq(stack->size, 1);
-    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 12);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 5);
 
     ALMATESTCLEAN();
 } END_TEST

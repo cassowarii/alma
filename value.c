@@ -101,8 +101,16 @@ extern void print_protolist(AProtoList *pl);
 void print_val(AValue *v) {
     if (v->type == int_val) {
         printf("%d", v->data.i);
-    } else if (v->type == block_val || v->type == proto_block) {
+    } else if (v->type == block_val
+            || v->type == proto_block
+            || v->type == free_block_val) {
         printf("[ ");
+        print_wordseq_node(v->data.ast);
+        printf(" ]");
+    } else if (v->type == bound_block_val) {
+        /* the '*' means it's attached to a closure.
+         * does this make sense? idk. */
+        printf("*[ ");
         print_wordseq_node(v->data.ast);
         printf(" ]");
     } else if (v->type == str_val) {

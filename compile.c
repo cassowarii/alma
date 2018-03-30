@@ -61,19 +61,31 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                     /* So, set the 'hey, there's a free variable' flag. */
                     free_variables = 1;
                 }
+                if (e->func->type == user_func && e->func->data.userfunc->type == unbound_func) {
+                    /* It is a function that contains a free variable. So wherever it
+                     * occurs, we should consider to have a free variable as well so the
+                     * runtime knows to save a closure for that block. */
+                    free_variables = 1;
+                }
             }
         } else if (current->type == let_node) {
             /* Create a new lexical scope! */
             AScope *child_scope = scope_new(scope);
 
-            /* Compile the declarations into this lexical scope. */
-            ACompileStatus stat = compile(child_scope, reg, current->data.let->decls, bindinfo);
+            /* We need to create a new closure for all functions being declared in this
+             * node. (This lets us detect which variables are external to the
+             * particular function declarations in the let..in part.) */
+            ABindInfo closed = {bindinfo.var_depth, bindinfo.var_depth};
 
-            /* compile() shouldn't return compile_free */
-            assert(stat != compile_free && "compile() returned status 'compile_free'");
+            /* Compile the declarations into this lexical scope. */
+            ACompileStatus stat = compile(child_scope, reg, current->data.let->decls, closed);
 
             if (stat == compile_fail) {
                 errors ++;
+            } else if (stat == compile_free) {
+                /* this means that we found a free variable in one of the named functions
+                 * that was declared, meaning this whole thing has 'free variables' */
+                free_variables = 1;
             } else if (stat != compile_success) {
                 fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n",
                         stat);
@@ -204,7 +216,13 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
             errors ++;
             current = current->next;
             continue;
-        } else if (stat != compile_success) {
+        } else if (stat == compile_success) {
+            stat = scope_user_register(scope, current->sym, const_func, current->node);
+        } else if (stat == compile_free) {
+            /* Remember that the function has a free variable, so that we can
+             * know later to save a closure for blocks it occurs in. */
+            stat = scope_user_register(scope, current->sym, unbound_func, current->node);
+        } else {
             fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", stat);
             current = current->next;
             errors ++;
@@ -213,8 +231,6 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
 
         // This is also where we'll eventually typecheck stuff before registering it.
         // .. Or will we do that in a third pass? Hmm.
-
-        stat = scope_user_register(scope, current->sym, const_func, current->node);
 
         if (stat == compile_fail) {
             fprintf(stderr, "Failed to compile word ‘%s’.\n", current->sym->name);
