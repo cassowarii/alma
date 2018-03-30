@@ -16,7 +16,7 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
 ACompileStatus scope_register(AScope *sc, ASymbol *sym, AFunc *func);
 
 /* Register a new user word into scope. Requires that scope_placehold was already called. */
-ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType type, AWordSeqNode *words);
+ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, unsigned int free_index, AWordSeqNode *words);
 
 /* Create an entry in the scope telling it to push the
  * <num>'th bound variable to the stack. */

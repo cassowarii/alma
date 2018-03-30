@@ -1,15 +1,20 @@
 #include "compile.h"
 
+unsigned int NOFREEVARS = 100000;
+
 /* Mutate an AWordSeqNode by replacing compile-time-resolvable words
  * by their corresponding AFunc*s found in scope. (var_depth is how
  * many variables are in scopes below, so we can pass the correct indices
  * to scope_create_push. */
 static
-ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *seq, ABindInfo bindinfo) {
-    if (seq == NULL) return compile_success;
+ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *seq, ABindInfo bindinfo) {
+    if (seq == NULL) {
+        ACompileResult nil_result = {compile_success, NOFREEVARS};
+        return nil_result;
+    }
     unsigned int errors = 0;
 
-    int free_variables = 0;
+    int free_variable_index = NOFREEVARS;
 
     AAstNode *current = seq->first;
     while (current != NULL) {
@@ -19,26 +24,24 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 /* Set the last-block-depth to the current var depth. (so any variables from
                  * outside the block will be correctly recognized as 'free' variables.) */
                 ABindInfo bindinfo_block = {bindinfo.var_depth, bindinfo.var_depth};
-                ACompileStatus blockstat = compile_wordseq(scope,
+                ACompileResult blockstat = compile_wordseq(scope,
                         reg, current->data.val->data.ast, bindinfo_block);
-                if (blockstat == compile_fail) {
+                if (blockstat.status == compile_fail) {
                     errors ++;
-                } else if (blockstat == compile_success) {
-                    /* The block is compiled. */
-                    current->data.val->type = block_val;
-                } else if (blockstat == compile_free) {
-                    /* The block is compiled, but it'll need to hold onto a closure. */
-                    current->data.val->type = free_block_val;
-                    /* TODO Adding this line makes it work for nested block closures
-                     * (see github issue #4), but it does it by just making every function
-                     * that interacts with this block (even across a super long call chain)
-                     * claim to have free variables, even if they're completely in a separate
-                     * scope or if they are *outside* the place where said variables are
-                     * declared. So, this is probably not the best long-term solution. */
-                    free_variables = 1;
+                } else if (blockstat.status == compile_success) {
+                    if (blockstat.lowest_free == NOFREEVARS) {
+                        /* The block is compiled. */
+                        current->data.val->type = block_val;
+                    } else {
+                        /* The block is compiled, but it'll need to hold onto a closure. */
+                        current->data.val->type = free_block_val;
+                        if (blockstat.lowest_free < free_variable_index) {
+                            free_variable_index = blockstat.lowest_free;
+                        }
+                    }
                 } else {
                     fprintf(stderr, "internal error: unrecognized compile status %d "
-                                    "while compiling a block.\n", blockstat);
+                                    "while compiling a block.\n", blockstat.status);
                     errors ++;
                 }
             }
@@ -65,14 +68,18 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 if (e->func->type == var_push && e->func->data.varindex < bindinfo.last_block_depth) {
                     /* It's a free variable (comes from outside the innermost containing
                      * block.) Thus, this block needs to be closed over at runtime. */
-                    /* So, set the 'hey, there's a free variable' flag. */
-                    free_variables = 1;
+                    /* So, update the 'lowest-index free variable' if necessary. */
+                    if (e->func->data.varindex < free_variable_index) {
+                        free_variable_index = e->func->data.varindex;
+                    }
                 }
-                if (e->func->type == user_func && e->func->data.userfunc->type == unbound_func) {
-                    /* It is a function that contains a free variable. So wherever it
-                     * occurs, we should consider to have a free variable as well so the
-                     * runtime knows to save a closure for that block. */
-                    free_variables = 1;
+                if (e->func->type == user_func) {
+                    if (e->func->data.userfunc->free_var_index < free_variable_index) {
+                        /* It is a function that contains a free variable. So wherever it
+                         * occurs, we should consider to have a free variable as well so the
+                         * runtime knows to save a closure for that block. */
+                        free_variable_index = e->func->data.varindex;
+                    }
                 }
             }
         } else if (current->type == let_node) {
@@ -89,10 +96,6 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
 
             if (stat == compile_fail) {
                 errors ++;
-            } else if (stat == compile_free) {
-                /* this means that we found a free variable in one of the named functions
-                 * that was declared, meaning this whole thing has 'free variables' */
-                free_variables = 1;
             } else if (stat != compile_success) {
                 fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n",
                         stat);
@@ -100,17 +103,19 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             }
 
             /* Compile the executed part using the new scope. */
-            stat = compile_wordseq(child_scope, reg, current->data.let->words, bindinfo);
+            ACompileResult r = compile_wordseq(child_scope, reg, current->data.let->words, bindinfo);
 
-            if (stat == compile_fail) {
+            if (r.status == compile_fail) {
                 errors ++;
-            } else if (stat == compile_free) {
+            } else if (r.status == compile_success) {
                 /* Free variables inside the body-section of the let, so free variables
                  * in the larger expression. */
-                free_variables = 1;
-            } else if (stat != compile_success) {
+                if (r.lowest_free < free_variable_index) {
+                    free_variable_index = r.lowest_free;
+                }
+            } else {
                 fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n",
-                        stat);
+                        r.status);
                 errors ++;
             }
 
@@ -137,25 +142,30 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             }
 
             ABindInfo bindinfo_with_vars = {bindinfo.var_depth + newbind->count, bindinfo.last_block_depth};
-            stat = compile_wordseq(scope_with_vars, reg, newbind->words, bindinfo_with_vars);
+
+            ACompileResult r = compile_wordseq(scope_with_vars, reg, newbind->words, bindinfo_with_vars);
 
             free_nameseq_node(current->data.bind->names);
 
-            if (stat == compile_fail) {
+            if (r.status == compile_fail) {
                 errors ++;
-            } else if (stat == compile_success || stat == compile_free) {
+            } else if (r.status == compile_success) {
                 /* Successfully compiled the inner scope, so alter the node. */
                 free(current->data.bind);
                 current->type = var_bind;
                 current->data.vbind = newbind;
-                if (stat == compile_free) {
-                    /* A free variable used inside the bind expression, so the whole
-                     * thing has free variables. */
-                    free_variables = 1;
+                if (r.lowest_free < bindinfo.var_depth) {
+                    /* If the lowest free variable inside the bind-expression came from below
+                     * this bind scope, we still have free variables. Otherwise, this is a
+                     * self-contained bind expression and stuff outside it doesn't need to
+                     * worry about closures. */
+                    if (r.lowest_free < free_variable_index) {
+                        free_variable_index = r.lowest_free;
+                    }
                 }
             } else {
                 fprintf(stderr, "internal error: unrecognized compile status %d compiling bindnode\n",
-                        stat);
+                        r.status);
                 errors ++;
             }
 
@@ -168,14 +178,12 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
     }
 
     if (errors > 0) {
-        return compile_fail;
+        ACompileResult fail_result = {compile_fail, free_variable_index};
+        return fail_result;
     }
 
-    if (free_variables) {
-        return compile_free;
-    } else {
-        return compile_success;
-    }
+    ACompileResult result = {compile_success, free_variable_index};
+    return result;
 }
 
 /* Mutate an ADeclSeqNode by replacing compile-time-resolvable
@@ -215,20 +223,22 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
     /*-- PASS 2: compile symbols we can resolve, convert to func ptrs --*/
     current = program->first;
     while (current != NULL) {
-        ACompileStatus stat = compile_wordseq(scope, reg, current->node, bindinfo);
+        ACompileStatus stat;
+        ACompileResult r = compile_wordseq(scope, reg, current->node, bindinfo);
 
         /* ... check for errors ... */
-        if (stat == compile_fail) {
+        if (r.status == compile_fail) {
             fprintf(stderr, "Failed to compile word ‘%s’.\n", current->sym->name);
             errors ++;
             current = current->next;
             continue;
-        } else if (stat == compile_success) {
-            stat = scope_user_register(scope, current->sym, const_func, current->node);
-        } else if (stat == compile_free) {
-            /* Remember that the function has a free variable, so that we can
-             * know later to save a closure for blocks it occurs in. */
-            stat = scope_user_register(scope, current->sym, unbound_func, current->node);
+        } else if (r.status == compile_success) {
+            if (r.lowest_free == NOFREEVARS) {
+                printf("function ‘%s’ has no free vars\n", current->sym->name);
+            } else {
+                printf("function ‘%s’ has YES free vars\n", current->sym->name);
+            }
+            stat = scope_user_register(scope, current->sym, r.lowest_free, current->node);
         } else {
             fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", stat);
             current = current->next;

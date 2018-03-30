@@ -78,8 +78,7 @@ ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
 
-    assert(e == NULL && "trying to load two primitives with the same name. "
-                        "fix your dang library loading code");
+    assert(e == NULL && "duplicate func name. fix your dang library loading code");
 
     /* create new entry */
     AScopeEntry *entry = scope_entry_new(symbol, func);
@@ -90,7 +89,8 @@ ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
 }
 
 /* Register a new user word into scope. Requires that scope_placehold was already called. */
-ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType type, AWordSeqNode *words) {
+ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol,
+                                   unsigned int free_index, AWordSeqNode *words) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
 
@@ -102,8 +102,9 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, AUserFuncType ty
     assert (e->func->data.userfunc->type == dummy_func && "creating duplicate word, but this wasn't "
                                                           "caught in scope_placehold somehow");
     /* ok i think we're good now */
-    e->func->data.userfunc->type = type;
+    e->func->data.userfunc->type = const_func;
     e->func->data.userfunc->words = words;
+    e->func->data.userfunc->free_var_index = free_index;
 
     return compile_success;
 }

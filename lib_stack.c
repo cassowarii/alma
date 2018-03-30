@@ -37,7 +37,7 @@ void lib_dip(AStack *stack, AVarBuffer *buffer) {
     AValue *b = stack_get(stack, 1);
     stack_pop(stack, 2);
 
-    if (a->type != block_val) {
+    if (a->type != block_val && a->type != bound_block_val) {
         fprintf(stderr, "dip needs a block! (got %d)\n", a->type);
         return;
     }

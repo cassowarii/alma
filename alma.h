@@ -202,8 +202,18 @@ typedef struct ABindNode {
 typedef enum {
     compile_success,        // Compilation succeeded. Great.
     compile_fail,           // Oh no, compilation failed :(
-    compile_free,           // Compilation succeeded, but there are free variables.
 } ACompileStatus;
+
+/* Sentinel value for a function with no free variables. */
+unsigned int NOFREEVARS; /* we want it to compare > than everything */
+
+/* Result of compilation: whether compilation succeeded,
+ * and the index of the lowest free variable (NOFREEVARS if no
+ * free variables) */
+typedef struct ACompileResult {
+    ACompileStatus status;
+    unsigned int lowest_free;
+} ACompileResult;
 
 /* Information about current binding status in compilation */
 typedef struct ABindInfo {
@@ -235,19 +245,6 @@ typedef enum {
     dummy_func,     // function found in scope but not yet compiled
     const_func,     // function with no free variables
     bound_func,     // block with bound variables
-    unbound_func,   // named function with free variables
-        /* note: we don't need to instantiate a different version
-         * of named functions in each closure, even if they're
-         * marked 'unbound_func', because in order for the
-         * closure to occur, there must have been *some* block
-         * created that remembers what the variables were. so
-         * we can rely on that closure to remember our closed
-         * over variables. thus, the only use of unbound_func
-         * is so we can tell whether a function has free variables
-         * when determining whether to save a closure for the
-         * block. eg in `-> a (let func f: a. in [f])`, the block
-         * containing f needs to know f is an unbound_func so
-         * it can save the variables needed. */
 } AUserFuncType;
 
 /* Struct representing a function defined by the user. */
@@ -255,6 +252,10 @@ typedef struct AUserFunc {
     AUserFuncType type;
     AWordSeqNode *words;
     AVarBuffer *closure;
+    unsigned int free_var_index;    // Index of its lowest free var.
+        /* We track its lowest free variable so that blocks
+         * containing it know whether they have to save a
+         * closure or not. */
 } AUserFunc;
 
 /* Builtin or declared function bound to symbol? */

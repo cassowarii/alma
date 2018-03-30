@@ -79,8 +79,7 @@ void eval_word(AStack *st, AVarBuffer *buf, AFunc *f) {
     if (f->type == primitive_func) {
         f->data.primitive(st, buf);
     } else if (f->type == user_func) {
-        if (f->data.userfunc->type == const_func
-                || f->data.userfunc->type == unbound_func) {
+        if (f->data.userfunc->type == const_func) {
             eval_sequence(st, buf, f->data.userfunc->words);
         } else if (f->data.userfunc->type == dummy_func) {
             assert(0 && "dummy-func in eval stage");

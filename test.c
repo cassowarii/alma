@@ -13,6 +13,7 @@
 #include "grammar.tab.h"
 
 #define ALMATESTINTRO(filename) \
+    printf("-- %s --\n", filename); \
     FILE *in = fopen(filename, "r"); \
     ADeclSeqNode *program = NULL; \
     ASymbolTable symtab = NULL; \
