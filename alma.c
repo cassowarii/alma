@@ -57,7 +57,9 @@ int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
 
         AScope *real_scope = scope_new(lib_scope);
 
-        ACompileStatus stat = compile(real_scope, reg, program, 0);
+        /* We start with no variables! */
+        ABindInfo bi = {0, 0};
+        ACompileStatus stat = compile(real_scope, reg, program, bi);
 
         if (stat == compile_fail) {
             fprintf(stderr, "Compilation aborted.\n");

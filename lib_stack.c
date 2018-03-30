@@ -25,7 +25,7 @@ void lib_apply(AStack *stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     stack_pop(stack, 1);
 
-    eval_sequence(stack, buffer, a->data.ast);
+    eval_block(stack, buffer, a);
 
     delete_ref(a);
 }
@@ -41,7 +41,7 @@ void lib_dip(AStack *stack, AVarBuffer *buffer) {
         fprintf(stderr, "dip needs a block! (got %d)\n", a->type);
         return;
     }
-    eval_sequence(stack, buffer, a->data.ast);
+    eval_block(stack, buffer, a);
 
     delete_ref(a);
 

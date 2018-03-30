@@ -55,17 +55,23 @@ typedef enum {
         /* A fully instantiated list, holding only values. */
         /* (Once we have actual lists.) */
     block_val,
-        /* A fully instantiated block that's bound to some closure. */
-        /* (When we have closures.) */
+        /* A 'constant' block value: has no free variables,
+         * because it's 'constant' like [+ 1] and has no
+         * variables at all. */
+    free_block_val,
+        /* A block value that has some free variables. (Only lives in
+         * the AST, not pushed to the stack.) */
+    bound_block_val,
+        /* A block value that was created from a free_block_val,
+         * and needs to have its closure loaded when run.
+         * Uses the data.uf pointer. */
     proto_list,
         /* An unevaluated list that lives in the AST. Contains
          * AST nodes to evaluate, rather than values. */
         /* (Future optimization: detect constant lists and skip
          * this step for them.) */
     proto_block,
-        /* An un-bound block that has free variables and is waiting
-         * to be pushed inside a 'bind' to take on a concrete value.
-         * Uses the 'ast' pointer here. */
+        /* A block that hasn't yet been compiled. */
 } AValueType;
 
 /* Struct representing a value.
@@ -76,10 +82,11 @@ typedef struct AValue {
     AValueType type;
     union {
         int i;
-        float fl;
+        double fl;
         AUstr *str;
         ASymbol *sym;
         struct AWordSeqNode *ast;
+        struct AUserFunc *uf;
         struct AProtoList *pl;
     } data;
     int refs;         // refcounting
@@ -192,9 +199,19 @@ typedef struct ABindNode {
 
 /* Possible compile statuses */
 typedef enum {
-    compile_success,    // Compilation succeeded. Great.
-    compile_fail,       // Oh no, compilation failed :(
+    compile_success,        // Compilation succeeded. Great.
+    compile_fail,           // Oh no, compilation failed :(
+    compile_free,           // Compilation succeeded, but there are free variables.
 } ACompileStatus;
+
+/* Information about current binding status in compilation */
+typedef struct ABindInfo {
+    unsigned int var_depth; // How many named variables are below us?
+    unsigned int last_block_depth; // What was the depth of the last block?
+        /* We keep track of the last block depth so that we know
+         * which variables are created inside the block, and which
+         * ones need to be closed over from the outside. */
+} ABindInfo;
 
 /*-*-* stack.h *-*-*/
 
@@ -216,12 +233,14 @@ typedef void (*APrimitiveFunc)(AStack *, struct AVarBuffer*);
 typedef enum {
     dummy_func,     // function found in scope but not yet compiled
     const_func,     // function with no free variables
+    bound_func,     // block with bound variables
 } AUserFuncType;
 
 /* Struct representing a function defined by the user. */
 typedef struct AUserFunc {
     AUserFuncType type;
     AWordSeqNode *words;
+    AVarBuffer *closure;
 } AUserFunc;
 
 /* Builtin or declared function bound to symbol? */

@@ -8,6 +8,6 @@
 
 /* Mutate an ADeclSeqNode by replacing compile-time-resolvable
  * symbol references with references to AFunc*'s. */
-ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program, unsigned int var_depth);
+ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program, ABindInfo bindinfo);
 
 #endif

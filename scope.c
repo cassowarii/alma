@@ -164,6 +164,10 @@ void free_user_func(AUserFunc *f) {
     if (f->type == const_func) {
         /* if const func, its code pointer is just a pointer to something in the
            'program' ast, so we don't need to free that. */
+    } else if (f->type == bound_func) {
+        /* if it's a bound_func, then we need to free its closure (or at least
+         * decrease its closure's refcount. */
+        // TODO do that
     }
     free(f);
 }

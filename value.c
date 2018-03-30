@@ -52,6 +52,24 @@ AValue *val_block(AWordSeqNode *block) {
     return v;
 }
 
+/* A block with bound variables, created from a value of type free_block_val */
+AValue *val_boundblock(AValue *fb, AVarBuffer *buf) {
+    assert(fb->type == free_block_val
+            && "can't create a bound block from a not free block");
+    AValue *v = alloc_val();
+    v->type = bound_block_val;
+
+    AUserFunc *uf = malloc(sizeof(AUserFunc));
+    uf->type = bound_func;
+    uf->words = fb->data.ast;
+    uf->closure = buf;
+
+    // TODO increase buf's refcount
+
+    v->data.uf = uf;
+    return v;
+}
+
 /* Create a value holding a proto-list (when parsing) */
 AValue *val_protolist(AProtoList *pl) {
     AValue *v = alloc_val();
@@ -132,8 +150,13 @@ void free_value(AValue *to_free) {
             free(to_free);
             break;
         case proto_block:
+        case free_block_val:
         case block_val:
             free_wordseq_node(to_free->data.ast);
+            free(to_free);
+            break;
+        case bound_block_val:
+            free_user_func(to_free->data.uf);
             free(to_free);
             break;
         case str_val:
@@ -146,7 +169,7 @@ void free_value(AValue *to_free) {
             break;
         default:
             fprintf(stderr,
-                    "warning, freeing node of unrecognized type %d.",
+                    "warning, freeing value of unrecognized type %d.",
                     to_free->type);
             free(to_free);
     }

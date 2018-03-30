@@ -12,13 +12,38 @@ void eval_sequence(AStack *st, AVarBuffer *buf, AWordSeqNode *seq) {
     }
 }
 
+/* Evaluate a block (bound, constant, whatever) on the stack,
+ * mutating the stack. */
+void eval_block(AStack *st, AVarBuffer *buf, AValue *block) {
+    assert(block->type != free_block_val && "can't apply a free block!");
+    if (block->type == block_val) {
+        /* It's fine, just evaluate it */
+        eval_sequence(st, buf, block->data.ast);
+    } else if (block->type == bound_block_val) {
+        /* It has an attached closure, so we need to load the closure
+         * and interpret its contents in light of that */
+        /* (Note how we pass block->data.uf->closure as the varbuffer
+         * rather than buf) */
+        eval_sequence(st, block->data.uf->closure, block->data.uf->words);
+    } else {
+        fprintf(stderr, "error: cannot apply non-block to stack\n");
+    }
+}
+
 /* Evaluate a single AST node on a stack, mutating
  * the stack.  */
 void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
     if (node->type == func_node) {
         eval_word(st, buf, node->data.func);
     } else if (node->type == value_node) {
-        AValue *put = ref(node->data.val);
+        AValue *put;
+        if (node->data.val->type != free_block_val) {
+            /* If it's not a free block, we can just push its value
+             * onto the stack without doing anything */
+            put = ref(node->data.val);
+        } else {
+            put = ref(val_boundblock(node->data.val, buf));
+        }
         stack_push(st, put);
     } else if (node->type == let_node) {
         eval_sequence(st, buf, node->data.let->words);

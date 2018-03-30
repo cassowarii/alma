@@ -12,6 +12,10 @@
  * mutating the stack. */
 void eval_sequence(AStack *st, AVarBuffer *buf, AWordSeqNode *seq);
 
+/* Evaluate a block (bound, constant, whatever) on the stack,
+ * mutating the stack. */
+void eval_block(AStack *st, AVarBuffer *buf, AValue *block);
+
 /* Evaluate a single AST node on a stack, mutating
  * the stack.  */
 void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node);

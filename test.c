@@ -21,7 +21,8 @@
     AScope *scope = scope_new(lib_scope); \
     AFuncRegistry *reg = registry_new(20); \
     parse_file(in, &program, &symtab); \
-    lib_init(symtab, lib_scope);
+    lib_init(symtab, lib_scope); \
+    ABindInfo bi = {0,0};
 
 #define ALMATESTCLEAN() \
     free_stack(stack); \
@@ -43,10 +44,12 @@ START_TEST(test_stack_push) {
 
     ck_assert(program->first != NULL);
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, NULL, program->first->node);
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+    ck_assert(mainfunc != NULL);
+    eval_word(stack, NULL, mainfunc);
 
     ck_assert_int_eq(stack->size, 5);
     ck_assert(stack_peek(stack, 0)->type == str_val);
@@ -63,31 +66,17 @@ START_TEST(test_stack_push) {
     ALMATESTCLEAN();
 } END_TEST
 
-START_TEST(test_stack_push2) {
-    ALMATESTINTRO("tests/simplepush.alma");
-
-    ck_assert(program->first->next != NULL);
-
-    eval_sequence(stack, NULL, program->first->next->node);
-
-    ck_assert_int_eq(stack->size, 3);
-    ck_assert(stack_peek(stack, 0)->type == proto_block);
-    ck_assert(stack_peek(stack, 1)->type == proto_list);
-    ck_assert(stack_peek(stack, 2)->type == sym_val);
-    ck_assert_str_eq(stack_peek(stack, 2)->data.sym->name, "asdf");
-
-    ALMATESTCLEAN();
-} END_TEST
-
 START_TEST(test_stack_pop_print) {
     ALMATESTINTRO("tests/simplepop.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     printf("\nThe next thing printed should be ‘hi4’.\n");
 
-    eval_sequence(stack, NULL, program->first->node);
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+    ck_assert(mainfunc != NULL);
+    eval_word(stack, NULL, mainfunc);
 
     ck_assert_int_eq(stack->size, 0);
 
@@ -97,10 +86,12 @@ START_TEST(test_stack_pop_print) {
 START_TEST(test_addition) {
     ALMATESTINTRO("tests/basicmath.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, NULL, program->first->node);
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+    ck_assert(mainfunc != NULL);
+    eval_word(stack, NULL, mainfunc);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 9);
@@ -108,30 +99,14 @@ START_TEST(test_addition) {
     ALMATESTCLEAN();
 } END_TEST
 
-START_TEST(test_addition2) {
-    ALMATESTINTRO("tests/basicmath.alma");
-
-    ACompileStatus stat = compile(scope, reg, program, 0);
-    ck_assert_int_eq(stat, compile_success);
-
-    eval_sequence(stack, NULL, program->first->next->node);
-
-    ck_assert_int_eq(stack->size, 1);
-    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 27);
-
-    ALMATESTCLEAN();
-} END_TEST
-
 START_TEST(test_apply) {
     ALMATESTINTRO("tests/applyfunc.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
-
     ck_assert(mainfunc != NULL);
-
     eval_word(stack, NULL, mainfunc);
 
     ck_assert_int_eq(stack->size, 1);
@@ -145,7 +120,7 @@ START_TEST(test_duplicate_func_error) {
 
     printf("\nThe next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     /* Compilation should fail due to duplicate function name. */
     ck_assert_int_eq(stat, compile_fail);
 
@@ -157,7 +132,7 @@ START_TEST(test_unknown_func_error) {
 
     printf("\nThe next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     /* Compilation should fail due to unknown function name. */
     ck_assert_int_eq(stat, compile_fail);
 
@@ -167,7 +142,7 @@ START_TEST(test_unknown_func_error) {
 START_TEST(test_definition) {
     ALMATESTINTRO("tests/definition.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->node);
@@ -181,7 +156,7 @@ START_TEST(test_definition) {
 START_TEST(test_let) {
     ALMATESTINTRO("tests/let.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->node);
@@ -195,7 +170,7 @@ START_TEST(test_let) {
 START_TEST(test_2let) {
     ALMATESTINTRO("tests/doublelet.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->node);
@@ -209,7 +184,7 @@ START_TEST(test_2let) {
 START_TEST(test_bind) {
     ALMATESTINTRO("tests/bind.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -227,7 +202,7 @@ START_TEST(test_bind) {
 START_TEST(test_2bind) {
     ALMATESTINTRO("tests/doublebind.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -246,7 +221,7 @@ START_TEST(test_2bind) {
 START_TEST(test_funcargs) {
     ALMATESTINTRO("tests/funcargs.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, 0);
+    ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -272,10 +247,8 @@ Suite *simple_suite(void) {
     tc_core = tcase_create("Core");
 
     tcase_add_test(tc_core, test_stack_push);
-    tcase_add_test(tc_core, test_stack_push2);
     tcase_add_test(tc_core, test_stack_pop_print);
     tcase_add_test(tc_core, test_addition);
-    tcase_add_test(tc_core, test_addition2);
     tcase_add_test(tc_core, test_apply);
     suite_add_tcase(s, tc_core);
 

@@ -1,0 +1,8 @@
+func main:
+    make_printer 4
+    make_printer 5
+    make_printer 6
+    apply apply apply
+    .
+
+func make_printer: → val [println val].

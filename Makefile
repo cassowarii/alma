@@ -1,4 +1,4 @@
-#CC=gcc
+#CC=gcc-7
 CFLAGS=-std=c99 -Wall -pedantic -g -Og -D_GNU_SOURCE
 
 ALMALIBS=lib_func.o lib_op.o lib_stack.o lib_control.o
