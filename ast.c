@@ -255,6 +255,15 @@ void print_protolist(AProtoList *pl) {
     }
 }
 
+static
+void print_name_seq(ANameSeqNode *x) {
+    ANameNode *current = x->first;
+    while (current) {
+        printf("%s ", current->sym->name);
+        current = current->next;
+    }
+}
+
 /* Print out an AST node. */
 void print_ast_node(AAstNode *x) {
     if (x->type == value_node) {
@@ -267,6 +276,20 @@ void print_ast_node(AAstNode *x) {
         printf(")");
     } else if (x->type == func_node) {
         printf("%s", x->data.func->sym->name);
+    } else if (x->type == let_node) {
+        printf("let ");
+        print_decl_seq(x->data.let->decls);
+        printf(" in (");
+        print_wordseq_node(x->data.let->words);
+        printf(")");
+    } else if (x->type == bind_node) {
+        printf("→ ");
+        print_name_seq(x->data.bind->names);
+        printf("(");
+        print_wordseq_node(x->data.bind->words);
+        printf(")");
+    } else {
+        printf("??%d", x->type);
     }
 }
 

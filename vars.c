@@ -48,7 +48,7 @@ void varbuf_put(AVarBuffer *buf, unsigned int index, AValue *val) {
     buf->vars[index] = val;
 }
 
-/* Get the <num>'th variable from a VarBuffer, looking it up
+/* Get the <index>'th variable from <buf>, looking it up
  * in the parent if necessary. */
 /* Returns a new reference to the value. */
 AValue *varbuf_get(AVarBuffer *buf, unsigned int index) {
@@ -60,6 +60,27 @@ AValue *varbuf_get(AVarBuffer *buf, unsigned int index) {
         return ref(buf->vars[index - buf->base]);
     } else {
         return varbuf_get(buf->parent, index);
+    }
+}
+
+/* Get the buffer in the chain of <buf>'s parents which has <num>
+ * variables below it. This is important because when we call a user
+ * function we want to reset the varbuffer to only include the
+ * variables that the function had access to when it was declared. */
+/* (But we want it to have whatever the current values of those
+ * variables are, so we do it from the current varbuffer.) */
+AVarBuffer *varbuf_findparent(AVarBuffer *buf, unsigned int num) {
+    if (num == 0 || buf == NULL) return NULL;
+    if (num > buf->base) {
+        /* buf->base is the number of elements below it,
+         * so if num > buf->base, we must have found
+         * the one that was current when we had <num>
+         * elements (since additional elements in this
+         * one would get higher numbers) */
+        assert(num - buf->base <= buf->size && "attempt to get buf with too-high index");
+        return buf;
+    } else {
+        return varbuf_findparent(buf->parent, num);
     }
 }
 

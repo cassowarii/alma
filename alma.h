@@ -256,6 +256,14 @@ typedef struct AUserFunc {
         /* We track its lowest free variable so that blocks
          * containing it know whether they have to save a
          * closure or not. */
+    unsigned int vars_below;        // how many vars below it when declared?
+        /* We save how many variables were below it when it
+         * was declared, so that when we call the function,
+         * we can jump back to the appropriate varbuffer --
+         * since variables are referenced by index rather than
+         * name in running code, it's important to have only
+         * as many variables in scope as there were when the
+         * function was declared. */
 } AUserFunc;
 
 /* Builtin or declared function bound to symbol? */

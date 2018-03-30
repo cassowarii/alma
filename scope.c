@@ -89,8 +89,8 @@ ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
 }
 
 /* Register a new user word into scope. Requires that scope_placehold was already called. */
-ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol,
-                                   unsigned int free_index, AWordSeqNode *words) {
+ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, unsigned int free_index,
+                                   unsigned int vars_below, AWordSeqNode *words) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
 
@@ -102,9 +102,11 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol,
     assert (e->func->data.userfunc->type == dummy_func && "creating duplicate word, but this wasn't "
                                                           "caught in scope_placehold somehow");
     /* ok i think we're good now */
+    e->func->data.userfunc->closure = NULL; /* named funcs don't use closure */
     e->func->data.userfunc->type = const_func;
     e->func->data.userfunc->words = words;
     e->func->data.userfunc->free_var_index = free_index;
+    e->func->data.userfunc->vars_below = vars_below;
 
     return compile_success;
 }

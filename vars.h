@@ -19,6 +19,14 @@ void varbuf_put(AVarBuffer *buf, unsigned int index, AValue *val);
 /* Returns a new reference to the value. */
 AValue *varbuf_get(AVarBuffer *buf, unsigned int index);
 
+/* Get the buffer in the chain of this one's parents which contains
+ * the <num>'th var. This is important because when we call a user
+ * function we want to reset the varbuffer to only include the
+ * variables that it had access to when we created the function. */
+/* (But we want it to have whatever the current values of those
+ * variables are.) */
+AVarBuffer *varbuf_findparent(AVarBuffer *buf, unsigned int index);
+
 /* Increase the refcount of a varbuffer. Used when a closure is created,
  * so we don't free the varbuffer too early. */
 void varbuf_ref(AVarBuffer *buf);

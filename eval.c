@@ -34,7 +34,6 @@ void eval_block(AStack *st, AVarBuffer *buf, AValue *block) {
  * the stack.  */
 void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
     if (node->type == func_node) {
-        /* TODO Functions need to be evaluated in their own separate scope. */
         eval_word(st, buf, node->data.func);
     } else if (node->type == value_node) {
         AValue *put;
@@ -80,7 +79,10 @@ void eval_word(AStack *st, AVarBuffer *buf, AFunc *f) {
         f->data.primitive(st, buf);
     } else if (f->type == user_func) {
         if (f->data.userfunc->type == const_func) {
-            eval_sequence(st, buf, f->data.userfunc->words);
+            AVarBuffer *func_buffer = varbuf_findparent(buf, f->data.userfunc->vars_below);
+            varbuf_ref(func_buffer);
+            eval_sequence(st, func_buffer, f->data.userfunc->words);
+            varbuf_unref(func_buffer);
         } else if (f->data.userfunc->type == dummy_func) {
             assert(0 && "dummy-func in eval stage");
         } else {

@@ -1,0 +1,31 @@
+# 99 Bottles of Beer
+
+func quantified-bottles msg:
+    if* [> 0] [
+        print dup
+        if* [= 1] [print " bottle "] [print " bottles "]
+    ] [
+        print "No more bottles "
+    ]
+    println msg.
+
+func bottles-of-beer how-many:
+    how-many
+    while* [≥ 0] [
+        quantified-bottles "of beer on the wall"
+        quantified-bottles "of beer"
+        if* [> 0] [
+            println "Take one down, pass it around"
+            - 1
+            quantified-bottles "of beer on the wall!"
+            println "" # between-verse marker
+        ] [
+            println "Go to the store, buy some more"
+            print how-many
+            println " bottles of beer on the wall!"
+            - 1
+        ]
+    ]
+    drop.
+
+func main: 99 | bottles-of-beer.

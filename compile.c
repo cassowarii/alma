@@ -1,5 +1,7 @@
 #include "compile.h"
 
+/* Okay, this technically limits the number of lexical variables that can
+ * be in scope at a time to 100,000. I think that is a reasonable restriction. */
 unsigned int NOFREEVARS = 100000;
 
 /* Mutate an AWordSeqNode by replacing compile-time-resolvable words
@@ -78,7 +80,7 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                         /* It is a function that contains a free variable. So wherever it
                          * occurs, we should consider to have a free variable as well so the
                          * runtime knows to save a closure for that block. */
-                        free_variable_index = e->func->data.varindex;
+                        free_variable_index = e->func->data.userfunc->free_var_index;
                     }
                 }
             }
@@ -233,12 +235,8 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
             current = current->next;
             continue;
         } else if (r.status == compile_success) {
-            if (r.lowest_free == NOFREEVARS) {
-                printf("function ‘%s’ has no free vars\n", current->sym->name);
-            } else {
-                printf("function ‘%s’ has YES free vars\n", current->sym->name);
-            }
-            stat = scope_user_register(scope, current->sym, r.lowest_free, current->node);
+            stat = scope_user_register(scope, current->sym, r.lowest_free,
+                                       bindinfo.var_depth, current->node);
         } else {
             fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", stat);
             current = current->next;

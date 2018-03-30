@@ -73,7 +73,7 @@ START_TEST(test_stack_pop_print) {
     ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
-    printf("\nThe next thing printed should be ‘hi4’.\n");
+    printf("The next thing printed should be ‘hi4’.\n");
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
     ck_assert(mainfunc != NULL);
@@ -119,7 +119,7 @@ START_TEST(test_apply) {
 START_TEST(test_duplicate_func_error) {
     ALMATESTINTRO("tests/dupfunc.alma");
 
-    printf("\nThe next thing printed should be an error message.\n");
+    printf("The next thing printed should be an error message.\n");
 
     ACompileStatus stat = compile(scope, reg, program, bi);
     /* Compilation should fail due to duplicate function name. */
@@ -131,7 +131,7 @@ START_TEST(test_duplicate_func_error) {
 START_TEST(test_unknown_func_error) {
     ALMATESTINTRO("tests/unknownfunc.alma");
 
-    printf("\nThe next thing printed should be an error message.\n");
+    printf("The next thing printed should be an error message.\n");
 
     ACompileStatus stat = compile(scope, reg, program, bi);
     /* Compilation should fail due to unknown function name. */
