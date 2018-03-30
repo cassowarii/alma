@@ -49,6 +49,7 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
         eval_sequence(st, buf, node->data.let->words);
     } else if (node->type == var_bind) {
         AVarBuffer *newbuf = varbuf_new(buf, node->data.vbind->count);
+        varbuf_ref(newbuf);
 
         /* get the variables from the stack and put them in the var buffer */
         for (int i = 0; i < node->data.vbind->count; i++) {
@@ -59,6 +60,10 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
 
         /* evaluate it with this new var-buffer */
         eval_sequence(st, newbuf, node->data.vbind->words);
+
+        /* delete our reference to newbuf - this will clear it if we didn't
+         * create any closures */
+        varbuf_unref(newbuf);
     } else {
         assert(node->type != word_node && "word-node in eval stage");
         assert(node->type != bind_node && "bind-node in eval stage");

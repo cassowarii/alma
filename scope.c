@@ -166,8 +166,8 @@ void free_user_func(AUserFunc *f) {
            'program' ast, so we don't need to free that. */
     } else if (f->type == bound_func) {
         /* if it's a bound_func, then we need to free its closure (or at least
-         * decrease its closure's refcount. */
-        // TODO do that
+         * decrease its closure's refcount.) */
+        varbuf_unref(f->closure);
     }
     free(f);
 }

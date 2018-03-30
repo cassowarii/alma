@@ -64,7 +64,7 @@ AValue *val_boundblock(AValue *fb, AVarBuffer *buf) {
     uf->words = fb->data.ast;
     uf->closure = buf;
 
-    // TODO increase buf's refcount
+    varbuf_ref(buf); /* Make sure buf doesn't get deleted out from under us */
 
     v->data.uf = uf;
     return v;

@@ -102,6 +102,7 @@ typedef struct AVarBuffer {
     unsigned int size;          // number of vars in this one
     unsigned int base;          // number of vars below this one (for looking up in scopes below)
     struct AVarBuffer *parent;  // where to find more vars
+    unsigned int refs;          // refcount to know whether closures point to it
 } AVarBuffer;
 
 /* An instruction telling the interpreter to place the top <count>

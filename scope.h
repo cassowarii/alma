@@ -4,6 +4,7 @@
 #include "alma.h"
 #include "registry.h"
 #include "symbols.h"
+#include "vars.h"
 
 /* Create a new lexical scope with parent scope 'parent'. */
 AScope *scope_new(AScope *parent);

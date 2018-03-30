@@ -3,6 +3,7 @@
 
 #include "alma.h"
 #include "scope.h" /* for free_user_func */
+#include "vars.h"
 
 /* Create a value holding an int */
 AValue *val_int(int data);

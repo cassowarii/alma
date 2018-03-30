@@ -19,4 +19,16 @@ void varbuf_put(AVarBuffer *buf, unsigned int index, AValue *val);
 /* Returns a new reference to the value. */
 AValue *varbuf_get(AVarBuffer *buf, unsigned int index);
 
+/* Increase the refcount of a varbuffer. Used when a closure is created,
+ * so we don't free the varbuffer too early. */
+void varbuf_ref(AVarBuffer *buf);
+
+/* Decrease the refcount of a varbuffer, potentially freeing it if the
+ * count drops to 0. */
+void varbuf_unref(AVarBuffer *buf);
+
+/* Free a varbuffer. Unreferences all the variables contained within,
+ * and unreferences its parent as well. */
+void varbuf_free(AVarBuffer *buf);
+
 #endif
