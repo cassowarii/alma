@@ -28,9 +28,9 @@ speedup is due to a couple things that have changed in the new version:
     - (however, note that the new one doesn't actually check types at all
         right now. but it will do them at compile time, so I think it's fair.)
   * to be fair, the new version in this experiment was compiled with -O3
-    and the old version was compiled with -g, but also to be fair, the old
-    one mysteriously segfaults (?!?!) if compiled with -O3, so, not sure what's
-    up with that
+    and the old version was compiled with no optimization, but also to be fair,
+    the old one mysteriously segfaults (?!?!) if compiled with -O3, so, not
+    sure what's up with that
 
   [cat]: https://www.codeproject.com/articles/16247/cat-a-statically-typed-programming-language-interp
 

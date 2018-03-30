@@ -1,6 +1,5 @@
 #include "lib.h"
 
-
 /* Add built in func to scope by wrapping it in a newly allocated AFunc */
 void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, APrimitiveFunc f) {
     ASymbol *sym = get_symbol(&symtab, name);
