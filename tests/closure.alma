@@ -1,8 +1,23 @@
 func main:
-    make_printer 4
-    make_printer 5
-    make_printer 6
+    make-printer 4
+    make-printer 5
+    make-printer 6
     apply apply apply
+
+    apply push-twice 3
+    print print
+
+    one-is-bigger 4
+    println apply
+    println apply
     .
 
-func make_printer: → val [println val].
+func make-printer: → val [println val].
+
+func push-twice val: [val val].
+
+func one-is-bigger:
+    dup
+    → a [a]
+    dip [ → a [ + 1 a ] ]
+    .

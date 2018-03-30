@@ -1,0 +1,5 @@
+func compose f1 f2: [ apply f1 apply f2 ].
+
+func make-sum-printer: compose [println] [+].
+
+func main: apply (make-sum-printer 6 5). # Prints 11!! :D
