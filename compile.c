@@ -124,19 +124,20 @@ ACompileStatus compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
 
             if (stat == compile_fail) {
                 errors ++;
-            } else if (stat == compile_free) {
-                /* There were free variables inside here, so thus there are free variables in
-                 * this larger expression. */
-                free_variables = 1;
-            } else if (stat != compile_success) {
-                fprintf(stderr, "internal error: unrecognized compile status %d compiling bindnode\n",
-                        stat);
-                errors ++;
-            } else {
+            } else if (stat == compile_success || stat == compile_free) {
                 /* Successfully compiled the inner scope, so alter the node. */
                 free(current->data.bind);
                 current->type = var_bind;
                 current->data.vbind = newbind;
+                if (stat == compile_free) {
+                    /* A free variable used inside the bind expression, so the whole
+                     * thing has free variables. */
+                    free_variables = 1;
+                }
+            } else {
+                fprintf(stderr, "internal error: unrecognized compile status %d compiling bindnode\n",
+                        stat);
+                errors ++;
             }
 
             /* Free scope. */

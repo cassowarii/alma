@@ -199,6 +199,24 @@ START_TEST(test_bind) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_blockparam) {
+    ALMATESTINTRO("tests/bindnode.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 9);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 START_TEST(test_2bind) {
     ALMATESTINTRO("tests/doublebind.alma");
 
@@ -237,9 +255,30 @@ START_TEST(test_funcargs) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_closure) {
+    ALMATESTINTRO("tests/closure.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 4);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 50);
+    ck_assert_int_eq(stack_peek(stack, 1)->data.i, 42);
+    ck_assert_int_eq(stack_peek(stack, 2)->data.i, 15);
+    ck_assert_int_eq(stack_peek(stack, 3)->data.i, 30);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 Suite *simple_suite(void) {
     Suite *s;
-    TCase *tc_core, *tc_comp;
+    TCase *tc_core, *tc_comp, *tc_bind;
 
     s = suite_create("Basics");
 
@@ -260,10 +299,17 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_comp, test_definition);
     tcase_add_test(tc_comp, test_let);
     tcase_add_test(tc_comp, test_2let);
-    tcase_add_test(tc_comp, test_bind);
-    tcase_add_test(tc_comp, test_2bind);
-    tcase_add_test(tc_comp, test_funcargs);
     suite_add_tcase(s, tc_comp);
+
+    /* test name binding (closures, etc) */
+    tc_bind = tcase_create("Name binding");
+
+    tcase_add_test(tc_bind, test_bind);
+    tcase_add_test(tc_bind, test_2bind);
+    tcase_add_test(tc_bind, test_funcargs);
+    tcase_add_test(tc_bind, test_blockparam);
+    tcase_add_test(tc_bind, test_closure);
+    suite_add_tcase(s, tc_bind);
 
     return s;
 }

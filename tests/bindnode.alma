@@ -1,0 +1,1 @@
+func main: apply [→ a: + 4 a] 5.
