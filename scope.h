@@ -21,7 +21,8 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, unsigned int fre
 
 /* Create an entry in the scope telling it to push the
  * <num>'th bound variable to the stack. */
-ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, unsigned int index);
+ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol,
+                                 unsigned int index, unsigned int linenum);
 
 /* Look up the function bound to a given symbol in a certain lexical scope.
  * Returns NULL if not found. */

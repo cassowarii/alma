@@ -1,0 +1,9 @@
+func main:
+    let
+        func x: 2.
+    in
+        let
+            func x: 10.
+        in
+            x
+    .

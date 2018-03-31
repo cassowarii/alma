@@ -113,7 +113,31 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, unsigned int fre
 
 /* Create an entry in the scope telling it to push the
  * <num>'th bound variable to the stack. */
-ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, unsigned int index) {
+ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol,
+                                 unsigned int index, unsigned int linenum) {
+    AScopeEntry *e = NULL;
+    HASH_FIND_PTR(sc->content, &symbol, e);
+
+    if (e != NULL) {
+        fprintf(stderr, "error: variable ‘%s’ declared more than once at line %d\n",
+                        symbol->name, linenum);
+        return compile_fail;
+    }
+
+    AScopeEntry *f = scope_lookup(sc->parent, symbol);
+    if (f != NULL) {
+        if (f->linenum != -1) {
+            fprintf(stderr, "warning: declaration of variable ‘%s’ at line %d "
+                            "shadows previous word defined at line %d\n",
+                            symbol->name, linenum, f->linenum);
+        } else {
+            fprintf(stderr, "warning: declaration of variable ‘%s’ at line %d "
+                            "shadows built-in word\n", symbol->name,
+                            linenum);
+        }
+    }
+
+
     AFunc *pushfunc = malloc(sizeof(AFunc));
     pushfunc->type = var_push;
     pushfunc->data.varindex = index;
@@ -121,7 +145,7 @@ ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol
     registry_register(reg, pushfunc);
 
     AScopeEntry *entry = scope_entry_new(symbol, pushfunc);
-    entry->linenum = -1;
+    entry->linenum = linenum;
 
     /* 'sym' below is the field in the struct, not the variable 'symbol' here */
     HASH_ADD_PTR(sc->content, sym, entry);
