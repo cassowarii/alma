@@ -1,1 +1,1 @@
-func print: "This shouldn't work!".
+func print: "This should be a warning.".

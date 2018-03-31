@@ -2,7 +2,7 @@
 
 /* Allocate a new AST node with no information */
 static
-AAstNode *ast_newnode() {
+AAstNode *ast_newnode(void) {
     AAstNode *newnode = malloc(sizeof(AAstNode));
     if (newnode == NULL) {
         fprintf(stderr, "Error: can't allocate a new AST node: out of memory");
@@ -14,7 +14,7 @@ AAstNode *ast_newnode() {
 
 /* Allocate a new declaration node with no information */
 static
-ADeclNode *ast_newdecl() {
+ADeclNode *ast_newdecl(void) {
     ADeclNode *newnode = malloc(sizeof(ADeclNode));
     if (newnode == NULL) {
         fprintf(stderr, "Error: can't allocate a new declaration node: out of memory");
@@ -26,7 +26,7 @@ ADeclNode *ast_newdecl() {
 
 /* Allocate a new let node with no information */
 static
-ALetNode *ast_newlet() {
+ALetNode *ast_newlet(void) {
     ALetNode *newnode = malloc(sizeof(ALetNode));
     if (newnode == NULL) {
         fprintf(stderr, "Error: can't allocate a new let node: out of memory");
@@ -115,7 +115,7 @@ AAstNode *ast_bindnode(unsigned int location, ANameSeqNode *names, AWordSeqNode 
 }
 
 /* Create a new node representing a word/value sequence. */
-AWordSeqNode *ast_wordseq_new() {
+AWordSeqNode *ast_wordseq_new(void) {
     AWordSeqNode *newnode = malloc(sizeof(AWordSeqNode));
     newnode->first = NULL;
     newnode->last = NULL;
@@ -124,7 +124,7 @@ AWordSeqNode *ast_wordseq_new() {
 }
 
 /* Create a new node representing name sequence. */
-ANameSeqNode *ast_nameseq_new() {
+ANameSeqNode *ast_nameseq_new(void) {
     ANameSeqNode *newnode = malloc(sizeof(ANameSeqNode));
     newnode->first = NULL;
     newnode->last = NULL;
@@ -133,7 +133,7 @@ ANameSeqNode *ast_nameseq_new() {
 }
 
 /* Create a new node representing a declaration sequence. */
-ADeclSeqNode *ast_declseq_new() {
+ADeclSeqNode *ast_declseq_new(void) {
     ADeclSeqNode *newnode = malloc(sizeof(ADeclSeqNode));
     newnode->first = NULL;
     newnode->last = NULL;
@@ -199,7 +199,7 @@ void ast_nameseq_append(ANameSeqNode *seq, ANameNode *node) {
 }
 
 /* Allocate a new AProtoList. */
-AProtoList *ast_protolist_new() {
+AProtoList *ast_protolist_new(void) {
     AProtoList *newlist = malloc(sizeof(AProtoList));
     newlist->first = NULL;
     newlist->last = NULL;

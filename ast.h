@@ -25,16 +25,16 @@ ANameNode *ast_namenode(unsigned int location, ASymbol *symbol);
 AAstNode *ast_bindnode(unsigned int location, ANameSeqNode *names, AWordSeqNode *words);
 
 /* Create a new node representing a declaration sequence. */
-ADeclSeqNode *ast_declseq_new();
+ADeclSeqNode *ast_declseq_new(void);
 
 /* Create a new node representing a name sequence. */
-ANameSeqNode *ast_nameseq_new();
+ANameSeqNode *ast_nameseq_new(void);
 
 /* Append a new declaration to an ADeclSeqNode. */
 void ast_declseq_append(ADeclSeqNode *seq, ADeclNode *node);
 
 /* Create a new node representing a word/value sequence. */
-AWordSeqNode *ast_wordseq_new();
+AWordSeqNode *ast_wordseq_new(void);
 
 /* Prepend a new node to the beginning of an AWordSeqNode. */
 void ast_wordseq_prepend(AWordSeqNode *seq, AAstNode *node);
@@ -49,7 +49,7 @@ void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2);
 void ast_nameseq_append(ANameSeqNode *seq, ANameNode *node);
 
 /* Allocate a new AProtoList. */
-AProtoList *ast_protolist_new();
+AProtoList *ast_protolist_new(void);
 
 /* Append a new word-sequence to an AProtoList. */
 void ast_protolist_append(AProtoList *list, AWordSeqNode *node);

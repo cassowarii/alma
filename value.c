@@ -2,7 +2,7 @@
 
 /* Allocates a value without any data attached */
 static
-AValue *alloc_val() {
+AValue *alloc_val(void) {
     AValue *new_val = malloc(sizeof(AValue));
     if (new_val == NULL) {
         fprintf(stderr, "Couldn't allocate space for a new variable: Out of memory\n");

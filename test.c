@@ -331,6 +331,33 @@ START_TEST(test_doubleclosure) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_redefineprint) {
+    ALMATESTINTRO("tests/redefineprint.alma");
+
+    printf("The next thing printed should be a warning.\n");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+    ALMATESTCLEAN();
+} END_TEST
+
+START_TEST(test_varshadow) {
+    ALMATESTINTRO("tests/varshadow.alma");
+
+    printf("The next thing printed should be a warning.\n");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+    ck_assert(mainfunc != NULL);
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 10);
+    ALMATESTCLEAN();
+} END_TEST
+
 Suite *simple_suite(void) {
     Suite *s;
     TCase *tc_core, *tc_comp, *tc_bind;
@@ -351,6 +378,8 @@ Suite *simple_suite(void) {
 
     tcase_add_test(tc_comp, test_duplicate_func_error);
     tcase_add_test(tc_comp, test_unknown_func_error);
+    tcase_add_test(tc_comp, test_redefineprint);
+    tcase_add_test(tc_comp, test_varshadow);
     tcase_add_test(tc_comp, test_definition);
     tcase_add_test(tc_comp, test_let);
     tcase_add_test(tc_comp, test_2let);
