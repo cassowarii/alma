@@ -1,5 +1,7 @@
 #include "scope.h"
 
+extern unsigned int NOFREEVARS;
+
 /* Create a new lexical scope with parent scope 'parent'. */
 AScope *scope_new(AScope *parent) {
     AScope *newscope = malloc(sizeof(AScope));
@@ -41,6 +43,11 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
         AUserFunc *dummy = malloc(sizeof(AUserFunc));
         dummy->type = dummy_func;
         dummy->words = NULL;
+        /* If we only have a placeholder for a function, we assume it has the
+         * maximum number of free variables. Being cautious like this means
+         * we might save a few extra closures, but if we actually do need
+         * one, we always have one. */
+        dummy->free_var_index = 0;
 
         /* The reason for this weird structure is, now we can change the AUserFunc
          * that dummyfunc has a pointer to, and anything that got a pointer to

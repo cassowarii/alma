@@ -42,10 +42,16 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
              * onto the stack without doing anything */
             put = ref(node->data.val);
         } else {
+            /* Otherwise, we need to create a new bound-block from
+             * this free block, which will save the current set of
+             * variables. */
             put = ref(val_boundblock(node->data.val, buf));
         }
         stack_push(st, put);
     } else if (node->type == let_node) {
+        /* We already handled all the declaration stuff in compilation,
+         * so all we have to do for a let..in node is to execute the
+         * 'in' part. */
         eval_sequence(st, buf, node->data.let->words);
     } else if (node->type == var_bind) {
         AVarBuffer *newbuf = varbuf_new(buf, node->data.vbind->count);
@@ -65,6 +71,9 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
          * create any closures */
         varbuf_unref(newbuf);
     } else {
+        /* Word nodes, bind nodes, and paren nodes should have been replaced
+         * during the compile stage. If they made it here, that means something
+         * has gone horribly wrong. */
         assert(node->type != word_node && "word-node in eval stage");
         assert(node->type != bind_node && "bind-node in eval stage");
         assert(node->type != paren_node && "paren-node in eval stage");
