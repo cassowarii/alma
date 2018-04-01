@@ -190,6 +190,6 @@ $'\\?{UANYN}' {
 
   /* End of file! */
 <COMMENT><<EOF>> { yyerror("syntax error, unterminated comment"); return 0; }
-<<EOF>> { return 0; /*static int once = 0; return once++ ? 0 : '';*/ }
+<<EOF>> { return 0; }
 
 %%
