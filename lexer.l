@@ -5,10 +5,15 @@
 #define yyterminate() return END
 
 extern void yyerror(const char *str);
-int nested_blocks = 0;
-int nested_lists = 0;
-int nested_parens = 0;
-int nested_comments = 0;
+/* we want both 'let func x: a in blah' and 'let func x: a; in blah'
+   to be accepted, (to track if we're between a : and a ; for
+   interactive move so we have to keep track of whether we just saw
+   a semicolon in order to not decrease 'yyextra->nested_colons' by one too many. */
+int just_saw_semicolon = 0;
+
+int yywrap(yyscan_t scanner) {
+    return 1;
+}
 
 #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
 
@@ -43,11 +48,11 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 %%
 
   /* Reserved words. */
-"import"                { BEGIN(IMPORT); return T_IMPORT; }
+"import"                { BEGIN(IMPORT); just_saw_semicolon = 0; return T_IMPORT; }
 "let"                   return T_LET;
 ->|→                    return T_BIND;
-"func"                  return T_FUNC;
-"in"                    return T_IN;
+"func"                  just_saw_semicolon = 0; return T_FUNC;
+"in"                    if (!just_saw_semicolon) { yyextra->nested_colons --; } return T_IN;
 \\[\r\n]                ; // allow escaping newlines
 <IMPORT>"as"            { BEGIN(INITIAL); return T_AS; }
 <IMPORT>\|              return '|';
@@ -55,36 +60,36 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 
   /* Special tokens. */
 "{"  {
-    nested_blocks ++;
+    yyextra->nested_blocks ++;
     return '{';
 }
 "}" {
-    nested_blocks --;
-    if (nested_blocks < 0) nested_blocks = 0;
+    yyextra->nested_blocks --;
+    if (yyextra->nested_blocks < 0) yyextra->nested_blocks = 0;
     return '}';
 }
 "["  {
-    nested_lists ++;
+    yyextra->nested_lists ++;
     return '[';
 }
 "]" {
-    nested_lists --;
-    if (nested_lists < 0) nested_lists = 0;
+    yyextra->nested_lists --;
+    if (yyextra->nested_lists < 0) yyextra->nested_lists = 0;
     return ']';
 }
 \( {
-    nested_parens ++;
+    yyextra->nested_parens ++;
     return '(';
 }
 \) {
-    nested_parens --;
-    if (nested_parens < 0) nested_parens = 0;
+    yyextra->nested_parens --;
+    if (yyextra->nested_parens < 0) yyextra->nested_parens = 0;
     return ')';
 }
-":"     return ':';
+":"     yyextra->nested_colons ++; return ':';
 ","     return ',';
 
-";"         { BEGIN(INITIAL); return ';'; }
+";"         { BEGIN(INITIAL); yyextra->nested_colons --; just_saw_semicolon = 1; return ';'; }
 
  /* @.+ {
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
@@ -93,20 +98,41 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 } */
 
 "|"             return '|';
-\r|\n           return '\n';
+\r|\n {
+    if (!yyextra->is_interactive) {
+        return '\n';
+    }
+    /* For interactive mode: if encounter an end-of-line with
+       some blocks not yet closed etc., don't be done yet;
+       otherwise, if we're in interactive mode, a newline with
+       completely closed set of brackets is an EOF. */
+    /*printf("newline: %d %d %d %d %d\n",
+            yyextra->nested_blocks, yyextra->nested_lists,
+            yyextra->nested_parens, yyextra->nested_comments,
+            yyextra->nested_colons);*/
+    if (yyextra->nested_blocks == 0 && yyextra->nested_lists == 0
+            && yyextra->nested_parens == 0 && yyextra->nested_comments == 0
+            && yyextra->nested_colons <= 0) {
+        yyextra->beginning = 1;
+        return 0;
+    } else {
+        yyextra->beginning = 0;
+        return '\n';
+    }
+}
 
   /* Comments. */
 <COMMENT,INITIAL>"(*" {
     BEGIN(COMMENT);
-    nested_comments ++;
+    yyextra->nested_comments ++;
 }
 
 <COMMENT,INITIAL>"*)" {
-    nested_comments --;
-    if (nested_comments == 0) {
+    yyextra->nested_comments --;
+    if (yyextra->nested_comments == 0) {
         BEGIN(INITIAL);
-    } else if (nested_comments < 0) {
-        nested_comments = 0;
+    } else if (yyextra->nested_comments < 0) {
+        yyextra->nested_comments = 0;
         return CMTCLOSE_ERRORTOKEN;
     }
 }

@@ -7,11 +7,16 @@ void parse_file(FILE *f, ADeclSeqNode **prog_out, ASymbolTable *symtab_out) {
         return;
     }
 
+    AInteractive* noninteractive = malloc(sizeof(AInteractive));
+    noninteractive->is_interactive = 0;
+
     yyscan_t scanner;
 
     yylex_init(&scanner);
 
     yyset_in(f, scanner);
+
+    yyset_extra(noninteractive, scanner);
 
     ADeclSeqNode *program = NULL;
     ASymbolTable symtab = NULL;

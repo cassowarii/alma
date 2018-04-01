@@ -322,7 +322,14 @@ typedef struct AFuncRegistry {
 /*-*-* interactive.h *-*-*/
 
 typedef struct AInteractive {
-    int is_interactive;
+    int is_interactive;     // are we even interactive?
+    int at_eof;             // are we at the end of a whole structure?
+    int beginning;          // are we at the beginning? (should we show prompt1 or 2?)
+    int nested_blocks;
+    int nested_parens;
+    int nested_comments;
+    int nested_lists;
+    int nested_colons;
 } AInteractive;
 
 #endif

@@ -1,9 +1,11 @@
 #ifndef _AL_INTER_H__
 #define _AL_INTER_H__
 
-#include "alma.h"
 #include <stdlib.h>
 #include <editline.h>
+#include "alma.h"
+#include "grammar.tab.h"
+#include "parse.h"
 
 /* Run the REPL. */
 void interactive_mode();

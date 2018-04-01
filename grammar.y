@@ -94,10 +94,6 @@ void yyerror(YYLTYPE *loc, void *scan, ADeclSeqNode **out, ASymbolTable *symtab,
     do_error(str, loc->first_line);
 }
 
-int yywrap() {
-    return 1;
-}
-
 %}
 
 %%
