@@ -54,9 +54,8 @@ typedef enum {
         /* A unicode string (AUstr*) */
     sym_val,
         /* A symbol (representing a word name, or w/e.) */
-    list_val,
-        /* A fully instantiated list, holding only values. */
-        /* (Once we have actual lists.) */
+    proto_block,
+        /* A block that hasn't yet been compiled. */
     block_val,
         /* A 'constant' block value: has no free variables,
          * because it's 'constant' like [+ 1] and has no
@@ -73,8 +72,8 @@ typedef enum {
          * AST nodes to evaluate, rather than values. */
         /* (Future optimization: detect constant lists and skip
          * this step for them.) */
-    proto_block,
-        /* A block that hasn't yet been compiled. */
+    list_val,
+        /* A real, honest-to-god list. */
 } AValueType;
 
 /* Struct representing a value.
@@ -91,9 +90,30 @@ typedef struct AValue {
         struct AWordSeqNode *ast;
         struct AUserFunc *uf;
         struct AProtoList *pl;
+        struct AList *list;
     } data;
     int refs;         // refcounting
 } AValue;
+
+/*-*-* list.h *-*-*/
+
+/* A struct holding an element in a list.
+ * (An element of a linked list -- points
+ * to the value and the next element) */
+typedef struct AListElem {
+    AValue *val;
+    struct AListElem *next;
+} AListElem;
+
+/* A linked list!
+ * Maintains a pointer to the last element
+ * for convenience. Dunno if that will actually
+ * come in handy. */
+typedef struct AList {
+    AListElem *first;
+    AListElem *last;
+    unsigned int length;
+} AList;
 
 /*-*-* vars.h *-*-*/
 

@@ -46,8 +46,10 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
 
         /* If we only have a placeholder for a function, we assume it has the
          * maximum number of free variables. Being cautious like this means
-         * we might save a few extra closures, but if we actually do need
-         * one, we always have one. */
+         * we might store a few extra closures we don't need, but if we
+         * actually do need one, we always have one. */
+        /* (I don't really like how this makes the speed of your program
+         * super-dependent on the order functions are declared, tho.) */
         dummy->free_var_index = 0;
 
         /* The reason for this weird structure is, now we can change the AUserFunc

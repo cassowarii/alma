@@ -4,6 +4,7 @@
 #include "alma.h"
 #include "scope.h" /* for free_user_func */
 #include "vars.h"
+#include "list.h"
 
 /* Create a value holding an int */
 AValue *val_int(int data);
@@ -25,6 +26,9 @@ AValue *val_boundblock(AValue *fb, AVarBuffer *buf);
 
 /* Create a value holding a proto-list (when parsing) */
 AValue *val_protolist(AProtoList *pl);
+
+/* Create a value holding a real list */
+AValue *val_list(AList *l);
 
 /* Get a fresh pointer to the object that counts as a reference. */
 AValue *ref(AValue *v);

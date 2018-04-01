@@ -78,6 +78,14 @@ AValue *val_protolist(AProtoList *pl) {
     return v;
 }
 
+/* Create a value holding a real list */
+AValue *val_list(AList *l) {
+    AValue *v = alloc_val();
+    v->type = list_val;
+    v->data.list = l;
+    return v;
+}
+
 /* Get a fresh pointer to the object that counts as a reference. */
 AValue *ref(AValue *v) {
     v->refs ++;
@@ -123,6 +131,8 @@ void print_val(AValue *v) {
         printf("{ ");
         print_protolist(v->data.pl);
         printf(" }");
+    } else if (v->type == list_val) {
+        print_list(v->data.list);
     } else if (v->type == sym_val) {
         printf("/");
         print_symbol(v->data.sym);

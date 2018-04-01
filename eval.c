@@ -37,15 +37,20 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
         eval_word(st, buf, node->data.func);
     } else if (node->type == value_node) {
         AValue *put;
-        if (node->data.val->type != free_block_val) {
-            /* If it's not a free block, we can just push its value
+        if (node->data.val->type == free_block_val) {
+            /* If it's a block with free variables, we need to create
+             * a new bound-block from this free block, which will
+             * save the current set of variables. */
+            put = ref(val_boundblock(node->data.val, buf));
+        } else if (node->data.val->type == proto_list) {
+            /* If it's a proto-list, we need to construct a new
+             * actual-list from it. */
+            AList *l = list_reify(buf, node->data.val->data.pl);
+            put = ref(val_list(l));
+        } else {
+            /* If it's not anything special, we can just push its value
              * onto the stack without doing anything */
             put = ref(node->data.val);
-        } else {
-            /* Otherwise, we need to create a new bound-block from
-             * this free block, which will save the current set of
-             * variables. */
-            put = ref(val_boundblock(node->data.val, buf));
         }
         stack_push(st, put);
     } else if (node->type == let_node) {

@@ -7,6 +7,7 @@
 #include "stack.h"
 #include "scope.h"
 #include "ast.h"
+#include "list.h"
 
 /* Evaluate a sequence of commands on a stack,
  * mutating the stack. */
