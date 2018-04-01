@@ -8,6 +8,7 @@
 #include "compile.h"
 #include "grammar.tab.h"
 #include "registry.h"
+#include "interactive.h"
 
 #define CLEANUP() \
         free_stack(stack); \
@@ -29,8 +30,11 @@ int main (int argc, char **argv) {
             fprintf(stderr, "couldn't open file\n");
             exit(1);
         }
+    } else if (argc == 1) {
+        interactive_mode();
+        exit(0);
     } else {
-        fprintf(stderr, "Please supply a file name.\n");
+        fprintf(stderr, "Please supply one file name.\n");
         return 0;
     }
 

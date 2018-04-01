@@ -1,6 +1,9 @@
 #ifndef _ALMA_H__
 #define _ALMA_H__
 
+#define ALMA_VERSION "0.0.0"
+#define ALMA_VNAME "Dinosaur Days"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>

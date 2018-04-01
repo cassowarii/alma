@@ -17,6 +17,7 @@ AUstr *parse_string(const char *bytes, unsigned int length);
 
 %}
 
+%option extra-type="struct AInteractive*"
 %option reentrant nounput noinput yylineno bison-bridge bison-locations
 %x COMMENT LINECMT
 %s IMPORT
@@ -36,8 +37,8 @@ UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
  /* ([^{}\[\]\" \t\n()]|{UONLY}) */
 IDBEGIN [^{[(\"\' \t\n]|{UONLY}
 IDMID   [^ \t\n]|{UONLY}
-IDEND   [^}\]) \t\n.,:]|{UONLY}
-IDONECH [^{}[\]()\"\' \t\n.,]|{UONLY}
+IDEND   [^}\]) \t\n,:;]|{UONLY}
+IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 
 %%
 
@@ -83,7 +84,7 @@ IDONECH [^{}[\]()\"\' \t\n.,]|{UONLY}
 ":"     return ':';
 ","     return ',';
 
-"."         { BEGIN(INITIAL); return '.'; }
+";"         { BEGIN(INITIAL); return ';'; }
 
  /* @.+ {
     yylval->s = (char*)calloc(strlen(yytext), sizeof(char));

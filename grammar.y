@@ -139,7 +139,7 @@ realdirlist
 directive
     :   declaration {
         $$ = $1;
-    } | import '.' {
+    } | import ';' {
     } | error sep {
     }
 
@@ -149,7 +149,7 @@ import
     }
 
 declaration
-    :   "func" name names_opt ':' words '.' {
+    :   "func" name names_opt ':' words ';' {
         if ($3 == NULL) {
             $$ = ast_declnode(@2.first_line, $2, $5);
         } else {
@@ -157,7 +157,7 @@ declaration
             ast_wordseq_prepend(wrapper, ast_bindnode(@3.first_line, $3, $5));
             $$ = ast_declnode(@2.first_line, $2, wrapper);
         }
-    } | error '.' {
+    } | error ';' {
         $$ = NULL;
     }
 

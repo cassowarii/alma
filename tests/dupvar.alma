@@ -1,4 +1,4 @@
 func main:
     4 5
-    → a a (println a).
+    → a a (println a);
 
