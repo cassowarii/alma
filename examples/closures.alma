@@ -1,8 +1,8 @@
-func compose f1 f2: [ apply f1 apply f2 ].
+func compose f1 f2: [ apply f1 apply f2 ];
 
-func make-sum-printer: compose [println] [+].
+func make-sum-printer: compose [println] [+];
 
-func make-adder x: [→ y: + x y].
+func make-adder x: [→ y: + x y];
 
 func main:
     apply (make-sum-printer 6 5) # Should print 11
@@ -11,4 +11,4 @@ func main:
         println apply 5adder 3   # Should print 8
         println apply 5adder 11  # Should print 16
         println apply 5adder 76  # Should print 81
-    ).
+    );

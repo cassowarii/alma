@@ -5,11 +5,11 @@ func main:
             print # prints message
             print " of "
             print dup
-            print " is ".
+            print " is ";
     in (
         (say-message "double" | println double) 4
         (say-message "square" | println square) 4
-    ).
+    );
 
-func double: * 2.
-func square: * dup.
+func double: * 2;
+func square: * dup;

@@ -1,1 +1,1 @@
-func main: println "Hello world!" .
+func main: println "Hello world!" ;

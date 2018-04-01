@@ -1,4 +1,4 @@
-# Print the triangular numbers from 1 to 5000.
+# Print the triangular numbers from 1 to 5000;
 
 func trianglenum:
     dip [0]
@@ -6,7 +6,7 @@ func trianglenum:
         dup | dip [+]
         - 1
     ]
-    drop .
+    drop ;
 
 func main:
     1
@@ -16,4 +16,4 @@ func main:
         print " is "
         println trianglenum dup
         + 1
-    ].
+    ];

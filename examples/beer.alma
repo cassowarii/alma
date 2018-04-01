@@ -8,7 +8,7 @@ func quantified-bottles msg:
     ] [
         print "No more bottles "
     ]
-    println msg.
+    println msg;
 
 # int → , sings the song for how-many verses
 func bottles-of-beer how-many:
@@ -27,6 +27,6 @@ func bottles-of-beer how-many:
             - 1
         ]
     ]
-    drop.
+    drop;
 
-func main: 99 | bottles-of-beer.
+func main: 99 | bottles-of-beer;

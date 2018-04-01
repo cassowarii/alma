@@ -3,6 +3,6 @@ func main:
     println sumof3 3 4 5
     print "The sum of 32, 54, and 43 is "
     println sumof3 32 54 43
-    .
+    ;
 
-func sumof3: + +.
+func sumof3: + +;
