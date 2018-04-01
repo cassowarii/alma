@@ -13,6 +13,6 @@ func generate:
         let
             func b: [f];
             func f: a;
-        in b
+        in (b)
     )
     ;

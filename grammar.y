@@ -129,18 +129,18 @@ realdirlist
     :   directive {
         $$ = ast_declseq_new();
         ast_declseq_append($$, $1);
-    } | realdirlist directive {
+    } | realdirlist semicolon directive {
         $$ = $1;
-        ast_declseq_append($$, $2);
-    } | realdirlist sep {
+        ast_declseq_append($$, $3);
+    } | realdirlist semicolon {
         $$ = $1;
+    } | error semicolon {
     }
 
 directive
     :   declaration {
         $$ = $1;
-    } | import ';' {
-    } | error sep {
+    } | import {
     }
 
 import
@@ -149,7 +149,7 @@ import
     }
 
 declaration
-    :   "func" name names_opt ':' words ';' {
+    :   "func" name names_opt ':' words {
         if ($3 == NULL) {
             $$ = ast_declnode(@2.first_line, $2, $5);
         } else {
@@ -157,8 +157,6 @@ declaration
             ast_wordseq_prepend(wrapper, ast_bindnode(@3.first_line, $3, $5));
             $$ = ast_declnode(@2.first_line, $2, wrapper);
         }
-    } | error ';' {
-        $$ = NULL;
     }
 
 block
@@ -224,7 +222,7 @@ word
 cmplx_word
     :   value {
         $$ = ast_valnode(@1.first_line, $1);
-    } | "let" dirlist "in" nlo word {
+    } | "let" dirlist "in" nlo cmplx_word {
         AWordSeqNode *words;
         if ($5->type == paren_node) {
             words = $5->data.inside;
@@ -307,6 +305,8 @@ listcontent
         $$ = ast_protolist_new();
         ast_protolist_append($$, $3);
     }
+
+semicolon : ';' nlo
 
 sep :   '|' | '\n'
 
