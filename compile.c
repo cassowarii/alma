@@ -239,7 +239,7 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
             stat = scope_user_register(scope, current->sym, r.lowest_free,
                                        bindinfo.var_depth, current->node);
         } else {
-            fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", stat);
+            fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", r.status);
             current = current->next;
             errors ++;
             continue;

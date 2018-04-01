@@ -319,4 +319,10 @@ typedef struct AFuncRegistry {
     int capacity;
 } AFuncRegistry;
 
+/*-*-* interactive.h *-*-*/
+
+typedef struct AInteractive {
+    int is_interactive;
+} AInteractive;
+
 #endif
