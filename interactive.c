@@ -43,24 +43,19 @@ void interactive_mode() {
             if (p == NULL) break;
 
             strcat(whole_line, p);
-            //printf("whole line: '%s'\n", whole_line);
+            printf("whole line: '%s'\n", whole_line);
 
             /* editline doesn't give a newline at end of input
              * so we have to add it ourselves */
             strcat(whole_line, "\n");
 
-            if (buf != NULL) yy_flush_buffer(buf, scanner);
             buf = yy_scan_string(whole_line, scanner);
             yy_switch_to_buffer(buf, scanner);
-
             /* Parse the string so far to look for syntax errors.
              * This calls yylex which will let us know if we should
              * keep adding stuff or not. */
+            if (buf != NULL) yy_flush_buffer(buf, scanner);
             yyparse(scanner, &program, &symtab);
-            if (program == NULL) {
-                /* syntax error */
-                inter_state->beginning = 1;
-            }
         } while (!inter_state->beginning);
     } while (p != NULL);
 

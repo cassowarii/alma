@@ -106,10 +106,10 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
        some blocks not yet closed etc., don't be done yet;
        otherwise, if we're in interactive mode, a newline with
        completely closed set of brackets is an EOF. */
-    /*printf("newline: %d %d %d %d %d\n",
+    printf("newline: %d %d %d %d %d\n",
             yyextra->nested_blocks, yyextra->nested_lists,
             yyextra->nested_parens, yyextra->nested_comments,
-            yyextra->nested_colons);*/
+            yyextra->nested_colons);
     if (yyextra->nested_blocks == 0 && yyextra->nested_lists == 0
             && yyextra->nested_parens == 0 && yyextra->nested_comments == 0
             && yyextra->nested_colons <= 0) {

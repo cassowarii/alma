@@ -43,6 +43,7 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
         AUserFunc *dummy = malloc(sizeof(AUserFunc));
         dummy->type = dummy_func;
         dummy->words = NULL;
+
         /* If we only have a placeholder for a function, we assume it has the
          * maximum number of free variables. Being cautious like this means
          * we might save a few extra closures, but if we actually do need
