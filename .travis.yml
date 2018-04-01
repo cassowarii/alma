@@ -5,4 +5,4 @@ compiler:
     - gcc
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install -qq check libeditline0 libedit-dev
+    - sudo apt-get install -qq check libeditline0 libedit-dev libeditline-dev libeditline2

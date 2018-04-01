@@ -1,5 +1,5 @@
 #CC=gcc-
-CFLAGS=-std=c99 -Wall -pedantic -g -Og -D_GNU_SOURCE -I/usr/include -leditline -ledit
+CFLAGS=-std=c99 -Wall -pedantic -g -Og -D_GNU_SOURCE
 
 ALMALIBS=lib_func.o lib_op.o lib_stack.o lib_control.o
 ALMAREQS=ustrings.o symbols.o value.o ast.o stack.o scope.o eval.o parse.o $(ALMALIBS) lib.o registry.o vars.o compile.o grammar.tab.o lex.yy.o interactive.o
