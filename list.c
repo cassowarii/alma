@@ -2,7 +2,7 @@
 
 /* Allocate a new blank list. */
 AList *list_new() {
-    AList *list = malloc(sizeof(list));
+    AList *list = malloc(sizeof(AList));
     list->first = NULL;
     list->last = NULL;
     list->length = 0;

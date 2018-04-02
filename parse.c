@@ -9,6 +9,11 @@ void parse_file(FILE *f, ADeclSeqNode **prog_out, ASymbolTable *symtab_out) {
 
     AInteractive* noninteractive = malloc(sizeof(AInteractive));
     noninteractive->is_interactive = 0;
+    noninteractive->nested_parens = 0;
+    noninteractive->nested_blocks = 0;
+    noninteractive->nested_comments = 0;
+    noninteractive->nested_lists = 0;
+    noninteractive->nested_colons = 0;
 
     yyscan_t scanner;
 
@@ -27,4 +32,6 @@ void parse_file(FILE *f, ADeclSeqNode **prog_out, ASymbolTable *symtab_out) {
 
     *prog_out = program;
     *symtab_out = symtab;
+
+    free(noninteractive);
 }
