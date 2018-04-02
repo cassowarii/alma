@@ -1,7 +1,5 @@
 #include "list.h"
 
-/* TODO need list free code */
-
 /* Allocate a new blank list. */
 AList *list_new() {
     AList *list = malloc(sizeof(list));
@@ -29,6 +27,20 @@ void list_cons(AValue *val, AList *list) {
     list->first = elem;
     if (list->last == NULL) {
         list->last = elem;
+    }
+    list->length ++;
+}
+
+/* Put an AValue* at the end of a list,
+ * mutating the list. */
+void list_append(AList *list, AValue *val) {
+    AListElem *elem = create_element(val);
+    if (list->last != NULL) {
+        list->last->next = elem;
+    }
+    list->last = elem;
+    if (list->first == NULL) {
+        list->first = elem;
     }
     list->length ++;
 }
@@ -63,7 +75,7 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto) {
         AValue *val = stack_get(tmp, 0);
         free_stack(tmp);
         /* put the element onto the list */
-        list_cons(val, list);
+        list_append(list, val);
         /* move to the next element */
         current = current->next;
     }
@@ -81,4 +93,16 @@ void print_list(AList *l) {
         current = current->next;
     }
     printf(" }");
+}
+
+/* Free a list. */
+void free_list(AList *l) {
+    AListElem *current = l->first;
+    while (current) {
+        AListElem *next = current->next;
+        delete_ref(current->val);
+        free(current);
+        current = next;
+    }
+    free(l);
 }

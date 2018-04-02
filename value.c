@@ -165,30 +165,28 @@ void free_value(AValue *to_free) {
             /* if int, float, or symbol ptr, we just free this one
              * which will free attached int or float. Symbols are
              * all freed at program exit. */
-            free(to_free);
             break;
         case proto_block:
         case free_block_val:
         case block_val:
             free_wordseq_node(to_free->data.ast);
-            free(to_free);
             break;
         case bound_block_val:
             free_user_func(to_free->data.uf);
-            free(to_free);
             break;
         case str_val:
             free_ustring(to_free->data.str);
-            free(to_free);
             break;
         case proto_list:
             free_protolist(to_free->data.pl);
-            free(to_free);
+            break;
+        case list_val:
+            free_list(to_free->data.list);
             break;
         default:
             fprintf(stderr,
                     "warning, freeing value of unrecognized type %d.",
                     to_free->type);
-            free(to_free);
     }
+    free(to_free);
 }

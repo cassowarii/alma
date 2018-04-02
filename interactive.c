@@ -1,8 +1,8 @@
 #include "interactive.h"
 
 void interactive_mode() {
-    printf("Alma language interpreter version "ALMA_VERSION" \""ALMA_VNAME"\"\n");
-    printf("Compiled on "__DATE__" at "__TIME__"\n");
+    printf("Alma version "ALMA_VERSION" “"ALMA_VNAME"” "
+           "["__DATE__", "__TIME__"]\n");
 
     AInteractive* inter_state = malloc(sizeof(AInteractive));
     inter_state->is_interactive = 1;

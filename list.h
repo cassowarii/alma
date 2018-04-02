@@ -13,6 +13,10 @@ AList *list_new();
  * mutating the list. */
 void list_cons(AValue *val, AList *list);
 
+/* Put an AValue* at the end of a list,
+ * mutating the list. */
+void list_append(AList *list, AValue *val);
+
 /* Create a new list from a proto-list. Note
  * that it (for now) just takes the top element
  * of the stack resulting from evaluating each
@@ -28,5 +32,8 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto);
 
 /* Print out a list. */
 void print_list(AList *l);
+
+/* Free a list. */
+void free_list(AList *l);
 
 #endif

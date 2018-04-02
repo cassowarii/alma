@@ -46,6 +46,29 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                                     "while compiling a block.\n", blockstat.status);
                     errors ++;
                 }
+            } else if (current->data.val->type == proto_list) {
+                /* Compile the things in the protolist. */
+                AWordSeqNode *plcurrent = current->data.val->data.pl->first;
+                while (plcurrent != NULL) {
+                    ACompileResult plstat = compile_wordseq(scope, reg, plcurrent, bindinfo);
+                    if (plstat.status == compile_fail) {
+                        errors ++;
+                    } else if (plstat.status == compile_success) {
+                        if (plstat.lowest_free == NOFREEVARS) {
+                            /* Great! */
+                        } else {
+                            /* A free variable was referenced within the list. */
+                            if (plstat.lowest_free < free_variable_index) {
+                                free_variable_index = plstat.lowest_free;
+                            }
+                        }
+                    } else {
+                        fprintf(stderr, "internal error: unrecognized compile status %d "
+                                        "while compiling a list.\n", plstat.status);
+                        errors ++;
+                    }
+                    plcurrent = plcurrent->next;
+                }
             }
             /* For now, we otherwise just assume the value is fine as is. */
         } else if (current->type == func_node) {
