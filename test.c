@@ -140,6 +140,25 @@ START_TEST(test_unknown_func_error) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_basiclist) {
+    ALMATESTINTRO("tests/basiclist.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+    ck_assert(mainfunc != NULL);
+    eval_word(stack, NULL, mainfunc);
+
+    /* jeez that's a lot of pointers huh */
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->type, list_val);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->val->data.i, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->next->val->data.i, 2);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->next->next->val->data.i, 3);
+    ALMATESTCLEAN();
+} END_TEST
+
 START_TEST(test_listwarn) {
     ALMATESTINTRO("tests/listwarn.alma");
 
@@ -152,7 +171,6 @@ START_TEST(test_listwarn) {
     ck_assert(mainfunc != NULL);
     eval_word(stack, NULL, mainfunc);
 
-    /* jeez that's a lot of pointers huh */
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->type, list_val);
     ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->val->data.i, 1);
@@ -435,6 +453,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_core, test_stack_pop_print);
     tcase_add_test(tc_core, test_addition);
     tcase_add_test(tc_core, test_apply);
+    tcase_add_test(tc_core, test_basiclist);
     suite_add_tcase(s, tc_core);
 
     /* test compilation */
