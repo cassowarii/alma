@@ -56,7 +56,7 @@ void list_append(AList *list, AValue *val) {
  * (Tuples? Matrices???? Too crazy?) */
 /* Takes a varbuffer because, hey, there might
  * be lexical variables in that list! */
-AList *list_reify(AVarBuffer *buf, AProtoList *proto) {
+AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum) {
     AWordSeqNode *current = proto->first;
     AList *list = list_new();
 
@@ -66,10 +66,14 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto) {
         eval_sequence(tmp, buf, current);
         /* get the top element of the stack, and issue a warning
          * if there's more than one element on the stack */
-        /* TODO add a more specific error msg */
         if (tmp->size > 1) {
-            fprintf(stderr, "warning: more than one stack element generated "
-                            "by expression in list; ignoring all but top\n");
+            /* TODO resolve this weird mismatch -- the expression will
+             * be printed out to stdout, but everything else to stderr */
+            fprintf(stderr, "warning: expression ‘");
+            fprint_wordseq_node(stderr, current);
+            fprintf(stderr, "’ in list at line %d generated %d elements, "
+                            "but only the first one will be used\n",
+                            linenum, tmp->size);
         }
         /* get a new reference to the first element */
         AValue *val = stack_get(tmp, 0);
@@ -83,16 +87,21 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto) {
     return list;
 }
 
-/* Print out a list. */
-void print_list(AList *l) {
+/* Print out a list to an arbitrary filehandle. */
+void fprint_list(FILE *out, AList *l) {
     AListElem *current = l->first;
-    printf("{ ");
+    fprintf(out, "{ ");
     while (current) {
-        print_val(current->val);
-        if (current->next != NULL) printf(", ");
+        fprint_val(out, current->val);
+        if (current->next != NULL) fprintf(out, ", ");
         current = current->next;
     }
-    printf(" }");
+    fprintf(out, " }");
+}
+
+/* Print out a list. */
+void print_list(AList *l) {
+    fprint_list(stdout, l);
 }
 
 /* Free a list. */

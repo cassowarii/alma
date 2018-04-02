@@ -49,21 +49,31 @@ void ustr_finish(AUstr *u) {
     }
 }
 
-/* Print a character represented by a Unicode codepoint. */
-void print_char(uint32_t utf8) {
+/* Print a character represented by a Unicode codepoint, to an arbitrary filehandle. */
+void fprint_char(FILE *out, uint32_t utf8) {
     for (int i = 3; i >= 0; i--) {
         char byte = (((unsigned)utf8 & (0xFF << (8 * i))) >> (8 * i));
         if (byte != '\0') {
-            printf("%c", byte);
+            fprintf(out, "%c", byte);
         }
+    }
+}
+
+/* Print a character represented by a Unicode codepoint. */
+void print_char(uint32_t utf8) {
+    fprint_char(stdout, utf8);
+}
+
+/* Print a AUstr character-by-character, to an arbitrary filehandle. */
+void ustr_fprint(FILE *out, AUstr *u) {
+    for (int i = 0; i < u->length; i++) {
+        fprint_char(out, u->data[i]);
     }
 }
 
 /* Print a AUstr character-by-character. */
 void ustr_print(AUstr *u) {
-    for (int i = 0; i < u->length; i++) {
-        print_char(u->data[i]);
-    }
+    ustr_fprint(stdout, u);
 }
 
 /* Parse a UTF8 character-literal into a 4-byte int. */

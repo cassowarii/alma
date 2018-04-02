@@ -101,44 +101,45 @@ void delete_ref(AValue *v) {
     }
 }
 
-extern void print_wordseq_node(AWordSeqNode *ast);
-extern void print_symbol(ASymbol *s);
-extern void ustr_print(AUstr *u);
-extern void print_protolist(AProtoList *pl);
-
-void print_val(AValue *v) {
+/* Print out a value to an arbitrary filehandle. */
+void fprint_val(FILE *out, AValue *v) {
     if (v->type == int_val) {
-        printf("%d", v->data.i);
+        fprintf(out, "%d", v->data.i);
     } else if (v->type == block_val
             || v->type == proto_block
             || v->type == free_block_val) {
-        printf("[ ");
-        print_wordseq_node(v->data.ast);
-        printf(" ]");
+        fprintf(out, "[ ");
+        fprint_wordseq_node(out, v->data.ast);
+        fprintf(out, " ]");
     } else if (v->type == bound_block_val) {
         /* the '*' means it's attached to a closure.
          * does this make sense? idk. */
-        printf("*[ ");
-        print_wordseq_node(v->data.uf->words);
-        printf(" ]");
+        fprintf(out, "*[ ");
+        fprint_wordseq_node(out, v->data.uf->words);
+        fprintf(out, " ]");
     } else if (v->type == str_val) {
-        printf("\"");
-        ustr_print(v->data.str);
-        printf("\"");
+        fprintf(out, "\"");
+        ustr_fprint(out, v->data.str);
+        fprintf(out, "\"");
     } else if (v->type == float_val) {
-        printf("%g", v->data.fl);
+        fprintf(out, "%g", v->data.fl);
     } else if (v->type == proto_list) {
-        printf("{ ");
-        print_protolist(v->data.pl);
-        printf(" }");
+        fprintf(out, "{ ");
+        fprint_protolist(out, v->data.pl);
+        fprintf(out, " }");
     } else if (v->type == list_val) {
-        print_list(v->data.list);
+        fprint_list(out, v->data.list);
     } else if (v->type == sym_val) {
-        printf("/");
-        print_symbol(v->data.sym);
+        fprintf(out, "/");
+        fprint_symbol(out, v->data.sym);
     } else {
-        printf("?");
+        fprintf(out, "?");
     }
+}
+
+/* Print out a value. */
+void print_val(AValue *v) {
+    fprint_val(stdout, v);
 }
 
 /* Print out a value without quoting strings etc.

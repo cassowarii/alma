@@ -5,6 +5,8 @@
 #include "scope.h" /* for free_user_func */
 #include "vars.h"
 #include "list.h"
+#include "ustrings.h"
+#include "symbols.h"
 
 /* Create a value holding an int */
 AValue *val_int(int data);
@@ -39,6 +41,9 @@ void delete_ref(AValue *v);
 
 /* Print out a value */
 void print_val(AValue *v);
+
+/* same but takes an arbitrary filehandle to print to */
+void fprint_val(FILE *out, AValue *v);
 
 /* Print out a value without quoting strings etc.
  * (called by 'print' word) */

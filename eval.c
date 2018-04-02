@@ -45,7 +45,7 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
         } else if (node->data.val->type == proto_list) {
             /* If it's a proto-list, we need to construct a new
              * actual-list from it. */
-            AList *l = list_reify(buf, node->data.val->data.pl);
+            AList *l = list_reify(buf, node->data.val->data.pl, node->linenum);
             put = ref(val_list(l));
         } else {
             /* If it's not anything special, we can just push its value

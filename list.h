@@ -28,10 +28,13 @@ void list_append(AList *list, AValue *val);
  * (Tuples? Matrices???? Too crazy?) */
 /* Takes a varbuffer because, hey, there might
  * be lexical variables in that list! */
-AList *list_reify(AVarBuffer *buf, AProtoList *proto);
+AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum);
 
 /* Print out a list. */
 void print_list(AList *l);
+
+/* Print out a list to an arbitrary filehandle. */
+void fprint_list(FILE *out, AList *l);
 
 /* Free a list. */
 void free_list(AList *l);

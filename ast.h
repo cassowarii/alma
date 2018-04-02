@@ -71,6 +71,14 @@ void print_declaration(ADeclNode *a);
 /* Print out a declaration sequence. */
 void print_decl_seq(ADeclSeqNode *x);
 
+/* Same as the above but printing to an arbitrary file */
+/* (probably stderr) */
+void fprint_ast_node(FILE *out, AAstNode *x);
+void fprint_protolist(FILE *out, AProtoList *pl);
+void fprint_wordseq_node(FILE *out, AWordSeqNode *x);
+void fprint_declaration(FILE *out, ADeclNode *a);
+void fprint_decl_seq(FILE *out, ADeclSeqNode *x);
+
 /*--- Freeing ---*/
 
 /* Free an AST node. */

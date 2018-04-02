@@ -140,6 +140,27 @@ START_TEST(test_unknown_func_error) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_listwarn) {
+    ALMATESTINTRO("tests/listwarn.alma");
+
+    printf("The next thing printed should be a warning.\n");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+    ck_assert(mainfunc != NULL);
+    eval_word(stack, NULL, mainfunc);
+
+    /* jeez that's a lot of pointers huh */
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->type, list_val);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->val->data.i, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->next->val->data.i, 3);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->next->next->val->data.i, 4);
+    ALMATESTCLEAN();
+} END_TEST
+
 START_TEST(test_definition) {
     ALMATESTINTRO("tests/definition.alma");
 
@@ -425,6 +446,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_comp, test_funcshadow);
     tcase_add_test(tc_comp, test_dupvar);
     tcase_add_test(tc_comp, test_varshadow);
+    tcase_add_test(tc_comp, test_listwarn);
     tcase_add_test(tc_comp, test_definition);
     tcase_add_test(tc_comp, test_let);
     tcase_add_test(tc_comp, test_2let);

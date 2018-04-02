@@ -10,6 +10,9 @@ ASymbol *get_symbol(ASymbolTable *t, const char *name);
 /* Print a symbol. */
 void print_symbol(ASymbol *s);
 
+/* Print a symbol to arbitrary filehandle. */
+void fprint_symbol(FILE *out, ASymbol *s);
+
 /* Free the symbol table at the end of the program. */
 void free_symbol_table(ASymbolTable *t);
 

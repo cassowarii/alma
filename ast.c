@@ -221,94 +221,119 @@ void ast_protolist_append(AProtoList *list, AWordSeqNode *node) {
     }
 }
 
-extern void print_symbol(ASymbol *s);
-extern void print_val(AValue *v);
+extern void fprint_symbol(FILE *out, ASymbol *s);
+extern void fprint_val(FILE *out, AValue *v);
+
+/* Print out an AST node. */
+void print_ast_node(AAstNode *x) {
+    fprint_ast_node(stdout, x);
+}
+
+/* Print out a protolist. */
+void print_protolist(AProtoList *pl) {
+    fprint_protolist(stdout, pl);
+}
+
+/* Print out an AST sequence. */
+void print_wordseq_node(AWordSeqNode *x) {
+    fprint_wordseq_node(stdout, x);
+}
+
+/* Print out a single declaration. */
+void print_declaration(ADeclNode *a) {
+    fprint_declaration(stdout, a);
+}
+
+/* Print out a declaration sequence. */
+void print_decl_seq(ADeclSeqNode *x) {
+    fprint_decl_seq(stdout, x);
+}
 
 /* Print out an AST node but first print the stuff before it.
  * Even though stuff is linked in execution order, we still want
  * to print them out 'reversed.' */
 /* This is a little hard on the call stack though? Hm. */
 static
-void print_linked_ast(AAstNode *x) {
+void fprint_linked_ast(FILE *out, AAstNode *x) {
     if (x->next != NULL) {
-        print_linked_ast(x->next);
-        printf(" ");
+        fprint_linked_ast(out, x->next);
+        fprintf(out, " ");
     }
-    print_ast_node(x);
+    fprint_ast_node(out, x);
 }
 
 /* Print out an AST sequence. */
-void print_wordseq_node(AWordSeqNode *x) {
+void fprint_wordseq_node(FILE *out, AWordSeqNode *x) {
     if (x == NULL) return;
     if (x->first == NULL) return;
-    print_linked_ast(x->first);
+    fprint_linked_ast(out, x->first);
 }
 
 /* Print out a protolist. */
-void print_protolist(AProtoList *pl) {
+void fprint_protolist(FILE *out, AProtoList *pl) {
     if (pl == NULL) return;
     AWordSeqNode *current = pl->first;
     while (current != NULL) {
-        print_wordseq_node(current);
-        if (current->next != NULL) printf(", ");
+        fprint_wordseq_node(out, current);
+        if (current->next != NULL) fprintf(out, ", ");
         current = current->next;
     }
 }
 
 static
-void print_name_seq(ANameSeqNode *x) {
+void fprint_name_seq(FILE *out, ANameSeqNode *x) {
     ANameNode *current = x->first;
     while (current) {
-        printf("%s ", current->sym->name);
+        fprintf(out, "%s ", current->sym->name);
         current = current->next;
     }
 }
 
 /* Print out an AST node. */
-void print_ast_node(AAstNode *x) {
+void fprint_ast_node(FILE *out, AAstNode *x) {
     if (x->type == value_node) {
-        print_val(x->data.val);
+        fprint_val(out, x->data.val);
     } else if (x->type == word_node) {
-        print_symbol(x->data.sym);
+        fprint_symbol(out, x->data.sym);
     } else if (x->type == paren_node) {
-        printf("(");
-        print_wordseq_node(x->data.inside);
-        printf(")");
+        fprintf(out, "(");
+        fprint_wordseq_node(out, x->data.inside);
+        fprintf(out, ")");
     } else if (x->type == func_node) {
-        printf("%s", x->data.func->sym->name);
+        fprintf(out, "%s", x->data.func->sym->name);
     } else if (x->type == let_node) {
-        printf("let ");
-        print_decl_seq(x->data.let->decls);
-        printf(" in (");
-        print_wordseq_node(x->data.let->words);
-        printf(")");
+        fprintf(out, "let ");
+        fprint_decl_seq(out, x->data.let->decls);
+        fprintf(out, " in (");
+        fprint_wordseq_node(out, x->data.let->words);
+        fprintf(out, ")");
     } else if (x->type == bind_node) {
-        printf("→ ");
-        print_name_seq(x->data.bind->names);
-        printf("(");
-        print_wordseq_node(x->data.bind->words);
-        printf(")");
+        fprintf(out, "→ ");
+        fprint_name_seq(out, x->data.bind->names);
+        fprintf(out, "(");
+        fprint_wordseq_node(out, x->data.bind->words);
+        fprintf(out, ")");
     } else {
-        printf("??%d", x->type);
+        fprintf(out, "??%d", x->type);
     }
 }
 
 /* Print out a single declaration. */
-void print_declaration(ADeclNode *a) {
-    printf("func ");
-    print_symbol(a->sym);
-    printf(" : ");
-    print_wordseq_node(a->node);
-    printf(" .");
+void fprint_declaration(FILE *out, ADeclNode *a) {
+    fprintf(out, "func ");
+    fprint_symbol(out, a->sym);
+    fprintf(out, " : ");
+    fprint_wordseq_node(out, a->node);
+    fprintf(out, " .");
 }
 
 /* Print out a declaration sequence. */
-void print_decl_seq(ADeclSeqNode *x) {
+void fprint_decl_seq(FILE *out, ADeclSeqNode *x) {
     if (x == NULL) return;
     ADeclNode *current = x->first;
     while (current != NULL) {
-        print_declaration(current);
-        printf("\n");
+        fprint_declaration(out, current);
+        fprintf(out, "\n");
         current = current->next;
     }
 }

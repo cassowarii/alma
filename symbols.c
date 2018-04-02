@@ -40,6 +40,11 @@ void print_symbol(ASymbol *s) {
     printf("%s", s->name);
 }
 
+/* Print a symbol. */
+void fprint_symbol(FILE *out, ASymbol *s) {
+    fprintf(out, "%s", s->name);
+}
+
 /* Free a symbol. (Should only be called at the end.) */
 void free_symbol(ASymbol *to_free) {
     free(to_free->name);

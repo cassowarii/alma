@@ -23,6 +23,9 @@ void    print_char(uint32_t utf8);
 /* Print an AUstr character-by-character. */
 void    ustr_print(AUstr *u);
 
+/* Print an AUstr character-by-character, to an arbitrary filehandle. */
+void    ustr_fprint(FILE *out, AUstr *u);
+
 /* Parse a UTF8 character-literal into a 4-byte int. */
 uint32_t char_parse(const char *utf8, unsigned int length);
 
