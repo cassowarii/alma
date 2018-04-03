@@ -1,13 +1,12 @@
 # 99 Bottles of Beer
 
-# string int → int, prints correct bottle # for the int
+# prints correct pluralization of bottles
+func bottle/s: if* [= 1] [print " bottle "] [print " bottles "] ;
+
+# string int → int, prints "X bottle(s) <msg>"
 func quantified-bottles msg:
-    if* [> 0] [
-        print dup
-        if* [= 1] [print " bottle "] [print " bottles "]
-    ] [
-        print "No more bottles "
-    ]
+    if* [> 0] [print dup] [print "No more"]
+    bottle/s
     println msg;
 
 # int → , sings the song for how-many verses

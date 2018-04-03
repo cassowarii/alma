@@ -34,7 +34,7 @@ void lib_ifstar(AStack *stack, AVarBuffer *buffer) {
     AValue *ifpart = stack_get(stack, 0);
     AValue *thenpart = stack_get(stack, 1);
     AValue *elsepart = stack_get(stack, 2);
-    AValue *top = ref(stack_get(stack, 3));
+    AValue *top = stack_get(stack, 3);
 
     /* don't pop off 'top' */
     stack_pop(stack, 3);
@@ -54,7 +54,6 @@ void lib_ifstar(AStack *stack, AVarBuffer *buffer) {
 
     delete_ref(ifpart);
     delete_ref(condition);
-    delete_ref(top);
     delete_ref(thenpart);
     delete_ref(elsepart);
 }

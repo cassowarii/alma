@@ -30,6 +30,20 @@ void list_append(AList *list, AValue *val);
  * be lexical variables in that list! */
 AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum);
 
+/* Given a value of type 'list', return the tail
+ * of the list. If it has no other references,
+ * re-uses the original list value. */
+/* Note: obviously this function is partial and
+ * doesn't work on lists of length 0. */
+AValue *tail_list_val(AValue *val);
+
+/* Given a value of type 'list', return the head
+ * of the list. (again, partial, list of length 0
+ * has no head) */
+/* (NOTE: doesn't destroy list object; returns a
+ * fresh reference to head value) */
+AValue *head_list_val(AValue *val);
+
 /* Print out a list. */
 void print_list(AList *l);
 

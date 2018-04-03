@@ -87,6 +87,59 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum) {
     return list;
 }
 
+/* Given a value of type 'list', return the tail
+ * of the list. If it has no other references,
+ * re-uses the original list value. */
+/* Note: obviously this function is partial and
+ * doesn't work on lists of length 0. */
+AValue *tail_list_val(AValue *val) {
+    if (val->data.list->length == 0) {
+        fprintf(stderr, "error: attempt to take tail of empty list");
+        return NULL;
+    }
+
+    if (val->refs == 1) {
+        AListElem *oldfirst = val->data.list->first;
+        AListElem *newfirst = val->data.list->first->next;
+        AListElem *newlast = val->data.list->last;
+        if (newfirst == NULL) {
+            newlast = NULL;
+        }
+        val->data.list->first = newfirst;
+        val->data.list->last = newlast;
+        val->data.list->length --;
+
+        /* don't need the old head element-holder anymore */
+        delete_ref(oldfirst->val);
+        free(oldfirst);
+
+        return ref(val);
+    } else {
+        AList *newlist = list_new();
+        AListElem *current = val->data.list->first->next;
+        while (current) {
+            list_append(newlist, ref(current->val));
+            current = current->next;
+        }
+        return val_list(newlist);
+    }
+}
+
+/* Given a value of type 'list', return the head
+ * of the list. (again, partial, list of length 0
+ * has no head) */
+/* (NOTE: doesn't destroy list object; returns a
+ * fresh reference to head value) */
+AValue *head_list_val(AValue *val) {
+    if (val->data.list->length == 0) {
+        fprintf(stderr, "error: attempt to take head of empty list");
+        return NULL;
+    }
+
+    AValue *hval = ref(val->data.list->first->val);
+    return hval;
+}
+
 /* Print out a list to an arbitrary filehandle. */
 void fprint_list(FILE *out, AList *l) {
     AListElem *current = l->first;

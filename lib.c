@@ -16,4 +16,5 @@ void lib_init(ASymbolTable st, AScope *sc) {
     oplib_init(st, sc);
     stacklib_init(st, sc);
     controllib_init(st, sc);
+    listlib_init(st, sc);
 }

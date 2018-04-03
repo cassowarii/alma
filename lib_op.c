@@ -10,6 +10,21 @@ static AValue *gte_int_val(AValue *a, AValue *b);
 static AValue *lte_int_val(AValue *a, AValue *b);
 static AValue *ne_int_val(AValue *a, AValue *b);
 static AValue *eq_int_val(AValue *a, AValue *b);
+/* TODO replace all these with set_2int_val.
+ * I am not very smart. */
+static AValue *set_int_val(AValue *a, int x);
+static AValue *set_2int_val(AValue *a, AValue *b, int x);
+
+/* Boolean-negate the top value on the stack. */
+void lib_not(AStack* stack, AVarBuffer *buffer) {
+    AValue *a = stack_get(stack, 0);
+    stack_pop(stack, 1);
+
+    AValue *c = set_int_val(a, !a->data.i);
+
+    stack_push(stack, c);
+    delete_ref(a);
+}
 
 /* Add the top two values on the stack. */
 void lib_add(AStack* stack, AVarBuffer *buffer) {
@@ -160,6 +175,7 @@ void oplib_init(ASymbolTable st, AScope *sc) {
     addlibfunc(sc, st, "=", &lib_equal);
     addlibfunc(sc, st, "!=", &lib_equal);
     addlibfunc(sc, st, "≠", &lib_equal);
+    addlibfunc(sc, st, "not", &lib_not);
 }
 
 /* Save a memory allocation if possible when adding:
@@ -287,5 +303,28 @@ AValue *eq_int_val(AValue *a, AValue *b) {
         return ref(b);
     } else {
         return ref(val_int(b->data.i == a->data.i));
+    }
+}
+
+/* Same but lets you set to an arbitrary int val. */
+static AValue *set_int_val(AValue *a, int x) {
+    if (a->refs <= 1) {
+        a->data.i = x;
+        return ref(a);
+    } else {
+        return ref(val_int(x));
+    }
+}
+
+static
+AValue *set_2int_val(AValue *a, AValue *b, int x) {
+    if (a->refs <= 1) {
+        a->data.i = x;
+        return ref(a);
+    } else if (b->refs <= 1) {
+        b->data.i = x;
+        return ref(b);
+    } else {
+        return ref(val_int(x));
     }
 }
