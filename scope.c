@@ -1,7 +1,5 @@
 #include "scope.h"
 
-extern unsigned int NOFREEVARS;
-
 /* Create a new lexical scope with parent scope 'parent'. */
 AScope *scope_new(AScope *parent) {
     AScope *newscope = malloc(sizeof(AScope));
