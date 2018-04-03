@@ -40,6 +40,7 @@ void stack_push(AStack *st, AValue *v) {
             fprintf(stderr, "Error: couldn't grow stack from size %d to %d. Out of memory.",
                     st->capacity, st->capacity * 2);
         }
+        st->content = new_array;
         st->capacity *= 2;
     }
     st->content[st->size] = v;
