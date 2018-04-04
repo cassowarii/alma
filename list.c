@@ -152,6 +152,27 @@ void fprint_list(FILE *out, AList *l) {
     fprintf(out, " }");
 }
 
+/* Given a value and a value of type 'list', return
+ * the value cons'd onto the front of the list.
+ * Can reuse the list value if only has one reference. */
+AValue *cons_list_val(AValue *val, AValue *l) {
+    if (l->refs == 1) {
+        list_cons(ref(val), l->data.list);
+        return ref(l);
+    } else {
+        AList *newlist = list_new();
+        AListElem *current = l->data.list->first;
+
+        while (current) {
+            list_append(newlist, ref(current->val));
+            current = current->next;
+        }
+
+        list_cons(ref(val), newlist);
+        return ref(val_list(newlist));
+    }
+}
+
 /* Print out a list. */
 void print_list(AList *l) {
     fprint_list(stdout, l);

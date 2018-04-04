@@ -17,9 +17,11 @@ void lib_cons(AStack* stack, AVarBuffer *buffer) {
     AValue *vlist = stack_get(stack, 1);
     stack_pop(stack, 2);
 
-    list_cons(a, vlist->data.list);
+    AValue *result = cons_list_val(a, vlist);
+    stack_push(stack, result);
 
-    stack_push(stack, vlist);
+    delete_ref(a);
+    delete_ref(vlist);
 }
 
 /* get head of list */

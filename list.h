@@ -44,6 +44,11 @@ AValue *tail_list_val(AValue *val);
  * fresh reference to head value) */
 AValue *head_list_val(AValue *val);
 
+/* Given a value and a value of type 'list', return
+ * the value cons'd onto the front of the list.
+ * Can reuse the list value if only has one reference. */
+AValue *cons_list_val(AValue *val, AValue *list);
+
 /* Print out a list. */
 void print_list(AList *l);
 
