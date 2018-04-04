@@ -40,8 +40,8 @@ UANYN   {ASCN}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 
  /* ([^{}\[\]\" \t\n()]|{UONLY}) */
-IDBEGIN [^{[(\"\' \t\n]|{UONLY}
-IDMID   [^ \t\n]|{UONLY}
+IDBEGIN [^{[(\"\' \t\n,]|{UONLY}
+IDMID   [^ \t\n,]|{UONLY}
 IDEND   [^}\]) \t\n,:;]|{UONLY}
 IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 

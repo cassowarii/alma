@@ -298,18 +298,18 @@ listcontent
         } else {
             free_wordseq_node($1);
         }
-    } | listcontent ',' wordseq_opt {
+    } | listcontent ',' nlo wordseq_opt {
         $$ = $1;
         /* if wordseq_opt is empty, don't
            actually append anything */
-        if ($3->first != NULL) {
-            ast_protolist_append($$, $3);
+        if ($4->first != NULL) {
+            ast_protolist_append($$, $4);
         } else {
-            free_wordseq_node($3);
+            free_wordseq_node($4);
         }
-    } | error ',' wordseq_opt {
+    } | error ',' nlo wordseq_opt {
         $$ = ast_protolist_new();
-        ast_protolist_append($$, $3);
+        ast_protolist_append($$, $4);
     }
 
 semicolon : ';' nlo
