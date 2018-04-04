@@ -293,10 +293,20 @@ list
 listcontent
     :   wordseq_opt {
         $$ = ast_protolist_new();
-        ast_protolist_append($$, $1);
+        if ($1->first != NULL) {
+            ast_protolist_append($$, $1);
+        } else {
+            free_wordseq_node($1);
+        }
     } | listcontent ',' wordseq_opt {
         $$ = $1;
-        ast_protolist_append($$, $3);
+        /* if wordseq_opt is empty, don't
+           actually append anything */
+        if ($3->first != NULL) {
+            ast_protolist_append($$, $3);
+        } else {
+            free_wordseq_node($3);
+        }
     } | error ',' wordseq_opt {
         $$ = ast_protolist_new();
         ast_protolist_append($$, $3);

@@ -60,7 +60,7 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum) {
     AWordSeqNode *current = proto->first;
     AList *list = list_new();
 
-    while (current) {
+    while (current != NULL) {
         /* create a new tiny stack to evaluate this on */
         AStack *tmp = stack_new(2);
         eval_sequence(tmp, buf, current);
@@ -121,7 +121,7 @@ AValue *tail_list_val(AValue *val) {
             list_append(newlist, ref(current->val));
             current = current->next;
         }
-        return val_list(newlist);
+        return ref(val_list(newlist));
     }
 }
 
@@ -157,13 +157,16 @@ void fprint_list(FILE *out, AList *l) {
  * Can reuse the list value if only has one reference. */
 AValue *cons_list_val(AValue *val, AValue *l) {
     if (l->refs == 1) {
+        printf("reuse thing\n");
         list_cons(ref(val), l->data.list);
         return ref(l);
     } else {
+        printf("new thing\n");
         AList *newlist = list_new();
         AListElem *current = l->data.list->first;
 
         while (current) {
+            assert(current->val != NULL);
             list_append(newlist, ref(current->val));
             current = current->next;
         }
@@ -180,6 +183,9 @@ void print_list(AList *l) {
 
 /* Free a list. */
 void free_list(AList *l) {
+    printf("free list! ");
+    print_list(l);
+    printf("\n");
     AListElem *current = l->first;
     while (current) {
         AListElem *next = current->next;

@@ -10,7 +10,9 @@ void lib_dup(AStack* stack, AVarBuffer *buffer) {
 void lib_swap(AStack* stack, AVarBuffer *buffer) {
     AValue *a = stack_get(stack, 0);
     AValue *b = stack_get(stack, 1);
+
     stack_pop(stack, 2);
+
     stack_push(stack, a);
     stack_push(stack, b);
 }
@@ -56,7 +58,7 @@ void lib_stackprint(AStack* stack, AVarBuffer *buffer) {
 /* Initialize built-in stack operations. */
 void stacklib_init(ASymbolTable st, AScope *sc) {
     addlibfunc(sc, st, "dup", &lib_dup);
-    addlibfunc(sc, st, "swap", &lib_drop);
+    addlibfunc(sc, st, "swap", &lib_swap);
     addlibfunc(sc, st, "dip", &lib_dip);
     addlibfunc(sc, st, "drop", &lib_drop);
     addlibfunc(sc, st, "apply", &lib_apply);
