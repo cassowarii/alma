@@ -146,10 +146,14 @@ void fprint_list(FILE *out, AList *l) {
     fprintf(out, "{ ");
     while (current) {
         fprint_val(out, current->val);
-        if (current->next != NULL) fprintf(out, ", ");
+        if (current->next != NULL) {
+            fprintf(out, ", ");
+        } else {
+            fprintf(out, " ");
+        }
         current = current->next;
     }
-    fprintf(out, " }");
+    fprintf(out, "}");
 }
 
 /* Given a value and a value of type 'list', return
