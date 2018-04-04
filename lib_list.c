@@ -20,12 +20,6 @@ void lib_cons(AStack* stack, AVarBuffer *buffer) {
     AValue *result = cons_list_val(a, vlist);
     stack_push(stack, result);
 
-    printf("set ");
-    print_val(a);
-    printf(" to refs: %d\n", a->refs-1);
-    printf("set ");
-    print_val(vlist);
-    printf(" to refs: %d\n", a->refs-1);
     delete_ref(a);
     delete_ref(vlist);
 }

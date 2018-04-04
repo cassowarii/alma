@@ -157,11 +157,9 @@ void fprint_list(FILE *out, AList *l) {
  * Can reuse the list value if only has one reference. */
 AValue *cons_list_val(AValue *val, AValue *l) {
     if (l->refs == 1) {
-        printf("reuse thing\n");
         list_cons(ref(val), l->data.list);
         return ref(l);
     } else {
-        printf("new thing\n");
         AList *newlist = list_new();
         AListElem *current = l->data.list->first;
 
@@ -183,9 +181,6 @@ void print_list(AList *l) {
 
 /* Free a list. */
 void free_list(AList *l) {
-    printf("free list! ");
-    print_list(l);
-    printf("\n");
     AListElem *current = l->first;
     while (current) {
         AListElem *next = current->next;
