@@ -201,6 +201,7 @@ wordseq
         if ($2->type == paren_node) {
             $$ = $2->data.inside;
             ast_wordseq_concat($$, $1);
+            free($1);
             free($2);
         } else {
             $$ = $1;
