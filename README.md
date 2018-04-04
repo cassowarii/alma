@@ -41,3 +41,39 @@ Simple example
 func main: println "Hello world!";
 ```
 This program prints "Hello world!" to the console, followed by a newline.
+
+```
+func empty: len | = 0;
+func small: len | ≤ 1;
+func when*: dip [ dip [ [] ] ] | if* ;
+func 2print: print | print " " | println ;
+func concat: if* [= 0 len] [drop] [cons dip [concat] uncons];
+
+func partition-by comparison:
+    dip [{} {}]
+    while* [not empty] [
+        uncons
+        -> first rest left right (
+            if [apply comparison first] [
+                rest (cons first left) right
+            ] [
+                rest left (cons first right)
+            ]
+        )
+    ]
+    drop ;
+
+func quicksort:
+    when* [not small] [
+        stack
+        uncons
+        (-> pivot:
+            partition-by [< pivot]
+            (-> left right: concat (quicksort left) (cons pivot (quicksort right)))
+        )
+    ] ;
+```
+This program executes the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
+algorithm.
+(In the future, the little things defined at the top would be part of the standard
+ library... but there's no standard library yet ;) )
