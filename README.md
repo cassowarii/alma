@@ -46,7 +46,6 @@ This program prints "Hello world!" to the console, followed by a newline.
 func empty: len | = 0;
 func small: len | ≤ 1;
 func when*: dip [ dip [ [] ] ] | if* ;
-func 2print: print | print " " | println ;
 func concat: if* [= 0 len] [drop] [cons dip [concat] uncons];
 
 func partition-by comparison:
@@ -65,9 +64,8 @@ func partition-by comparison:
 
 func quicksort:
     when* [not small] [
-        stack
         uncons
-        (-> pivot:
+        -> pivot (
             partition-by [< pivot]
             (-> left right: concat (quicksort left) (cons pivot (quicksort right)))
         )
