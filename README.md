@@ -53,11 +53,9 @@ func partition-by comparison:
     while* [not empty] [
         uncons
         -> first rest left right (
-            if [apply comparison first] [
-                rest (cons first left) right
-            ] [
-                rest left (cons first right)
-            ]
+            if [apply comparison first] \
+                [rest (cons first left) right] \
+                [rest left (cons first right)]
         )
     ]
     drop ;

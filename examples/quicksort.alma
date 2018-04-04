@@ -8,11 +8,9 @@ func partition-by comparison:
     while* [not empty] [
         uncons
         -> first rest left right (
-            if [apply comparison first] [
-                rest (cons first left) right
-            ] [
-                rest left (cons first right)
-            ]
+            if [apply comparison first] \
+                [rest (cons first left) right] \
+                [rest left (cons first right)]
         )
     ]
     drop ;
@@ -26,4 +24,4 @@ func quicksort:
         )
     ] ;
 
-func main: print quicksort { 3, 1, 6, 4, 10, 2, 5, 9, 8, 7 };
+func main: println quicksort { 3, 1, 6, 4, 10, 2, 5, 9, 8, 7 };
