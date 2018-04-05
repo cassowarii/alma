@@ -6,7 +6,8 @@ func trianglenum:
         dup | dip [+]
         - 1
     ]
-    drop ;
+    drop
+;
 
 func main:
     1
@@ -16,4 +17,5 @@ func main:
         print " is "
         println trianglenum dup
         + 1
-    ];
+    ]
+;
