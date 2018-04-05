@@ -474,14 +474,10 @@ ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
     ADeclSeqNode *result = parse_program(&initial_state);
 
     if (initial_state.errors == 0) {
-        printf("RESULT: ");
-        print_decl_seq(result);
-
         yylex_destroy(scan);
 
         return result;
     } else {
-        printf("RESULT: syntax error. :(\n");
         return NULL;
     }
 }
