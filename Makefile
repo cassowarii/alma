@@ -11,9 +11,6 @@ all: alma test
 alma: $(ALMAREQS) alma.o
 	$(CC) $(LDIRS) $(CFLAGS) -o $@ $^ $(LIBS)
 
-grammar.tab.c: grammar.y
-	bison -d -v grammar.y
-
 lex.yy.c: lexer.l
 	flex lexer.l
 
@@ -21,7 +18,7 @@ lex.yy.c: lexer.l
 	$(CC) $(LDIRS) $(CFLAGS) -o $@ $< $(LIBS)
 
 clean:
-	rm -f *.o test_alma lex.yy.* grammar.tab.*
+	rm -f *.o test_alma lex.yy.* lex.h
 
 test_alma: $(ALMAREQS) test.o
 	$(CC) $(LDIRS) $(CFLAGS) -o $@ $^ `pkg-config --cflags --libs check` $(LIBS)
