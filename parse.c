@@ -233,13 +233,15 @@ int parse_separator(AParseState *state) {
  * parenthesized dealies, blocks, and let-nodes. */
 /* Blocks and parentheses can have optional parameters
  * which are expressed with the arrow coming immediately
- * after the opening bracket. This is distinct from
- * the other arrow syntax. this actually makes
- * it a syntax error to write something like
- * (-> a b (b a)) or [-> x (+ 1 x)], since the parser
- * will get confused and think the arrow is introducing
- * a colon-type thing. You can always put a newline or
- * a '|' between the bracket and arrow to disambiguate.
+ * after the opening bracket, with the variable names
+ * being followed by a colon (e.g. (-> a b: b a).
+ * This is distinct from the other arrow syntax.
+ * This actually makes it a syntax error to write
+ * something like (-> a b (b a)) or [-> x (+ 1 x)],
+ * since the parser will get confused and think the
+ * arrow is introducing a colon-type thing. You can
+ * always put a newline or a '|' between the bracket
+ * and arrow to disambiguate.
  * (Still, it would be nice to fix this one. I'm not
  * very good at parsers yet!!) */
 AAstNode *parse_cmplx_word(AParseState *state) {
