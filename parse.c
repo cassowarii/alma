@@ -35,11 +35,13 @@
 
 #define ACCEPT(x) do_accept(x, state)
 #define EXPECT(x) do_expect(x, state)
-#define PANICMODE(match, tok) do_panic_mode(match, tok, state)
+#define EXPECT_MATCH(match, tok) do_expect_match(match, tok, line, state)
+#define PANIC_MATCH(match, tok) do_panic_mode(match, tok, state)
+#define PANIC(tok) do_panic_mode(0, tok, state)
 #define LINENUM state->currtok.loc.first_line
 
 void do_error(char *msg, unsigned int line) {
-    fprintf(stderr, "error at line %d: %s\n", line, msg);
+    fprintf(stderr, "Error at line %d: %s\n", line, msg);
 }
 
 /* Print a representation of a general token type.
@@ -213,7 +215,7 @@ int do_expect(ATokenType type, AParseState *state) {
     if (ACCEPT(type)) {
         return 1;
     }
-    fprintf(stderr, "error at line %d: unexpected ", LINENUM);
+    fprintf(stderr, "Error at line %d: unexpected ", LINENUM);
     fprint_token(stderr, state->nexttok);
     fprintf(stderr, "; expecting ");
     /* Move to end of list and go backwards, so it prints them
@@ -251,6 +253,27 @@ int do_panic_mode(ATokenType match, ATokenType type, AParseState *state) {
     }
     /* If ran off end of file, return 0; else return 1 */
     return state->nexttok.id != 0;
+}
+
+static
+void do_expect_match(ATokenType match, ATokenType type, unsigned int line, AParseState *state) {
+    /* Now we're at the end of the parentheses/block/list.... right?? */
+    if (EXPECT(type)) {
+        /* great! the parentheses ended */
+    } else {
+        /* so was not a ), but some other unrecognized token?
+         * panic! skip to the next ) without a matching ( */
+        if (!PANIC_MATCH(match, type)) {
+            /* if we ran off end of file... */
+            fprintf(stderr, "Looks like there's a mismatched ");
+            fprint_token_type(stderr, match);
+            fprintf(stderr, " at line %d.\n", line);
+        } else {
+            /* otherwise, now we're looking at the matching ), so
+             * just eat it. */
+            EXPECT(type);
+        }
+    }
 }
 
 /* Check if the token could represent the
@@ -403,20 +426,15 @@ AAstNode *parse_cmplx_word(AParseState *state) {
             result = ast_parennode(line, words);
         }
 
-        /* Now we're at the end of the parentheses.... right?? */
-        if (EXPECT(')')) {
-            /* great! the parentheses ended */
-        } else {
-            /* so was not a ), but some other unrecognized token?
-             * panic! skip to the next ')' */
-            if (!PANICMODE('(', ')')) {
-                /* if we ran off end of file... */
-                fprintf(stderr, "Looks like there's a mismatched ‘(’ "
-                        "at line %d.\n", line);
-            } else {
-                EXPECT(')');
-            }
-        }
+        /* EXPECT_MATCH will expect the second parameter. If it doesn't find it, it panics
+         * until it finds one that doesn't have a corresponding occurrence of the first
+         * parameter. Or until it runs off the end of the file, in which case it will
+         * print out that there was an unmatched '(' at the initial line. */
+        /* (Note also that it finds the line of the '(' by grabbing the variable 'line'
+         * from this scope... it's a little macro-magic-y, but.. just something to keep
+         * in mind.) */
+        EXPECT_MATCH('(', ')');
+
         return result;
     } else if (ACCEPT('[')) {
         AWordSeqNode *inner_block = NULL;
@@ -457,38 +475,15 @@ AAstNode *parse_cmplx_word(AParseState *state) {
             inner_block = parse_words(state);
         }
 
-        if (EXPECT(']')) {
-            /* great! the block ended safely */
-        } else {
-            /* block didn't end here? that must mean nothing else could recognize
-             * the token... so we'll have to panic */
-            if (!PANICMODE('[', ']')) {
-                /* if we ran off end of file... */
-                fprintf(stderr, "Looks like there's a mismatched ‘[’ "
-                        "at line %d.\n", line);
-            } else {
-                /* otherwise, now we're looking at a ], so just eat it */
-                EXPECT(']');
-            }
-        }
+        EXPECT_MATCH('[', ']');
 
         AValue *blockval = val_block(inner_block);
         return ast_valnode(line, blockval);
     } else if (ACCEPT('{')) {
         AProtoList *proto = parse_list_guts(state);
 
-        if (EXPECT('}')) {
-            /* great! the list ended safely */
-        } else {
-            if (!PANICMODE('{', '}')) {
-                /* if we ran off end of file... */
-                fprintf(stderr, "Looks like there's a mismatched ‘{’ "
-                        "at line %d.\n", line);
-            } else {
-                /* otherwise, now we're looking at a }, so just eat it */
-                EXPECT('}');
-            }
-        }
+        EXPECT_MATCH('{', '}');
+
         return ast_valnode(line, val_protolist(proto));
     } else if (ACCEPT(T_LET)) {
         ADeclSeqNode *decls = parse_declseq(state);
