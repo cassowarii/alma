@@ -4,6 +4,7 @@
 alma
 *.tab.*
 lex.yy.*
+lex.h
 grammar.output
 test_alma
 newcodesample*
