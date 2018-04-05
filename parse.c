@@ -72,11 +72,11 @@ void fprint_token(FILE *out, AToken tok) {
         ustr_fprint(out, tok.value.s);
         fprintf(out, "\"");
     } else if (tok.id == INTEGER) {
-        fprintf(out, " %d", tok.value.i);
+        fprintf(out, " ‘%d’", tok.value.i);
     } else if (tok.id == FLOAT) {
-        fprintf(out, " %g", tok.value.d);
+        fprintf(out, " ‘%g’", tok.value.d);
     } else if (tok.id == SYMBOL) {
-        fprintf(out, " /%s", tok.value.cs);
+        fprintf(out, " ‘/%s’", tok.value.cs);
     }
 }
 
@@ -121,6 +121,7 @@ int do_expect(ATokenType type, AParseState *state) {
     if (ACCEPT(type)) {
         return 1;
     }
+    /* TODO some kind of panic mode */
     fprintf(stderr, "error at line %d: unexpected ", LINENUM);
     fprint_token(stderr, state->nexttok);
     fprintf(stderr, "; expecting ");
@@ -136,6 +137,18 @@ ADeclSeqNode *parse_declseq(AParseState *state);
 AWordSeqNode *parse_words(AParseState *state);
 
 void eat_newlines(AParseState *state);
+
+/* Parse the inside of a list: a bunch of wordses, separated by commas. */
+AProtoList *parse_list_guts(AParseState *state) {
+    AProtoList *result = ast_protolist_new();
+
+    do {
+        AWordSeqNode *seq = parse_words(state);
+        ast_protolist_append(result, seq);
+    } while (ACCEPT(','));
+
+    return result;
+}
 
 /* Parse a sequence of space-separated names (e.g. parameters to functions. */
 /* They are allowed to have newlines between them. */
@@ -220,6 +233,10 @@ AAstNode *parse_cmplx_word(AParseState *state) {
             EXPECT(')');
             return ast_parennode(line, words);
         }
+    } else if (ACCEPT('{')) {
+        AProtoList *proto = parse_list_guts(state);
+        EXPECT('}');
+        return ast_valnode(line, val_protolist(proto));
     } else if (ACCEPT(T_LET)) {
         ADeclSeqNode *decls = parse_declseq(state);
         EXPECT(T_IN);
@@ -254,6 +271,7 @@ AAstNode *parse_cmplx_word(AParseState *state) {
 int complex_word_leadin(ATokenType id) {
     if (id == '['
             || id == '('
+            || id == '{'
             || id == SYMBOL
             || id == INTEGER
             || id == FLOAT
@@ -265,6 +283,9 @@ int complex_word_leadin(ATokenType id) {
     }
 }
 
+/* Parse a single "word", which is either just a plain name
+ * (confusingly named WORD), or some more complex arrangement
+ * handled by parse_cmplx_word. */
 AAstNode *parse_word(AParseState *state) {
     if (ACCEPT(WORD)) {
         ASymbol *sym = get_symbol(state->symtab, state->currtok.value.cs);
@@ -290,6 +311,9 @@ AAstNode *parse_word(AParseState *state) {
 AWordSeqNode *parse_wordline(AParseState *state) {
     AWordSeqNode *result = ast_wordseq_new();
 
+    /* If there's no words before the binding arrow,
+     * we'll never enter this loop in the first place
+     * -- perfect! */
     AAstNode *word = parse_word(state);
     while (word != NULL) {
         if (word->type == paren_node) {
@@ -308,6 +332,8 @@ AWordSeqNode *parse_wordline(AParseState *state) {
         word = parse_word(state);
     }
 
+    /* If we found a bind arrow, then the optional
+     * second part must be here. */
     if (ACCEPT(T_BIND)) {
         unsigned int bindline = LINENUM;
         ANameSeqNode *names = parse_nameseq_opt(state);
@@ -331,6 +357,11 @@ AWordSeqNode *parse_wordline(AParseState *state) {
     return result;
 }
 
+/* Parse a generalized "sequence of words."
+ * This is what makes up the elements of lists,
+ * the inside of blocks, etc.
+ * A series of 'word-lines' separated by newlines
+ * or pipe characters ('|'). */
 AWordSeqNode *parse_words(AParseState *state) {
     AWordSeqNode *result = ast_wordseq_new();
 
@@ -343,21 +374,32 @@ AWordSeqNode *parse_words(AParseState *state) {
     return result;
 }
 
+/* Parse a declaration, which is either a function
+ * or an import right now.
+ * (Later: type declarations?!) */
 ADeclNode *parse_decl(AParseState *state) {
     if (ACCEPT(T_FUNC)) {
         unsigned int line = LINENUM;
 
         /* func name */
-        EXPECT(WORD);
-        ASymbol *name = get_symbol(state->symtab, state->currtok.value.cs);
-        free(state->currtok.value.cs);
+        ASymbol *name = NULL;
+        if (EXPECT(WORD)) {
+            name = get_symbol(state->symtab, state->currtok.value.cs);
+            free(state->currtok.value.cs);
+        } else {
+            /* whoops error */
+        }
 
         /* func params */
         ANameSeqNode *params = parse_nameseq_opt(state);
-        EXPECT(':');
 
+        AWordSeqNode *body = NULL;
         /* func body */
-        AWordSeqNode *body = parse_words(state);
+        if (EXPECT(':')) {
+            body = parse_words(state);
+        } else {
+            /* error */
+        }
 
         if (params->length == 0) {
             free_nameseq_node(params);
@@ -389,22 +431,29 @@ void eat_newlines_or_semicolons(AParseState *state) {
     /* Allow any number of newlines
      * (or additional semicolons.) Useful
      * in between declarations, where we don't
-     * actually care about line spacing. */
+     * actually care about line spacing, and
+     * can have optional semicolons anywhere. */
     while (ACCEPT('\n') || ACCEPT(';'));
 }
 
+/* Parse a sequence of declarations separated by
+ * semicolons. */
 ADeclSeqNode *parse_declseq(AParseState *state) {
     ADeclSeqNode *result = ast_declseq_new();
+
     do {
         eat_newlines_or_semicolons(state);
         ADeclNode *dec = parse_decl(state);
         ast_declseq_append(result, dec);
     } while (ACCEPT(';'));
+
     eat_newlines_or_semicolons(state);
 
     return result;
 }
 
+/* Parse a full program, which is just a sequence
+ * of declarations followed by an end-of-file. */
 ADeclSeqNode *parse_program(AParseState *state) {
     ADeclSeqNode *result = parse_declseq(state);
     EXPECT(0); /* end of file */
