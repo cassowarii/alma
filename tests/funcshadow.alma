@@ -1,9 +1,9 @@
 func main:
     let
-        func x: 2;
+        func x: 2
     in
         let
-            func x: 10;
+            func x: 10
         in
             (x)
-    ;
+

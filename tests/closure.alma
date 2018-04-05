@@ -1,4 +1,4 @@
-func make-multiplier x: [→ y: * x y];
+func make-multiplier x: [→ y: * x y]
 
 func main:
     make-multiplier 5 make-multiplier 6
@@ -7,4 +7,4 @@ func main:
         3 | apply ×5
         7 | apply ×6
        10 | apply ×5
-    );
+    )

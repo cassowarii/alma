@@ -51,25 +51,21 @@ func concat: if* [= 0 len] [drop] [cons dip [concat] uncons];
 func partition-by comparison:
     dip [{} {}]
     while* [not empty] [
-        uncons
-        -> first rest left right (
+        uncons -> first rest left right (
             if [apply comparison first] \
                 [rest (cons first left) right] \
                 [rest left (cons first right)]
         )
     ]
     drop
-;
 
 func quicksort:
     when* [not small] [
-        uncons
-        -> pivot (
+        uncons -> pivot (
             partition-by [< pivot]
             (-> left right: concat (quicksort left) (cons pivot (quicksort right)))
         )
     ]
-;
 ```
 This program executes the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
 algorithm.

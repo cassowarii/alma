@@ -41,7 +41,7 @@
 #define LINENUM state->currtok.loc.first_line
 
 void do_error(char *msg, unsigned int line) {
-    fprintf(stderr, "Error at line %d: %s\n", line, msg);
+    fprintf(stderr, "Syntax error at line %d: %s\n", line, msg);
 }
 
 /* Print a representation of a general token type.
@@ -215,7 +215,7 @@ int do_expect(ATokenType type, AParseState *state) {
     if (ACCEPT(type)) {
         return 1;
     }
-    fprintf(stderr, "Error at line %d: unexpected ", LINENUM);
+    fprintf(stderr, "Syntax error at line %d: unexpected ", LINENUM);
     fprint_token(stderr, state->nexttok);
     fprintf(stderr, "; expecting ");
     /* Move to end of list and go backwards, so it prints them
@@ -265,7 +265,7 @@ void do_expect_match(ATokenType match, ATokenType type, unsigned int line, APars
          * panic! skip to the next ) without a matching ( */
         if (!PANIC_MATCH(match, type)) {
             /* if we ran off end of file... */
-            fprintf(stderr, "Looks like there's a mismatched ");
+            fprintf(stderr, "Looks like a mismatched ");
             fprint_token_type(stderr, match);
             fprintf(stderr, " at line %d.\n", line);
         } else {
@@ -274,6 +274,12 @@ void do_expect_match(ATokenType match, ATokenType type, unsigned int line, APars
             EXPECT(type);
         }
     }
+}
+
+/* Check if the token could represent the
+ * beginning of a declaration. */
+int decl_leadin(ATokenType id) {
+    return (id == T_FUNC || id == T_IMPORT);
 }
 
 /* Check if the token could represent the
@@ -654,11 +660,12 @@ void eat_newlines_or_semicolons(AParseState *state) {
 ADeclSeqNode *parse_declseq(AParseState *state) {
     ADeclSeqNode *result = ast_declseq_new();
 
+    eat_newlines_or_semicolons(state);
     do {
-        eat_newlines_or_semicolons(state);
         ADeclNode *dec = parse_decl(state);
         ast_declseq_append(result, dec);
-    } while (ACCEPT(';'));
+        eat_newlines_or_semicolons(state);
+    } while (decl_leadin(state->nexttok.id));
 
     eat_newlines_or_semicolons(state);
 

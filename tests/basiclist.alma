@@ -1,1 +1,1 @@
-func main: { 1, 2, + 1 2 };
+func main: { 1, 2, + 1 2 }

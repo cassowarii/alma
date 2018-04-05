@@ -1,18 +1,17 @@
 # This is a pretty contrived example, but it's
 # important to allow functions to be defined in
-# any order, even if they have free variables;
+# any order, even if they have free variables
 
 # If looking at github issue #5, this is a
-# good test file;
+# good test file
 
-func main: apply generate;
+func main: apply generate
 
 func generate:
     2
     → a (
         let
-            func b: [f];
-            func f: a;
+            func b: [f]
+            func f: a
         in (b)
     )
-    ;
