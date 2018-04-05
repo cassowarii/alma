@@ -41,6 +41,10 @@ void do_error(char *msg, unsigned int line) {
     fprintf(stderr, "error at line %d: %s\n", line, msg);
 }
 
+/* Print a representation of a general token type.
+ * This is what shows up when we say "error, unexpected
+ * blah, was expecting blah." The second blah is
+ * this function. */
 void fprint_token_type(FILE *out, ATokenType type) {
     switch(type) {
         case T_IMPORT:
@@ -96,6 +100,13 @@ void fprint_token_type(FILE *out, ATokenType type) {
     }
 }
 
+/* This prints out a representation of a specific
+ * token: its type, and, if it has a more specific
+ * value, that value. So we get things like
+ * "integer literal ‘5’" or "word ‘hello’".
+ * A much nicer way to report errors than the
+ * bison way.
+ * ("syntax error, unexpected word". What word?!) */
 void fprint_token(FILE *out, AToken tok) {
     fprint_token_type(out, tok.id);
     if (tok.id == WORD) {
@@ -171,7 +182,7 @@ AWordSeqNode *parse_words(AParseState *state);
 
 void eat_newlines(AParseState *state);
 
-/* Parse the inside of a list: a bunch of wordses, separated by commas. */
+/* Parse the inside of a list: sequences of words, separated by commas. */
 AProtoList *parse_list_guts(AParseState *state) {
     AProtoList *result = ast_protolist_new();
 
@@ -220,6 +231,17 @@ int parse_separator(AParseState *state) {
 /* Parse something that's counts as a single 'word', but
  * doesn't consist of just a name. Includes values,
  * parenthesized dealies, blocks, and let-nodes. */
+/* Blocks and parentheses can have optional parameters
+ * which are expressed with the arrow coming immediately
+ * after the opening bracket. This is distinct from
+ * the other arrow syntax. this actually makes
+ * it a syntax error to write something like
+ * (-> a b (b a)) or [-> x (+ 1 x)], since the parser
+ * will get confused and think the arrow is introducing
+ * a colon-type thing. You can always put a newline or
+ * a '|' between the bracket and arrow to disambiguate.
+ * (Still, it would be nice to fix this one. I'm not
+ * very good at parsers yet!!) */
 AAstNode *parse_cmplx_word(AParseState *state) {
     unsigned int line = LINENUM;
 
