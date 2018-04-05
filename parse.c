@@ -177,13 +177,18 @@ AProtoList *parse_list_guts(AParseState *state) {
 
     do {
         AWordSeqNode *seq = parse_words(state);
-        ast_protolist_append(result, seq);
+        if (seq->first != NULL) {
+            ast_protolist_append(result, seq);
+        } else {
+            /* Don't append empty things to protolist */
+            free(seq);
+        }
     } while (ACCEPT(','));
 
     return result;
 }
 
-/* Parse a sequence of space-separated names (e.g. parameters to functions. */
+/* Parse a sequence of space-separated names (e.g. parameters to functions.) */
 /* They are allowed to have newlines between them. */
 ANameSeqNode *parse_nameseq_opt(AParseState *state) {
     ANameSeqNode *result = ast_nameseq_new();

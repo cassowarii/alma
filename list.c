@@ -58,8 +58,8 @@ void list_append(AList *list, AValue *val) {
  * be lexical variables in that list! */
 AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum) {
     AWordSeqNode *current = proto->first;
-    AList *list = list_new();
 
+    AList *list = list_new();
     while (current != NULL) {
         /* create a new tiny stack to evaluate this on */
         AStack *tmp = stack_new(2);
@@ -74,6 +74,14 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum) {
             fprintf(stderr, "’ in list at line %d generated %d elements, "
                             "but only the first one will be used\n",
                             linenum, tmp->size);
+        } else if (tmp->size < 1) {
+            fprintf(stderr, "warning: expression ‘");
+            fprint_wordseq_node(stderr, current);
+            fprintf(stderr, "’ in list at line %d generated no elements. "
+                            "Skipping.\n",
+                            linenum);
+            current = current->next;
+            continue;
         }
         /* get a new reference to the first element */
         AValue *val = stack_get(tmp, 0);
