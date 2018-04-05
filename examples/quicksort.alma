@@ -2,25 +2,23 @@ func empty: len | = 0
 func small: len | ≤ 1
 func when*: dip [ dip [ [] ] ] | if*
 func concat: if* [= 0 len] [drop] [cons dip [concat] uncons]
+func 2dip f: dip [dip f]
+
+func sort-one-by comparison:
+    uncons -> first (
+        if [apply comparison first] [dip [cons first]] [2dip [cons first]]
+    )
 
 func partition-by comparison:
     dip [{} {}]
-    while* [not empty] [
-        uncons
-        -> first rest left right (
-            if [apply comparison first] \
-                [rest (cons first left) right] \
-                [rest left (cons first right)]
-        )
-    ]
+    while* [not empty] [sort-one-by comparison]
     drop
 
 func quicksort:
     when* [not small] [
-        uncons
-        -> pivot (
+        uncons -> pivot (
             partition-by [< pivot]
-            (-> left right: concat (quicksort left) (cons pivot (quicksort right)))
+            concat (quicksort) (dip [cons pivot (quicksort)])
         )
     ]
 
