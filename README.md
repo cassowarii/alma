@@ -58,7 +58,8 @@ func partition-by comparison:
                 [rest left (cons first right)]
         )
     ]
-    drop ;
+    drop
+;
 
 func quicksort:
     when* [not small] [
@@ -67,7 +68,8 @@ func quicksort:
             partition-by [< pivot]
             (-> left right: concat (quicksort left) (cons pivot (quicksort right)))
         )
-    ] ;
+    ]
+;
 ```
 This program executes the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
 algorithm.
