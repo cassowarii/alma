@@ -69,6 +69,11 @@ typedef enum {
     TOKENOBRACK = '[',
     TOKENCBRACK = ']',
     TOKENLINE   = '\n',
+    /* This one gets put into the try-list instead of the
+     * individual literal tokens, so we don't say
+     * "expecting integer literal or float literal or ...",
+     * we can just say "expecting literal" */
+    TOKENLIT    = 1000,
     /* Here are the actual token tokens. */
     T_IMPORT    = 257,
     T_AS,
@@ -90,11 +95,18 @@ typedef struct AToken {
     YYLTYPE loc;
 } AToken;
 
+typedef struct ATokenTypeList {
+    ATokenType tok;
+    struct ATokenTypeList *next;
+    struct ATokenTypeList *prev;
+} ATokenTypeList;
+
 typedef struct AParseState {
     ASymbolTable *symtab;
     yyscan_t scan;
     AToken currtok;
     AToken nexttok;
+    ATokenTypeList *tries;
     unsigned int errors;
 } AParseState;
 

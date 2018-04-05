@@ -71,6 +71,8 @@ void fprint_token_type(FILE *out, ATokenType type) {
             fprintf(out, "string literal"); break;
         case CMTCLOSE_ERRORTOKEN:
             fprintf(out, "‘*)’"); break;
+        case TOKENLIT:
+            fprintf(out, "literal"); break;
         case '[':
             fprintf(out, "‘[’"); break;
         case ']':
@@ -141,18 +143,63 @@ void next(AParseState *state) {
     state->nexttok = tk;
 }
 
+/* Add a token-type to an ATokenTypeList, to mark
+ * that we tried to accept that token but failed. */
+static
+void try_token(AParseState *state, ATokenType type) {
+    for (ATokenTypeList *curr = state->tries; curr; curr = curr->next) {
+        /* don't put duplicate tokens in the list! */
+        if (curr->tok == type) {
+            return;
+        }
+    }
+    ATokenTypeList *newnode = malloc(sizeof(ATokenTypeList));
+    newnode->tok = type;
+    newnode->next = state->tries;
+    newnode->prev = NULL;
+    if (state->tries != NULL) {
+        state->tries->prev = newnode;
+    }
+    state->tries = newnode;
+}
+
+/* After successfully accepting a token, reset the
+ * 'tried' token list. */
+static
+void reset_tries(AParseState *state) {
+    ATokenTypeList *curr = state->tries;
+    while (curr != NULL) {
+        ATokenTypeList *next = curr->next;
+        free(curr);
+        curr = next;
+    }
+    state->tries = NULL;
+}
+
+/* Is the token a literal (FLOAT, STRING, SYMBOL, INTEGER)
+ * or something else? */
+static
+int is_literal_type(ATokenType type) {
+    return (type == FLOAT
+         || type == STRING
+         || type == SYMBOL
+         || type == INTEGER);
+}
+
 /* Move to the next token and return true
  * iff the lookahead matches <type>. */
 static
 int do_accept(ATokenType type, AParseState *state) {
-    /* TODO 'accept' should add to the state somehow
-     * to say the things it wanted to accept, so we can
-     * say 'expecting blah or blah or blah' rather than
-     * just 'expecting end-of-file' all the time */
     if (state->nexttok.id == type) {
         /* Move next and return true */
+        reset_tries(state);
         next(state);
         return 1;
+    }
+    if (is_literal_type(type)) {
+        try_token(state, TOKENLIT);
+    } else {
+        try_token(state, type);
     }
     return 0;
 }
@@ -169,12 +216,63 @@ int do_expect(ATokenType type, AParseState *state) {
     fprintf(stderr, "error at line %d: unexpected ", LINENUM);
     fprint_token(stderr, state->nexttok);
     fprintf(stderr, "; expecting ");
-    fprint_token_type(stderr, type);
+    /* Move to end of list and go backwards, so it prints them
+     * out from most to least specific. (i.e. it prints out
+     * the ones it tries first first.) */
+    ATokenTypeList *last = state->tries;
+    for ( ; last->next; last = last->next);
+    /* Now move backwards and print them all out. */
+    for (ATokenTypeList *curr = last; curr; curr = curr->prev) {
+        if (curr->prev == NULL) {
+            /* last one */
+            fprintf(stderr, " or ");
+        } else if (curr != last) {
+            /* not first one */
+            fprintf(stderr, ", ");
+        }
+        fprint_token_type(stderr, curr->tok);
+    }
     fprintf(stderr, ".\n");
     next(state);
 
     state->errors ++;
     return 0;
+}
+
+/* Check if the token could represent the
+ * beginning of a cmplx_word. */
+int complex_word_leadin(ATokenType id) {
+    if (id == '['
+            || id == '('
+            || id == '{'
+            || id == SYMBOL
+            || id == INTEGER
+            || id == FLOAT
+            || id == STRING
+            || id == T_LET) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+/* given a node, if it's a paren_node, return the
+ * sequence of words contained within; otherwise
+ * return a word-sequence that only contains
+ * the single node */
+static
+AWordSeqNode *unwrap_node(AAstNode *content) {
+    AWordSeqNode *words = NULL;
+    if (content != NULL) {
+        if (content->type == paren_node) {
+            words = content->data.inside;
+            free(content);
+        } else {
+            words = ast_wordseq_new();
+            ast_wordseq_prepend(words, content);
+        }
+    }
+    return words;
 }
 
 ADeclSeqNode *parse_declseq(AParseState *state);
@@ -204,16 +302,17 @@ AProtoList *parse_list_guts(AParseState *state) {
 ANameSeqNode *parse_nameseq_opt(AParseState *state) {
     ANameSeqNode *result = ast_nameseq_new();
 
-    while (ACCEPT(WORD)) {
-        eat_newlines(state);
+    eat_newlines(state);
 
+    while (ACCEPT(WORD)) {
         ASymbol *sym = get_symbol(state->symtab, state->currtok.value.cs);
         free(state->currtok.value.cs);
 
         ANameNode *nnode = ast_namenode(LINENUM, sym);
         ast_nameseq_append(result, nnode);
+
+        eat_newlines(state);
     }
-    eat_newlines(state);
 
     return result;
 }
@@ -257,44 +356,91 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         ASymbol *sym = get_symbol(state->symtab, state->currtok.value.cs);
         free(state->currtok.value.cs);
         return ast_valnode(line, val_sym(sym));
-    } else if (ACCEPT('[')) {
-        AWordSeqNode *inner_block = NULL;
-        if (ACCEPT(T_BIND)) {
-            /* [ -> a b : stuff ] */
-            unsigned int bindline = LINENUM;
-            ANameSeqNode *names = parse_nameseq_opt(state);
-            EXPECT(':');
-            AWordSeqNode *words = parse_words(state);
-            EXPECT(']');
-
-            inner_block = ast_wordseq_new();
-            ast_wordseq_prepend(inner_block, ast_bindnode(bindline, names, words));
-        } else {
-            /* [ stuff ] */
-            inner_block = parse_words(state);
-            EXPECT(']');
-        }
-
-        AValue *blockval = val_block(inner_block);
-        return ast_valnode(line, blockval);
     } else if (ACCEPT('(')) {
+        eat_newlines(state);
         if (ACCEPT(T_BIND)) {
-            /* ( -> a b : stuff ) */
+            /* ( -> a b  ...  ) */
+            /* Now there's an ambiguity: is this going to be
+             * (-> a b : ... ) or (-> a b ( ... ) | ... ) ? So we
+             * have to do a little bit of weirdness here. */
             unsigned int bindline = LINENUM;
             ANameSeqNode *names = parse_nameseq_opt(state);
-            EXPECT(':');
-            AWordSeqNode *words = parse_words(state);
+            if (complex_word_leadin(state->nexttok.id)) {
+                /* (-> a b ( stuff ) | more things? ) */
+                AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
 
-            AWordSeqNode *param_wrapper = ast_wordseq_new();
-            ast_wordseq_prepend(param_wrapper, ast_bindnode(bindline, names, words));
-            EXPECT(')');
-            return ast_parennode(line, param_wrapper);
+                /* construct the bound node */
+                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
+                AWordSeqNode *content = ast_wordseq_new();
+                ast_wordseq_append(content, bind);
+
+                /* now see if there's any more in the outer set of parentheses */
+                if (parse_separator(state)) {
+                    /* there might be more stuff after the cmplx_word,
+                     * in this case. */
+                    AWordSeqNode *rest = parse_words(state);
+                    ast_wordseq_concat(content, rest);
+                    free(rest);
+                }
+                EXPECT(')');
+                return ast_parennode(line, content);
+            } else {
+                /* (-> a b : stuff) */
+                EXPECT(':');
+                AWordSeqNode *words = parse_words(state);
+
+                AWordSeqNode *param_wrapper = ast_wordseq_new();
+                ast_wordseq_prepend(param_wrapper, ast_bindnode(bindline, names, words));
+                EXPECT(')');
+                return ast_parennode(line, param_wrapper);
+            }
         } else {
             /* ( stuff ) */
             AWordSeqNode *words = parse_words(state);
             EXPECT(')');
             return ast_parennode(line, words);
         }
+    } else if (ACCEPT('[')) {
+        AWordSeqNode *inner_block = NULL;
+        eat_newlines(state);
+        if (ACCEPT(T_BIND)) {
+            /* we have the same ambiguity here:
+             * [ -> a b : stuff ] vs [ -> a b ( stuff ) | more-stuff ] */
+            /* [ -> a b : stuff ] */
+            unsigned int bindline = LINENUM;
+            ANameSeqNode *names = parse_nameseq_opt(state);
+            AWordSeqNode *words;
+            if (complex_word_leadin(state->nexttok.id)) {
+                /* [ -> a b ( stuff ) ?? ] */
+                AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
+
+                /* construct the bound node */
+                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
+                inner_block = ast_wordseq_new();
+                ast_wordseq_append(inner_block, bind);
+
+                /* there might be more stuff afterwards */
+                if (parse_separator(state)) {
+                    AWordSeqNode *rest = parse_words(state);
+                    ast_wordseq_concat(inner_block, rest);
+                    free(rest);
+                }
+            } else {
+                /* [ -> a b : stuff ] */
+                EXPECT(':');
+                words = parse_words(state);
+                /* now build the block */
+                inner_block = ast_wordseq_new();
+                ast_wordseq_prepend(inner_block, ast_bindnode(bindline, names, words));
+            }
+        } else {
+            /* [ stuff ] */
+            inner_block = parse_words(state);
+        }
+        EXPECT(']');
+
+        AValue *blockval = val_block(inner_block);
+        return ast_valnode(line, blockval);
     } else if (ACCEPT('{')) {
         AProtoList *proto = parse_list_guts(state);
         EXPECT('}');
@@ -309,39 +455,14 @@ AAstNode *parse_cmplx_word(AParseState *state) {
          * scope of the let. By only permitting cmplx_words here,
          * we force let-blocks that have plain words as their scope
          * to use parentheses. */
-        AWordSeqNode *words;
         AAstNode *content = parse_cmplx_word(state);
         if (content != NULL) {
-            if (content->type == paren_node) {
-                words = content->data.inside;
-                free(content);
-            } else {
-                words = ast_wordseq_new();
-                ast_wordseq_prepend(words, content);
-            }
-            return ast_letnode(line, decls, words);
+            return ast_letnode(line, decls, unwrap_node(content));
         } else {
             return NULL;
         }
     } else {
         return NULL;
-    }
-}
-
-/* Check if the token could represent the
- * beginning of a cmplx_word. */
-int complex_word_leadin(ATokenType id) {
-    if (id == '['
-            || id == '('
-            || id == '{'
-            || id == SYMBOL
-            || id == INTEGER
-            || id == FLOAT
-            || id == STRING
-            || id == T_LET) {
-        return 1;
-    } else {
-        return 0;
     }
 }
 
@@ -353,10 +474,8 @@ AAstNode *parse_word(AParseState *state) {
         ASymbol *sym = get_symbol(state->symtab, state->currtok.value.cs);
         free(state->currtok.value.cs);
         return ast_wordnode(LINENUM, sym);
-    } else if (complex_word_leadin(state->nexttok.id)) {
-        return parse_cmplx_word(state);
     } else {
-        return NULL;
+        return parse_cmplx_word(state);
     }
 }
 
@@ -402,15 +521,7 @@ AWordSeqNode *parse_wordline(AParseState *state) {
 
         AAstNode *node = parse_cmplx_word(state);
         if (node != NULL) {
-            AWordSeqNode *innerbind;
-            if (node->type == paren_node) {
-                innerbind = node->data.inside;
-                free(node);
-            } else {
-                innerbind = ast_wordseq_new();
-                ast_wordseq_prepend(innerbind, node);
-            }
-
+            AWordSeqNode *innerbind = unwrap_node(node);
             AAstNode *bind = ast_bindnode(bindline, names, innerbind);
             ast_wordseq_append(result, bind);
         }
