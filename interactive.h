@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <editline.h>
 #include "alma.h"
-#include "grammar.tab.h"
 #include "parse.h"
 
 /* Run the REPL. */

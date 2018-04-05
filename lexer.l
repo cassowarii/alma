@@ -1,15 +1,10 @@
 %{
-#include "grammar.tab.h"
 #include "alma.h"
+#include "parse.h"
 #include "ustrings.h"
 #define yyterminate() return END
 
-extern void yyerror(const char *str);
-/* we want both 'let func x: a in blah' and 'let func x: a; in blah'
-   to be accepted, (to track if we're between a : and a ; for
-   interactive move so we have to keep track of whether we just saw
-   a semicolon in order to not decrease 'yyextra->nested_colons' by one too many. */
-int just_saw_semicolon = 0;
+#define ERROR(msg) do_error(msg, yylineno)
 
 int yywrap(yyscan_t scanner) {
     return 1;
@@ -17,12 +12,14 @@ int yywrap(yyscan_t scanner) {
 
 #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
 
+
 uint32_t char_parse(const char *utf8, unsigned int length);
 AUstr *parse_string(const char *bytes, unsigned int length);
 
 %}
 
-%option extra-type="struct AInteractive*"
+%option header-file="lex.h"
+%option extra-type="struct extra *"
 %option reentrant nounput noinput yylineno bison-bridge bison-locations
 %x COMMENT LINECMT
 %s IMPORT
@@ -48,77 +45,30 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 %%
 
   /* Reserved words. */
-"import"                { BEGIN(IMPORT); just_saw_semicolon = 0; return T_IMPORT; }
+"import"                BEGIN(IMPORT); return T_IMPORT;
 "let"                   return T_LET;
 ->|→                    return T_BIND;
-"func"                  just_saw_semicolon = 0; return T_FUNC;
-"in"                    if (!just_saw_semicolon) { yyextra->nested_colons --; } return T_IN;
+"func"                  return T_FUNC;
+"in"                    return T_IN;
 \\[\r\n]                ; // allow escaping newlines
 <IMPORT>"as"            { BEGIN(INITIAL); return T_AS; }
 <IMPORT>\|              return '|';
 <IMPORT>[\r\n]          return '\n';
 
-  /* Special tokens. */
-"{"  {
-    yyextra->nested_blocks ++;
-    return '{';
-}
-"}" {
-    yyextra->nested_blocks --;
-    if (yyextra->nested_blocks < 0) yyextra->nested_blocks = 0;
-    return '}';
-}
-"["  {
-    yyextra->nested_lists ++;
-    return '[';
-}
-"]" {
-    yyextra->nested_lists --;
-    if (yyextra->nested_lists < 0) yyextra->nested_lists = 0;
-    return ']';
-}
-\( {
-    yyextra->nested_parens ++;
-    return '(';
-}
-\) {
-    yyextra->nested_parens --;
-    if (yyextra->nested_parens < 0) yyextra->nested_parens = 0;
-    return ')';
-}
-":"     yyextra->nested_colons ++; return ':';
-","     return ',';
+  /* Special characters. */
+\{  |
+\}  |
+\[  |
+\]  |
+\(  |
+\)  |
+:   |
+;   |
+,   |
+\|  return yytext[0];
 
-";"         { BEGIN(INITIAL); yyextra->nested_colons --; just_saw_semicolon = 1; return ';'; }
-
- /* @.+ {
-    yylval->s = (char*)calloc(strlen(yytext), sizeof(char));
-    strncpy(yylval->s, &yytext[1], strlen(yytext)-1);
-    return T_REF;
-} */
-
-"|"             return '|';
 \r|\n {
-    if (!yyextra->is_interactive) {
-        return '\n';
-    }
-    /* For interactive mode: if encounter an end-of-line with
-       some blocks not yet closed etc., don't be done yet;
-       otherwise, if we're in interactive mode, a newline with
-       completely closed set of brackets is an EOF. */
-    printf("newline: %d %d %d %d %d\n",
-            yyextra->nested_blocks, yyextra->nested_lists,
-            yyextra->nested_parens, yyextra->nested_comments,
-            yyextra->nested_colons);
-    if (yyextra->nested_blocks == 0 && yyextra->nested_lists == 0
-            && yyextra->nested_parens == 0 && yyextra->nested_comments == 0
-            && yyextra->nested_colons <= 0) {
-        yyextra->beginning = 1;
-        return 0;
-    } else {
-        yyextra->beginning = 0;
-        return '\n';
-    }
+    return '\n';
 }
 
   /* Comments. */
@@ -150,22 +100,6 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 
   /***** Various literals. *****/
 
-  /* Character literal. */
-  /* $\\?{UANYN} {
-    yylval->i = char_parse(yytext+1, strlen(yytext)-1);
-    return CHAR;
-}
-
-$\"\\?{UANYN}\" {
-    yylval->i = char_parse(yytext+2, strlen(yytext)-3);
-    return CHAR;
-}
-
-$'\\?{UANYN}' {
-    yylval->c = yytext[3];
-    return CHAR;
-} */
-
   /* String literal. */
 \"(\\{UANYN}|[^"\r\n]|\\\n)*\" {
     //yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
@@ -182,11 +116,11 @@ $'\\?{UANYN}' {
 }
 
 \"(\\{UANYN}|[^"\r\n])*$ {
-    yyerror("syntax error, unterminated double-quoted string");
+    ERROR("syntax error, unterminated double-quoted string");
 }
 
 \'(\\{UANYN}|[^'\r\n])*$ {
-    yyerror("syntax error, unterminated single-quoted string");
+    ERROR("syntax error, unterminated single-quoted string");
 }
 
 [0-9]+                  yylval->i=atoi(yytext); return INTEGER;
@@ -215,7 +149,7 @@ $'\\?{UANYN}' {
 [ \t]+                  /* skip whitespace */;
 
   /* End of file! */
-<COMMENT><<EOF>> { yyerror("syntax error, unterminated comment"); return 0; }
+<COMMENT><<EOF>> { ERROR("syntax error, unterminated comment"); return 0; }
 <<EOF>> { return 0; }
 
 %%

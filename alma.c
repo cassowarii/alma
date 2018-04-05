@@ -6,9 +6,7 @@
 #include "scope.h"
 #include "lib.h"
 #include "compile.h"
-#include "grammar.tab.h"
 #include "registry.h"
-#include "interactive.h"
 
 #define CLEANUP() \
         free_stack(stack); \
@@ -17,10 +15,9 @@
         free_lib_scope(lib_scope); \
         free_symbol_table(&symtab)
 
-int run_program(ADeclSeqNode *program, ASymbolTable symtab);
+int compile_and_run(ADeclSeqNode *program, ASymbolTable symtab);
 
 int main (int argc, char **argv) {
-    ADeclSeqNode *program = NULL;
     ASymbolTable symtab = NULL;
 
     FILE *infile = NULL;
@@ -31,23 +28,24 @@ int main (int argc, char **argv) {
             exit(1);
         }
     } else if (argc == 1) {
-        interactive_mode();
+        printf("Interactive mode has been taken offline for now.\n");
         exit(0);
     } else {
         fprintf(stderr, "Please supply one file name.\n");
         return 0;
     }
 
-    parse_file(infile, &program, &symtab);
+    //parse_file(infile, &program, &symtab);
+    ADeclSeqNode *program = parse_file(infile, &symtab);
 
     fclose(infile);
 
-    int result = run_program(program, symtab);
+    int result = compile_and_run(program, symtab);
 
     return result;
 }
 
-int run_program(ADeclSeqNode *program, ASymbolTable symtab) {
+int compile_and_run(ADeclSeqNode *program, ASymbolTable symtab) {
     if (program == NULL) {
         fprintf(stderr, "Compilation aborted.\n");
         return 0;

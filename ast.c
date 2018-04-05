@@ -170,6 +170,21 @@ void ast_wordseq_prepend(AWordSeqNode *seq, AAstNode *node) {
     }
 }
 
+/* Append a new node to the end of an AWordSeqNode. */
+void ast_wordseq_append(AWordSeqNode *seq, AAstNode *node) {
+    if (node == NULL) return;
+    if (seq->last == NULL) {
+        seq->first = seq->last = node;
+    } else if (seq->last->next == NULL) {
+        seq->last->next = node;
+        seq->last = node;
+    } else {
+        /* Somehow, we're appending to the middle of the list. */
+        fprintf(stderr, "Somehow appending to middle of wordseq. "
+                "This probably shouldn't happen.\n");
+    }
+}
+
 /* Concatenate two AWordSeqNodes together. Doesn't free the second one! */
 void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2) {
     if (seq1->last == NULL) {
@@ -308,9 +323,9 @@ void fprint_ast_node(FILE *out, AAstNode *x) {
         fprint_wordseq_node(out, x->data.let->words);
         fprintf(out, ")");
     } else if (x->type == bind_node) {
-        fprintf(out, "→ ");
+        fprintf(out, "(→ ");
         fprint_name_seq(out, x->data.bind->names);
-        fprintf(out, "(");
+        fprintf(out, ": ");
         fprint_wordseq_node(out, x->data.bind->words);
         fprintf(out, ")");
     } else {
@@ -324,7 +339,7 @@ void fprint_declaration(FILE *out, ADeclNode *a) {
     fprint_symbol(out, a->sym);
     fprintf(out, " : ");
     fprint_wordseq_node(out, a->node);
-    fprintf(out, " .");
+    fprintf(out, " ;");
 }
 
 /* Print out a declaration sequence. */

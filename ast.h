@@ -39,10 +39,10 @@ AWordSeqNode *ast_wordseq_new(void);
 /* Prepend a new node to the beginning of an AWordSeqNode. */
 void ast_wordseq_prepend(AWordSeqNode *seq, AAstNode *node);
 
-/* Concatenate two AWordSeqNodes together. Doesn't free the second one! */
-void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2);
+/* Append a new node to the end of an AWordSeqNode. */
+void ast_wordseq_append(AWordSeqNode *seq, AAstNode *node);
 
-/* Create a new node representing a list. */
+/* Concatenate two AWordSeqNodes together. Doesn't free the second one! */
 void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2);
 
 /* Prepend a new node to the beginning of an ANameSeqNode. */

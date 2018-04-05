@@ -10,7 +10,6 @@
 #include "parse.h"
 #include "compile.h"
 #include "registry.h"
-#include "grammar.tab.h"
 
 #define ALMATESTINTRO(filename) \
     printf("-- %s --\n", filename); \
@@ -21,7 +20,7 @@
     AScope *lib_scope = scope_new(NULL); \
     AScope *scope = scope_new(lib_scope); \
     AFuncRegistry *reg = registry_new(20); \
-    parse_file(in, &program, &symtab); \
+    program = parse_file(in, &symtab); \
     lib_init(symtab, lib_scope); \
     ABindInfo bi = {0,0};
 
