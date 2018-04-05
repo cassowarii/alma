@@ -19,7 +19,7 @@ AUstr *parse_string(const char *bytes, unsigned int length);
 %}
 
 %option header-file="lex.h"
-%option extra-type="struct extra *"
+%option extra-type="AParseState*"
 %option reentrant nounput noinput yylineno bison-bridge bison-locations
 %x COMMENT LINECMT
 %s IMPORT

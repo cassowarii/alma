@@ -492,8 +492,13 @@ AAstNode *parse_cmplx_word(AParseState *state) {
 
         return ast_valnode(line, val_protolist(proto));
     } else if (ACCEPT(T_LET)) {
+        /* Mark that we're inside the 'let..in' for interactive mode
+         * so we can ask for more lines. */
+        state->inlets ++;
         ADeclSeqNode *decls = parse_declseq(state);
         EXPECT(T_IN);
+        state->inlets --;
+
         eat_newlines(state);
         /* We only allow a cmplx_word to be the subject of a let..in,
          * because allowing single words is kind of bizarre:
@@ -598,6 +603,9 @@ AWordSeqNode *parse_words(AParseState *state) {
  * (Later: type declarations?!) */
 ADeclNode *parse_decl(AParseState *state) {
     if (ACCEPT(T_FUNC)) {
+        /* Mark we're inside a function now, so we can know to
+         * ask for more lines in interactive mode. */
+        state->infuncs ++;
         unsigned int line = LINENUM;
 
         /* func name */
@@ -619,6 +627,9 @@ ADeclNode *parse_decl(AParseState *state) {
         } else {
             /* error */
         }
+
+        /* Leave function. */
+        state->infuncs --;
 
         if (params->length == 0) {
             free_nameseq_node(params);
@@ -679,7 +690,6 @@ ADeclSeqNode *parse_program(AParseState *state) {
     EXPECT(0); /* end of file */
     return result;
 }
-
 
 /* Parse a file pointer, and set program and symbol table. */
 ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
