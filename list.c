@@ -67,8 +67,6 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum) {
         /* get the top element of the stack, and issue a warning
          * if there's more than one element on the stack */
         if (tmp->size > 1) {
-            /* TODO resolve this weird mismatch -- the expression will
-             * be printed out to stdout, but everything else to stderr */
             fprintf(stderr, "warning: expression ‘");
             fprint_wordseq_node(stderr, current);
             fprintf(stderr, "’ in list at line %d generated %d elements, "
