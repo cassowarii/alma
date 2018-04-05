@@ -35,6 +35,7 @@
 
 #define ACCEPT(x) do_accept(x, state)
 #define EXPECT(x) do_expect(x, state)
+#define PANICMODE(match, tok) do_panic_mode(match, tok, state)
 #define LINENUM state->currtok.loc.first_line
 
 void do_error(char *msg, unsigned int line) {
@@ -212,7 +213,6 @@ int do_expect(ATokenType type, AParseState *state) {
     if (ACCEPT(type)) {
         return 1;
     }
-    /* TODO some kind of panic mode */
     fprintf(stderr, "error at line %d: unexpected ", LINENUM);
     fprint_token(stderr, state->nexttok);
     fprintf(stderr, "; expecting ");
@@ -233,10 +233,24 @@ int do_expect(ATokenType type, AParseState *state) {
         fprint_token_type(stderr, curr->tok);
     }
     fprintf(stderr, ".\n");
-    next(state);
 
     state->errors ++;
     return 0;
+}
+
+/* Move forward and discard tokens until the
+ * lookahead token matches <type>, unless there's
+ * a matching <match>. (or until EOF) */
+static
+int do_panic_mode(ATokenType match, ATokenType type, AParseState *state) {
+    int score = 0;
+    while (score >= 0 && state->nexttok.id != 0) {
+        next(state);
+        if (state->nexttok.id == match) score ++;
+        if (state->nexttok.id == type) score --;
+    }
+    /* If ran off end of file, return 0; else return 1 */
+    return state->nexttok.id != 0;
 }
 
 /* Check if the token could represent the
@@ -330,19 +344,6 @@ int parse_separator(AParseState *state) {
 /* Parse something that's counts as a single 'word', but
  * doesn't consist of just a name. Includes values,
  * parenthesized dealies, blocks, and let-nodes. */
-/* Blocks and parentheses can have optional parameters
- * which are expressed with the arrow coming immediately
- * after the opening bracket, with the variable names
- * being followed by a colon (e.g. (-> a b: b a).
- * This is distinct from the other arrow syntax.
- * This actually makes it a syntax error to write
- * something like (-> a b (b a)) or [-> x (+ 1 x)],
- * since the parser will get confused and think the
- * arrow is introducing a colon-type thing. You can
- * always put a newline or a '|' between the bracket
- * and arrow to disambiguate.
- * (Still, it would be nice to fix this one. I'm not
- * very good at parsers yet!!) */
 AAstNode *parse_cmplx_word(AParseState *state) {
     unsigned int line = LINENUM;
 
@@ -358,6 +359,7 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         return ast_valnode(line, val_sym(sym));
     } else if (ACCEPT('(')) {
         eat_newlines(state);
+        AAstNode *result = NULL;
         if (ACCEPT(T_BIND)) {
             /* ( -> a b  ...  ) */
             /* Now there's an ambiguity: is this going to be
@@ -382,24 +384,40 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                     ast_wordseq_concat(content, rest);
                     free(rest);
                 }
-                EXPECT(')');
-                return ast_parennode(line, content);
+
+                result = ast_parennode(line, content);
             } else {
                 /* (-> a b : stuff) */
-                EXPECT(':');
-                AWordSeqNode *words = parse_words(state);
+                AWordSeqNode *param_wrapper = NULL;
+                if (EXPECT(':')) {
+                    AWordSeqNode *words = parse_words(state);
 
-                AWordSeqNode *param_wrapper = ast_wordseq_new();
-                ast_wordseq_prepend(param_wrapper, ast_bindnode(bindline, names, words));
-                EXPECT(')');
-                return ast_parennode(line, param_wrapper);
+                    param_wrapper = ast_wordseq_new();
+                    ast_wordseq_prepend(param_wrapper, ast_bindnode(bindline, names, words));
+                }
+                result = ast_parennode(line, param_wrapper);
             }
         } else {
             /* ( stuff ) */
             AWordSeqNode *words = parse_words(state);
-            EXPECT(')');
-            return ast_parennode(line, words);
+            result = ast_parennode(line, words);
         }
+
+        /* Now we're at the end of the parentheses.... right?? */
+        if (EXPECT(')')) {
+            /* great! the parentheses ended */
+        } else {
+            /* so was not a ), but some other unrecognized token?
+             * panic! skip to the next ')' */
+            if (!PANICMODE('(', ')')) {
+                /* if we ran off end of file... */
+                fprintf(stderr, "Looks like there's a mismatched ‘(’ "
+                        "at line %d.\n", line);
+            } else {
+                EXPECT(')');
+            }
+        }
+        return result;
     } else if (ACCEPT('[')) {
         AWordSeqNode *inner_block = NULL;
         eat_newlines(state);
@@ -427,23 +445,50 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                 }
             } else {
                 /* [ -> a b : stuff ] */
-                EXPECT(':');
-                words = parse_words(state);
-                /* now build the block */
-                inner_block = ast_wordseq_new();
-                ast_wordseq_prepend(inner_block, ast_bindnode(bindline, names, words));
+                if (EXPECT(':')) {
+                    words = parse_words(state);
+                    /* now build the block */
+                    inner_block = ast_wordseq_new();
+                    ast_wordseq_prepend(inner_block, ast_bindnode(bindline, names, words));
+                }
             }
         } else {
             /* [ stuff ] */
             inner_block = parse_words(state);
         }
-        EXPECT(']');
+
+        if (EXPECT(']')) {
+            /* great! the block ended safely */
+        } else {
+            /* block didn't end here? that must mean nothing else could recognize
+             * the token... so we'll have to panic */
+            if (!PANICMODE('[', ']')) {
+                /* if we ran off end of file... */
+                fprintf(stderr, "Looks like there's a mismatched ‘[’ "
+                        "at line %d.\n", line);
+            } else {
+                /* otherwise, now we're looking at a ], so just eat it */
+                EXPECT(']');
+            }
+        }
 
         AValue *blockval = val_block(inner_block);
         return ast_valnode(line, blockval);
     } else if (ACCEPT('{')) {
         AProtoList *proto = parse_list_guts(state);
-        EXPECT('}');
+
+        if (EXPECT('}')) {
+            /* great! the list ended safely */
+        } else {
+            if (!PANICMODE('{', '}')) {
+                /* if we ran off end of file... */
+                fprintf(stderr, "Looks like there's a mismatched ‘{’ "
+                        "at line %d.\n", line);
+            } else {
+                /* otherwise, now we're looking at a }, so just eat it */
+                EXPECT('}');
+            }
+        }
         return ast_valnode(line, val_protolist(proto));
     } else if (ACCEPT(T_LET)) {
         ADeclSeqNode *decls = parse_declseq(state);
