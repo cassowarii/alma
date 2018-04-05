@@ -1,5 +1,38 @@
 #include "parse.h"
 
+/* Hi, welcome to the recursive-descent parser!!!
+ * Alma grammar is pretty simple!
+ *
+ *      program     ::= declseq EOF
+ *      declseq     ::= ø | decl ";" declseq
+ *      decl        ::= "func" name nameseq ":" words
+ *                    | "import" string ["as" name]
+ *      names       ::= ø | names name
+ *      words       ::= word-line | words separator word-line
+ *      separator   ::= "|" | "\n"
+ *      word-line   ::= {word}* ["->" cmplx-word]
+ *      word        ::= name | cmplx-word
+ *      cmplx-word  ::= literal | list | block
+ *                    | "let" declseq "in" cmplx-word
+ *                    | "(" words ")"
+ *                    | "(" "->" names ":" words ")"
+ *      block       ::= "[" words "]"
+ *                    | "[" "->" names ":" words "]"
+ *      list        ::= "{" list-guts "}"
+ *      list-guts   ::= ø | words "," list-guts
+ *      literal     ::= string | int | float | symbol
+ *
+ * The current parse state is passed around in the
+ * AParseState* object; it holds:
+ *      - the current symbol table (for name lookup)
+ *      - the Flex scanner's internal state (for getting
+ *          new tokens)
+ *      - the current token (for getting information
+ *          like function names or integer values)
+ *      - the next token (for lookahead purposes)
+ *      - the number of syntax errors so far
+ */
+
 #define ACCEPT(x) do_accept(x, state)
 #define EXPECT(x) do_expect(x, state)
 #define LINENUM state->currtok.loc.first_line
