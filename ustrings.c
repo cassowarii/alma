@@ -103,6 +103,8 @@ uint32_t char_parse(const char *utf8, unsigned int length) {
                     return '\'';
                 case '"':
                     return '"';
+                case '\n':
+                    return 0; /* we return 0 to say no character */
                 default:
                     printf("Unrecognized escape sequence %.*s\n", length, utf8);
                     return utf8[1];
@@ -146,7 +148,8 @@ AUstr *parse_string(const char *bytes, unsigned int length) {
     int index = 0;
     while (index != length) {
         if (index > length) {
-            fprintf(stderr, "String encode error: String doesn't form valid UTF-8");
+            fprintf(stderr, "String encode error: String ‘%s’ doesn't "
+                            "form valid UTF-8.\n", bytes);
             break;
         }
 
@@ -166,7 +169,9 @@ AUstr *parse_string(const char *bytes, unsigned int length) {
 
         uint32_t ch = char_parse(bytes + index, char_length);
 
-        ustr_append(newstr, ch);
+        if (ch != 0) {
+            ustr_append(newstr, ch);
+        }
 
         index += char_length;
     }
