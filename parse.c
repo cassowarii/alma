@@ -193,6 +193,13 @@ int is_literal_type(ATokenType type) {
          || type == INTEGER);
 }
 
+/* Should the token be invisible when printing out
+ * 'things that were expected'? */
+static
+int hide_try(ATokenType type) {
+    return (type == '|' || type == '\n');
+}
+
 /* Move to the next token and return true
  * iff the lookahead matches <type>. */
 static
@@ -205,7 +212,7 @@ int do_accept(ATokenType type, AParseState *state) {
     }
     if (is_literal_type(type)) {
         try_token(state, TOKENLIT);
-    } else {
+    } else if (!hide_try(type)) {
         try_token(state, type);
     }
     return 0;
@@ -409,6 +416,11 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                 /* (-> a b ( stuff ) | more things? ) */
                 AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
 
+                if (innerbind == NULL) {
+                    free_nameseq_node(names);
+                    return NULL;
+                }
+
                 /* construct the bound node */
                 AAstNode *bind = ast_bindnode(bindline, names, innerbind);
                 AWordSeqNode *content = ast_wordseq_new();
@@ -419,6 +431,10 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                     /* there might be more stuff after the cmplx_word,
                      * in this case. */
                     AWordSeqNode *rest = parse_words(state);
+                    if (rest == NULL) {
+                        free_ast_node(bind);
+                        free_wordseq_node(content);
+                    }
                     ast_wordseq_concat(content, rest);
                     free(rest);
                 }
@@ -426,19 +442,24 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                 result = ast_parennode(line, content);
             } else {
                 /* (-> a b : stuff) */
-                AWordSeqNode *param_wrapper = NULL;
                 if (EXPECT(':')) {
                     AWordSeqNode *words = parse_words(state);
 
-                    param_wrapper = ast_wordseq_new();
+                    AWordSeqNode *param_wrapper = ast_wordseq_new();
                     ast_wordseq_prepend(param_wrapper, ast_bindnode(bindline, names, words));
+                    result = ast_parennode(line, param_wrapper);
+                } else {
+                    result = NULL;
                 }
-                result = ast_parennode(line, param_wrapper);
             }
         } else {
             /* ( stuff ) */
             AWordSeqNode *words = parse_words(state);
-            result = ast_parennode(line, words);
+            if (words == NULL) {
+                result = NULL;
+            } else {
+                result = ast_parennode(line, words);
+            }
         }
 
         /* EXPECT_MATCH will expect the second parameter. If it doesn't find it, it panics
@@ -467,16 +488,26 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                 /* [ -> a b ( stuff ) ?? ] */
                 AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
 
-                /* construct the bound node */
-                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
-                inner_block = ast_wordseq_new();
-                ast_wordseq_append(inner_block, bind);
+                if (innerbind == NULL) {
+                    free_nameseq_node(names);
+                } else {
+                    /* construct the bound node */
+                    AAstNode *bind = ast_bindnode(bindline, names, innerbind);
+                    inner_block = ast_wordseq_new();
+                    ast_wordseq_append(inner_block, bind);
 
-                /* there might be more stuff afterwards */
-                if (parse_separator(state)) {
-                    AWordSeqNode *rest = parse_words(state);
-                    ast_wordseq_concat(inner_block, rest);
-                    free(rest);
+                    /* there might be more stuff afterwards */
+                    if (parse_separator(state)) {
+                        AWordSeqNode *rest = parse_words(state);
+
+                        if (rest == NULL) {
+                            free_wordseq_node(inner_block);
+                            free_nameseq_node(names);
+                        } else {
+                            ast_wordseq_concat(inner_block, rest);
+                            free(rest);
+                        }
+                    }
                 }
             } else {
                 /* [ -> a b : stuff ] */
@@ -485,6 +516,8 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                     /* now build the block */
                     inner_block = ast_wordseq_new();
                     ast_wordseq_prepend(inner_block, ast_bindnode(bindline, names, words));
+                } else {
+                    free_nameseq_node(names);
                 }
             }
         } else {
@@ -495,8 +528,13 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         EXPECT_MATCH('[', ']');
         state->nested_brackets --;
 
-        AValue *blockval = val_block(inner_block);
-        return ast_valnode(line, blockval);
+        if (inner_block != NULL) {
+            AValue *blockval = val_block(inner_block);
+            return ast_valnode(line, blockval);
+        } else {
+            fprintf(stderr, "null blokc\n");
+            return NULL;
+        }
     } else if (ACCEPT('{')) {
         state->nested_curlies ++;
         AProtoList *proto = parse_list_guts(state);
@@ -801,7 +839,10 @@ ADeclSeqNode *parse_declseq(AParseState *state) {
     eat_newlines_or_semicolons(state);
     do {
         ADeclNode *dec = parse_decl(state);
-        if (dec == NULL) return NULL;
+        if (dec == NULL) {
+            free_decl_seq(result);
+            return NULL;
+        }
         ast_declseq_append(result, dec);
         eat_newlines_or_semicolons(state);
     } while (decl_leadin(state->nexttok.id));
@@ -909,13 +950,14 @@ void interact(ASymbolTable *symtab) {
         state.beginning_line = 0;
         if (decl_leadin(state.nexttok.id)) {
             ADeclNode *result = parse_interactive_decl(&state);
-            if (result == NULL && state.nexttok.id != 0) {
+            if (state.errors != 0 && state.nexttok.id != 0) {
                 /* If syntax error, reset */
                 state = initial_state;
                 state.scan = scan;
+                state.beginning_line = 1;
                 next(&state);
                 free(result);
-            } else if (result != NULL) {
+            } else if (state.errors == 0) {
                 /* Delete previously defined functions from scope, so we can
                  * rewrite them to fix. */
                 scope_delete(real_scope, result->sym);
@@ -928,8 +970,10 @@ void interact(ASymbolTable *symtab) {
                 free(program);
             }
         } else if (state.nexttok.id != 0) {
+            /* Otherwise, it isn't a declaration, it's just
+             * a regular command. */
             AWordSeqNode *result = parse_interactive_words(&state);
-            if (result != NULL) {
+            if (state.errors == 0) {
                 ACompileStatus stat = compile_seq_context(result, *symtab, reg, real_scope);
                 if (stat == compile_success) {
                     eval_sequence(stack, NULL, result);
@@ -939,6 +983,7 @@ void interact(ASymbolTable *symtab) {
                 /* Reset on syntax error */
                 state = initial_state;
                 state.scan = scan;
+                state.beginning_line = 1;
                 next(&state);
             }
         }
@@ -950,14 +995,21 @@ void interact(ASymbolTable *symtab) {
 
     reset_tries(&state);
     free_stack(stack);
+
     for (int i = 0; i < reg->size; i++) {
         /* Need to free these manually, since we don't have just one
          * big AST node pointer like we do when we're parsing
          * a file. */
         if (reg->funcs[i] != NULL) {
-            free_wordseq_node(reg->funcs[i]->data.userfunc->words);
+            if (reg->funcs[i]->type == user_func
+                    && reg->funcs[i]->data.userfunc != NULL
+                    && reg->funcs[i]->data.userfunc->words != NULL) {
+                /* If it's a var push, it's just an int so nothing to free. */
+                free_wordseq_node(reg->funcs[i]->data.userfunc->words);
+            }
         }
     }
+
     free_registry(reg);
     free_scope(real_scope);
     free_lib_scope(lib_scope);

@@ -42,11 +42,14 @@ size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
             state->chars_left = strlen(state->current_string);
             state->str_index = 0;
 
+            /* If the line is not empty, store it in the history
+               so we can access it with up-arrow. */
             if (state->chars_left > 0) {
                 add_history(state->current_string);
             }
         }
 
+        /* Copy the string into the buffer for lex. */
         int chars_read = 0;
         for (int i = 0; i < max-2 && state->chars_left > 0; i++) {
             buf[i] = state->current_string[state->str_index + i];
