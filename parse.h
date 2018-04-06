@@ -59,7 +59,9 @@ typedef enum {
     INTEGER,
     FLOAT,
     STRING,
-    CMTCLOSE_ERRORTOKEN,
+    /* Opening and closing comments */
+    CMTOPEN,
+    CMTCLOSE,
 } ATokenType;
 
 

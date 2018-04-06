@@ -146,12 +146,12 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 }
 
   /* Comments. */
-<COMMENT,INITIAL>"(*" {
+ /*<COMMENT,INITIAL>"#(" {
     BEGIN(COMMENT);
     yyextra->nested_comments ++;
 }
 
-<COMMENT,INITIAL>"*)" {
+<COMMENT,INITIAL>")" {
     yyextra->nested_comments --;
     if (yyextra->nested_comments == 0) {
         BEGIN(INITIAL);
@@ -159,6 +159,10 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
         yyextra->nested_comments = 0;
         return CMTCLOSE_ERRORTOKEN;
     }
+}*/
+
+"#{" {
+    return CMTOPEN;
 }
 
 # {

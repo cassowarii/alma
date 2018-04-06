@@ -76,8 +76,6 @@ void fprint_token_type(FILE *out, ATokenType type) {
             fprintf(out, "floating-point literal"); break;
         case STRING:
             fprintf(out, "string literal"); break;
-        case CMTCLOSE_ERRORTOKEN:
-            fprintf(out, "‘*)’"); break;
         case TOKENLIT:
             fprintf(out, "literal"); break;
         case '[':
@@ -142,12 +140,35 @@ AToken next_token(yyscan_t s) {
     return result;
 }
 
-/* Advance parse state to next token. */
+/* Advance parse state to next token, skipping over block comments. */
 static
 void next(AParseState *state) {
     state->currtok = state->nexttok;
     AToken tk = next_token(state->scan);
     state->nexttok = tk;
+
+    /* If a comment is coming up next... */
+    if (state->nexttok.id == CMTOPEN) {
+        state->nested_comments ++;
+        /* If we put a comment at the beginning of a line in interactive mode,
+         * we need to change the prompt manually, because we're filtering out
+         * comments before they even get to the REPL loop. */
+        state->beginning_line = 0;
+
+        int score = 0;
+        while (score >= 0 && state->nexttok.id != 0) {
+            state->nexttok = next_token(state->scan);
+            if (state->currtok.id == WORD || state->currtok.id == SYMBOL) {
+                free(state->currtok.value.cs);
+            }
+            if (state->nexttok.id == CMTOPEN) score ++;
+            if (state->nexttok.id == '{') score ++;
+            if (state->nexttok.id == '}') score --;
+        }
+        /* skip closing ) */
+        state->nexttok = next_token(state->scan);
+        state->nested_comments --;
+    }
 }
 
 /* Add a token-type to an ATokenTypeList, to mark
@@ -828,7 +849,12 @@ void eat_newlines_or_semicolons(AParseState *state) {
      * in between declarations, where we don't
      * actually care about line spacing, and
      * can have optional semicolons anywhere. */
-    while (ACCEPT('\n') || ACCEPT(';'));
+    do {
+        /* In interactive mode, this means we basically
+         * entered a blank line, so we should reset
+         * the prompt. */
+        state->beginning_line = 1;
+    } while (ACCEPT('\n') || ACCEPT(';'));
 }
 
 /* Parse a sequence of declarations separated by
