@@ -942,6 +942,7 @@ void interact(ASymbolTable *symtab) {
                 next(&state);
             }
         }
+        state.beginning_line = 1;
         eat_newlines_or_semicolons(&state);
     } while (state.nexttok.id != 0);
 

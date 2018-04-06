@@ -41,6 +41,10 @@ size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
 
             state->chars_left = strlen(state->current_string);
             state->str_index = 0;
+
+            if (state->chars_left > 0) {
+                add_history(state->current_string);
+            }
         }
 
         int chars_read = 0;
@@ -52,13 +56,18 @@ size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
 
         /* Put a newline at the end, since editline 'helpfully'
          * strips it off for us. */
-        /* (Actually put two newlines, so we can consume the first one
-            without having to read in another line to grab a lookahead
-            token.) */
         buf[chars_read] = '\n';
         chars_read ++;
-        buf[chars_read] = '\n';
-        chars_read ++;
+        if (buf[chars_read-2] != '\\') {
+            /* (Actually put two newlines, so we can consume the first one
+               without having to read in another line to grab a lookahead
+               token.) */
+            /* (Except if there's a backslash, since the second newline wouldn't
+               get escaped. But if there's a backslash we have to ask for more
+               input anyway, so it's fine. */
+            buf[chars_read] = '\n';
+            chars_read ++;
+        }
         /* Decrease lineno by one, to account for the extra newline
            we added. */
         yyset_lineno(yyget_lineno(state->scan) - 1, state->scan);
