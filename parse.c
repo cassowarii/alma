@@ -253,6 +253,9 @@ int do_panic_mode(ATokenType match, ATokenType type, AParseState *state) {
     int score = 0;
     while (score >= 0 && state->nexttok.id != 0) {
         next(state);
+        if (state->currtok.id == WORD || state->currtok.id == SYMBOL) {
+            free(state->currtok.value.cs);
+        }
         if (state->nexttok.id == match) score ++;
         if (state->nexttok.id == type) score --;
     }
@@ -563,8 +566,12 @@ AWordSeqNode *parse_wordline(AParseState *state) {
      * we'll never enter this loop in the first place
      * -- perfect! */
     AAstNode *word = parse_word(state);
+
     while (word != &nonword) {
-        if (word == NULL) return NULL;
+        if (word == NULL) {
+            free_wordseq_node(result);
+            return NULL;
+        }
 
         if (word->type == paren_node) {
             /* Unwrap the paren node, and put the stuff
@@ -579,6 +586,7 @@ AWordSeqNode *parse_wordline(AParseState *state) {
         } else {
             ast_wordseq_prepend(result, word);
         }
+
         word = parse_word(state);
     }
 
@@ -609,7 +617,10 @@ AWordSeqNode *parse_words(AParseState *state) {
 
     do {
         AWordSeqNode *line = parse_wordline(state);
-        if (line == NULL) return NULL;
+        if (line == NULL) {
+            free_wordseq_node(result);
+            return NULL;
+        }
         ast_wordseq_concat(result, line);
         free(line);
     } while (parse_separator(state));
@@ -627,13 +638,17 @@ AWordSeqNode *parse_interactive_words(AParseState *state) {
 
     do {
         AWordSeqNode *line = parse_wordline(state);
-        if (line == NULL) return NULL;
+        if (line == NULL) {
+            free(result);
+            return NULL;
+        }
         ast_wordseq_concat(result, line);
         free(line);
     } while (ACCEPT('|'));
 
     if (!EXPECT('\n')) {
         PANIC('\n');
+        free_wordseq_node(result);
         return NULL;
     }
 
@@ -715,7 +730,6 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
             free(state->currtok.value.cs);
         } else {
             state->infuncs --;
-            free(name);
             return NULL;
         }
 
@@ -729,14 +743,12 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
         } else {
             state->infuncs --;
             free_nameseq_node(params);
-            free(name);
             return NULL;
         }
 
         if (body == NULL) {
             state->infuncs --;
             free_nameseq_node(params);
-            free(name);
             return NULL;
         }
 
@@ -930,7 +942,10 @@ void interact(ASymbolTable *symtab) {
                 next(&state);
             }
         }
+        eat_newlines_or_semicolons(&state);
     } while (state.nexttok.id != 0);
+
+    free(state.current_string);
 
     reset_tries(&state);
     free_stack(stack);
@@ -938,7 +953,9 @@ void interact(ASymbolTable *symtab) {
         /* Need to free these manually, since we don't have just one
          * big AST node pointer like we do when we're parsing
          * a file. */
-        free_wordseq_node(reg->funcs[i]->data.userfunc->words);
+        if (reg->funcs[i] != NULL) {
+            free_wordseq_node(reg->funcs[i]->data.userfunc->words);
+        }
     }
     free_registry(reg);
     free_scope(real_scope);

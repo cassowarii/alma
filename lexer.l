@@ -23,18 +23,18 @@ size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
         size_t len = fread(buf, 1, max, file);
         if (len == 0 && ferror(file)) {
             /* ERROR ! :( */
-            return 0; /* TODO handle this */
+            return YY_NULL; /* TODO handle this */
         }
         return len;
     } else {
         /* Interactive! We have to read from stdin. */
         if (state->chars_left == 0) {
-            free(state->current_string);
             if (state->beginning_line) {
                 state->current_string = readline(state->prompt1);
             } else {
                 state->current_string = readline(state->prompt2);
             }
+
             if (state->current_string == NULL) {
                 return YY_NULL;
             }
@@ -49,6 +49,7 @@ size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
             state->chars_left --;
             chars_read ++;
         }
+
         /* Put a newline at the end, since editline 'helpfully'
          * strips it off for us. */
         /* (Actually put two newlines, so we can consume the first one
@@ -62,6 +63,11 @@ size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
            we added. */
         yyset_lineno(yyget_lineno(state->scan) - 1, state->scan);
         state->str_index += chars_read;
+
+        if (state->chars_left == 0) {
+            free(state->current_string);
+        }
+
         return chars_read;
     }
 }
