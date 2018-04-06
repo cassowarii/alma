@@ -83,8 +83,8 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             /* Find the function bound to its name. */
             AScopeEntry *e = scope_lookup(scope, current->data.sym);
             if (e == NULL) {
-                fprintf(stderr, "error: unknown word ‘%s’ at line %d.\n",
-                        current->data.sym->name, current->linenum);
+                fprintf(stderr, "error: unknown word ‘%s’ <%p> at line %d.\n",
+                        current->data.sym->name, current->data.sym, current->linenum);
                 errors ++;
             } else {
                 /* Change symbol pointer to function pointer. */
@@ -286,4 +286,24 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
     }
 
     return compile_success;
+}
+
+/* Compile a given declseq in context of preexisting symbol table, registry, scope. */
+ACompileStatus compile_in_context(ADeclSeqNode *program,
+        ASymbolTable symtab, AFuncRegistry *reg, AScope *scope) {
+    /* We start with no variables! */
+    ABindInfo bi = {0, 0};
+    ACompileStatus stat = compile(scope, reg, program, bi);
+
+    return stat;
+}
+
+/* Compile a given wordseq in context of preexisting symbol table, registry, scope. */
+ACompileStatus compile_seq_context(AWordSeqNode *seq,
+        ASymbolTable symtab, AFuncRegistry *reg, AScope *scope) {
+    /* We start with no variables! */
+    ABindInfo bi = {0, 0};
+    ACompileResult r = compile_wordseq(scope, reg, seq, bi);
+
+    return r.status;
 }

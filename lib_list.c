@@ -60,7 +60,7 @@ void lib_uncons(AStack* stack, AVarBuffer *buffer) {
 }
 
 /* Initialize built-in list operators. */
-void listlib_init(ASymbolTable st, AScope *sc) {
+void listlib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "len", &lib_len);
     addlibfunc(sc, st, "cons", &lib_cons);
     addlibfunc(sc, st, "head", &lib_head);

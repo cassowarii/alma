@@ -44,6 +44,10 @@ void do_error(char *msg, unsigned int line) {
     fprintf(stderr, "Syntax error at line %d: %s\n", line, msg);
 }
 
+/* Sentinel value returned when the thing parsed
+ * cannot be a word. (end of word-sequence) */
+static AAstNode nonword = { 0, { 0 }, NULL, 0 };
+
 /* Print a representation of a general token type.
  * This is what shows up when we say "error, unexpected
  * blah, was expecting blah." The second blah is
@@ -225,8 +229,8 @@ int do_expect(ATokenType type, AParseState *state) {
     for ( ; last->next; last = last->next);
     /* Now move backwards and print them all out. */
     for (ATokenTypeList *curr = last; curr; curr = curr->prev) {
-        if (curr->prev == NULL) {
-            /* last one */
+        if (curr->prev == NULL && curr->next != NULL) {
+            /* last one, but not only one */
             fprintf(stderr, " or ");
         } else if (curr != last) {
             /* not first one */
@@ -387,6 +391,7 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         free(state->currtok.value.cs);
         return ast_valnode(line, val_sym(sym));
     } else if (ACCEPT('(')) {
+        state->nested_parens ++;
         eat_newlines(state);
         AAstNode *result = NULL;
         if (ACCEPT(T_BIND)) {
@@ -440,9 +445,11 @@ AAstNode *parse_cmplx_word(AParseState *state) {
          * from this scope... it's a little macro-magic-y, but.. just something to keep
          * in mind.) */
         EXPECT_MATCH('(', ')');
+        state->nested_parens --;
 
         return result;
     } else if (ACCEPT('[')) {
+        state->nested_brackets ++;
         AWordSeqNode *inner_block = NULL;
         eat_newlines(state);
         if (ACCEPT(T_BIND)) {
@@ -482,13 +489,16 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         }
 
         EXPECT_MATCH('[', ']');
+        state->nested_brackets --;
 
         AValue *blockval = val_block(inner_block);
         return ast_valnode(line, blockval);
     } else if (ACCEPT('{')) {
+        state->nested_curlies ++;
         AProtoList *proto = parse_list_guts(state);
 
         EXPECT_MATCH('{', '}');
+        state->nested_curlies --;
 
         return ast_valnode(line, val_protolist(proto));
     } else if (ACCEPT(T_LET)) {
@@ -496,6 +506,11 @@ AAstNode *parse_cmplx_word(AParseState *state) {
          * so we can ask for more lines. */
         state->inlets ++;
         ADeclSeqNode *decls = parse_declseq(state);
+        if (decls == NULL) {
+            state->inlets --;
+            return NULL;
+        }
+
         EXPECT(T_IN);
         state->inlets --;
 
@@ -513,7 +528,7 @@ AAstNode *parse_cmplx_word(AParseState *state) {
             return NULL;
         }
     } else {
-        return NULL;
+        return &nonword;
     }
 }
 
@@ -547,7 +562,9 @@ AWordSeqNode *parse_wordline(AParseState *state) {
      * we'll never enter this loop in the first place
      * -- perfect! */
     AAstNode *word = parse_word(state);
-    while (word != NULL) {
+    while (word != &nonword) {
+        if (word == NULL) return NULL;
+
         if (word->type == paren_node) {
             /* Unwrap the paren node, and put the stuff
              * we've done before AFTER it. */
@@ -591,9 +608,28 @@ AWordSeqNode *parse_words(AParseState *state) {
 
     do {
         AWordSeqNode *line = parse_wordline(state);
+        if (line == NULL) return NULL;
         ast_wordseq_concat(result, line);
         free(line);
     } while (parse_separator(state));
+
+    return result;
+}
+
+/* Parse a generalized "sequence of words," in
+ * interactive mode at top level. This permits
+ * separating things by pipes, but not newlines.
+ * (since a newline means you're finished with
+ *  the command.) */
+AWordSeqNode *parse_interactive_words(AParseState *state) {
+    AWordSeqNode *result = ast_wordseq_new();
+
+    do {
+        AWordSeqNode *line = parse_wordline(state);
+        if (line == NULL) return NULL;
+        ast_wordseq_concat(result, line);
+        free(line);
+    } while (ACCEPT('|'));
 
     return result;
 }
@@ -614,7 +650,8 @@ ADeclNode *parse_decl(AParseState *state) {
             name = get_symbol(state->symtab, state->currtok.value.cs);
             free(state->currtok.value.cs);
         } else {
-            /* whoops error */
+            state->infuncs--;
+            return NULL;
         }
 
         /* func params */
@@ -625,7 +662,14 @@ ADeclNode *parse_decl(AParseState *state) {
         if (EXPECT(':')) {
             body = parse_words(state);
         } else {
-            /* error */
+            free_nameseq_node(params);
+            state->infuncs--;
+            return NULL;
+        }
+
+        if (body == NULL) {
+            state->infuncs--;
+            return NULL;
         }
 
         /* Leave function. */
@@ -644,6 +688,71 @@ ADeclNode *parse_decl(AParseState *state) {
         /* TODO parse imports */
         return NULL;
     } else {
+        printf("ok!\n");
+        return NULL;
+    }
+}
+
+/* Parse an interactive-mode declaration, which must be
+ * terminated by a semicolon. */
+ADeclNode *parse_interactive_decl(AParseState *state) {
+    if (ACCEPT(T_FUNC)) {
+        /* Mark we're inside a function now, so we can know to
+         * ask for more lines in interactive mode. */
+        state->infuncs ++;
+        unsigned int line = LINENUM;
+
+        /* func name */
+        ASymbol *name = NULL;
+        if (EXPECT(WORD)) {
+            name = get_symbol(state->symtab, state->currtok.value.cs);
+            free(state->currtok.value.cs);
+        } else {
+            state->infuncs --;
+            free(name);
+            return NULL;
+        }
+
+        /* func params */
+        ANameSeqNode *params = parse_nameseq_opt(state);
+
+        AWordSeqNode *body = NULL;
+        /* func body */
+        if (EXPECT(':')) {
+            body = parse_words(state);
+        } else {
+            state->infuncs --;
+            free_nameseq_node(params);
+            free(name);
+            return NULL;
+        }
+
+        if (body == NULL) {
+            state->infuncs --;
+            free_nameseq_node(params);
+            free(name);
+            return NULL;
+        }
+
+        /* Leave function. */
+        state->infuncs --;
+
+        EXPECT(';');
+        if (params->length == 0) {
+            free_nameseq_node(params);
+            return ast_declnode(line, name, body);
+        } else {
+            /* Convert func name a b: words ; to func name: -> a b (words) ; */
+            AWordSeqNode *param_wrapper = ast_wordseq_new();
+            ast_wordseq_prepend(param_wrapper, ast_bindnode(params->first->linenum, params, body));
+            return ast_declnode(line, name, param_wrapper);
+        }
+    } else if (ACCEPT(T_IMPORT)) {
+        /* TODO parse imports */
+        EXPECT(';');
+        return NULL;
+    } else {
+        ACCEPT(';');
         return NULL;
     }
 }
@@ -674,6 +783,7 @@ ADeclSeqNode *parse_declseq(AParseState *state) {
     eat_newlines_or_semicolons(state);
     do {
         ADeclNode *dec = parse_decl(state);
+        if (dec == NULL) return NULL;
         ast_declseq_append(result, dec);
         eat_newlines_or_semicolons(state);
     } while (decl_leadin(state->nexttok.id));
@@ -698,16 +808,121 @@ ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
     yyset_in(infile, scan);
 
     AToken notoken = { 0, { 0 }, { 0, 0 } };
-    AParseState initial_state = { symtab, scan, notoken, notoken, 0 };
+    AParseState initial_state = {
+        symtab,    /* Symbol table */
+        scan,       /* Scanner */
+        notoken,    /* Curr token */
+        notoken,    /* Next token */
+        NULL,       /* Attempted matches list */
+        0,          /* # errors */
+        0,          /* Interactive? */
+        NULL,       /* current interactive string */
+        0,          /* chars left to read from string */
+        0,          /* current index into string */
+        "alma> ",   /* Prompt #1 */
+        "... > ",   /* Prompt #2 */
+        0,          /* Nested let..in */
+        0,          /* Nested function decls */
+        0,          /* Nested comments */
+        0,          /* Nested ( ) */
+        0,          /* Nested [ ] */
+        0,          /* Nested { } */
+        1,          /* At beginning of line */
+    };
     next(&initial_state);
 
     ADeclSeqNode *result = parse_program(&initial_state);
 
     if (initial_state.errors == 0) {
         yylex_destroy(scan);
-
         return result;
     } else {
         return NULL;
     }
+}
+
+/* Parse interactive; ask for more text if necessary */
+void interact(ASymbolTable *symtab) {
+    printf("-- alma v"ALMA_VERSION" ‘"ALMA_VNAME"’ --\n");
+
+    AToken notoken = { TOKENNONE, { 0 }, { 0, 0 } };
+    AParseState initial_state = {
+        symtab,       /* Symbol table */
+        NULL,       /* Scanner */
+        notoken,    /* Curr token */
+        notoken,    /* Next token */
+        NULL,       /* Attempted matches list */
+        0,          /* # errors */
+        1,          /* Interactive? */
+        NULL,       /* current interactive string */
+        0,          /* chars left to read from string */
+        0,          /* current index into string */
+        "alma> ",   /* Prompt #1 */
+        "... > ",   /* Prompt #2 */
+        0,          /* Nested let..in */
+        0,          /* Nested function decls */
+        0,          /* Nested comments */
+        0,          /* Nested ( ) */
+        0,          /* Nested [ ] */
+        0,          /* Nested { } */
+        1,          /* At beginning of line */
+    };
+
+    AParseState state = initial_state;
+
+    yyscan_t scan;
+    yylex_init_extra(&state, &scan);
+
+    AStack *stack = stack_new(20);
+    AScope *lib_scope = scope_new(NULL);
+
+    state.scan = scan;
+
+    yyset_extra(&state, scan);
+    AScope *real_scope = scope_new(lib_scope);
+
+    AFuncRegistry *reg = registry_new(20);
+    lib_init(symtab, lib_scope, 1);
+
+    next(&state);
+    do {
+        state.beginning_line = 1;
+        eat_newlines_or_semicolons(&state);
+        state.beginning_line = 0;
+        if (decl_leadin(state.nexttok.id)) {
+            ADeclNode *result = parse_interactive_decl(&state);
+            if (result == NULL && state.nexttok.id != 0) {
+                /* If syntax error, reset */
+                state = initial_state;
+                state.scan = scan;
+                next(&state);
+                continue;
+            } else if (result != NULL) {
+                /* Delete previously defined functions from scope, so we can
+                 * rewrite them to fix. */
+                scope_delete(real_scope, result->sym);
+
+                ADeclSeqNode *program = ast_declseq_new();
+                ast_declseq_append(program, result);
+                compile_in_context(program, *symtab, reg, real_scope);
+                free(program);
+            }
+        } else {
+            AWordSeqNode *result = parse_interactive_words(&state);
+            if (result != NULL) {
+                ACompileStatus stat = compile_seq_context(result, *symtab, reg, real_scope);
+                if (stat == compile_success) {
+                    eval_sequence(stack, NULL, result);
+                }
+            } else if (state.nexttok.id != 0) {
+                /* Reset on syntax error */
+                state = initial_state;
+                state.scan = scan;
+                next(&state);
+                continue;
+            }
+        }
+    } while (state.nexttok.id != 0);
+
+    yylex_destroy(scan);
 }

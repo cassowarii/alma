@@ -17,8 +17,14 @@ void lib_println(AStack* stack, AVarBuffer *buffer) {
     printf("\n");
 }
 
+/* Print out the top value on the stack with newline. */
+void lib_quit(AStack* stack, AVarBuffer *buffer) {
+    exit(0);
+}
+
 /* Initialize built-in functions. */
-void funclib_init(ASymbolTable st, AScope *sc) {
+void funclib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "print", &lib_print);
     addlibfunc(sc, st, "println", &lib_println);
+    addlibfunc(sc, st, "quit", &lib_quit);
 }

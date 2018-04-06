@@ -161,6 +161,19 @@ ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol
     return compile_success;
 }
 
+/* Delete an entry from the scope. (Used if you make a mistake in interactive mode;
+ * we don't want to ban you from redefining the same function!!) */
+void scope_delete(AScope *sc, ASymbol *symbol) {
+    AScopeEntry *e = NULL;
+    HASH_FIND_PTR(sc->content, &symbol, e);
+
+    if (e != NULL) {
+        /* delete from scope. */
+        /* TODO stuff needs to get freed here */
+        HASH_DEL(sc->content, e);
+    }
+}
+
 /* Look up the word that's bound to a given symbol in a certain lexical scope. */
 AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol) {
     if (sc == NULL) {

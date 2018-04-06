@@ -24,6 +24,10 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, unsigned int fre
 ACompileStatus scope_create_push(AScope *sc, AFuncRegistry *reg, ASymbol *symbol,
                                  unsigned int index, unsigned int linenum);
 
+/* Delete an entry from the scope. (Used if you make a mistake in interactive mode;
+ * we don't want to ban you from redefining the same function!!) */
+void scope_delete(AScope *sc, ASymbol *symbol);
+
 /* Look up the function bound to a given symbol in a certain lexical scope.
  * Returns NULL if not found. */
 AScopeEntry *scope_lookup(AScope *sc, ASymbol *symbol);

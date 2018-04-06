@@ -56,7 +56,7 @@ void lib_stackprint(AStack* stack, AVarBuffer *buffer) {
 }
 
 /* Initialize built-in stack operations. */
-void stacklib_init(ASymbolTable st, AScope *sc) {
+void stacklib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "dup", &lib_dup);
     addlibfunc(sc, st, "swap", &lib_swap);
     addlibfunc(sc, st, "dip", &lib_dip);

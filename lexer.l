@@ -1,4 +1,5 @@
 %{
+#include <editline.h>
 #include "alma.h"
 #include "parse.h"
 #include "ustrings.h"
@@ -10,8 +11,54 @@ int yywrap(yyscan_t scanner) {
     return 1;
 }
 
-#define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
+size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
+    if (file != stdin) {
+        /* There's an actual file to read */
+        size_t len = fread(buf, 1, max, file);
+        if (len == 0 && ferror(file)) {
+            /* ERROR ! :( */
+            return 0; /* TODO handle this */
+        }
+        return len;
+    } else {
+        /* Interactive! We have to read from stdin. */
+        if (state->chars_left == 0) {
+            /*if (state->inlets <= 0 && state->infuncs <= 0
+                    && state->nested_comments <= 0
+                    && state->nested_parens <= 0
+                    && state->nested_brackets <= 0
+                    && state->nested_curlies <= 0
+                    && state->beginning_line) {*/
+            if (state->beginning_line) {
+                state->current_string = readline(state->prompt1);
+            } else {
+                state->current_string = readline(state->prompt2);
+            }
+            if (state->current_string == NULL) {
+                return YY_NULL;
+            }
 
+            state->chars_left = strlen(state->current_string);
+            state->str_index = 0;
+        }
+
+        int chars_read = 0;
+        for (int i = 0; i < max-1 && state->chars_left > 0; i++) {
+            buf[i] = state->current_string[state->str_index + i];
+            state->chars_left --;
+            chars_read ++;
+        }
+        /* Put a newline at the end, since editline 'helpfully'
+         * strips it off for us. */
+        buf[chars_read] = '\n';
+        chars_read ++;
+        state->str_index += chars_read;
+        return chars_read;
+    }
+}
+
+#define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
+#define YY_INPUT(buf, result, max_size) result = get_input(yyin, buf, max_size, yyextra)
 
 uint32_t char_parse(const char *utf8, unsigned int length);
 AUstr *parse_string(const char *bytes, unsigned int length);

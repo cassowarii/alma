@@ -7,6 +7,8 @@ struct AParseState;
 #include "ast.h"
 #include "symbols.h"
 #include "value.h"
+#include "lib.h"
+#include "compile.h"
 
 typedef struct YYLTYPE {
     unsigned int first_line;
@@ -39,6 +41,7 @@ typedef enum {
     TOKENOBRACK = '[',
     TOKENCBRACK = ']',
     TOKENLINE   = '\n',
+    TOKENNONE   = 'N', /* "default" token at beginning */
     /* This one gets put into the try-list instead of the
      * individual literal tokens, so we don't say
      * "expecting integer literal or float literal or ...",
@@ -79,9 +82,23 @@ typedef struct AParseState {
     AToken nexttok;
     ATokenTypeList *tries;
     unsigned int errors;
+
+    /* Interactive stuff */
+    int interactive;
+    char *current_string;
+    unsigned int chars_left;
+    unsigned int str_index;
+    const char *prompt1;
+    const char *prompt2;
     /* Parse counts:
      *  inlets: are we between a "let" and an "in"?
+     *      (and if so how many nested ones?)
      *  infuncs: are we in the body of a func?
+     *      (and if so how many nested ones?)
+     *  nested_comments, etc: should be obvious
+     *  beginning_line: are we at the beginning of a line?
+     *      (if not, e.g. we used a backslash to escape a
+     *       newline, so use prompt2 instead of prompt1)
      * These are used in interactive mode -- we stop
      * requesting more input when we see a ';' and aren't
      * inside of the declaration-sequence of a let.
@@ -89,6 +106,10 @@ typedef struct AParseState {
     unsigned short inlets;
     unsigned short infuncs;
     unsigned short nested_comments;
+    unsigned short nested_parens;
+    unsigned short nested_brackets;
+    unsigned short nested_curlies;
+    unsigned short beginning_line;
 } AParseState;
 
 #ifndef FLEX_SCANNER
@@ -116,5 +137,8 @@ void yy_delete_buffer(YY_BUFFER_STATE buffer, yyscan_t scanner);
 
 /* Parse a file pointer, and set program and symbol table. */
 ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab);
+
+/* Parse interactive; ask for more text if necessary */
+void interact(ASymbolTable *symtab);
 
 #endif

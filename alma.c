@@ -28,7 +28,7 @@ int main (int argc, char **argv) {
             exit(1);
         }
     } else if (argc == 1) {
-        printf("Interactive mode has been taken offline for now.\n");
+        interact(&symtab);
         exit(0);
     } else {
         fprintf(stderr, "Please supply one file name.\n");
@@ -54,21 +54,10 @@ int compile_and_run(ADeclSeqNode *program, ASymbolTable symtab) {
         AScope *lib_scope = scope_new(NULL);
 
         AFuncRegistry *reg = registry_new(20);
-
-        lib_init(symtab, lib_scope);
-
+        lib_init(&symtab, lib_scope, 0);
         AScope *real_scope = scope_new(lib_scope);
 
-        /* We start with no variables! */
-        ABindInfo bi = {0, 0};
-        ACompileStatus stat = compile(real_scope, reg, program, bi);
-
-        if (stat == compile_fail) {
-            fprintf(stderr, "Compilation aborted.\n");
-            free_scope(real_scope);
-            CLEANUP();
-            return 1;
-        }
+        ACompileStatus stat = compile_in_context(program, symtab, reg, real_scope);
 
         /* Find main, before we free top-level scope.. */
         AFunc *mainfunc = scope_find_func(real_scope, symtab, "main");

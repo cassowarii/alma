@@ -21,7 +21,7 @@
     AScope *scope = scope_new(lib_scope); \
     AFuncRegistry *reg = registry_new(20); \
     program = parse_file(in, &symtab); \
-    lib_init(symtab, lib_scope); \
+    lib_init(&symtab, lib_scope, 0); \
     ABindInfo bi = {0,0};
 
 #define ALMATESTCLEAN() \

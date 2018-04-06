@@ -1,8 +1,8 @@
 #ifndef _ALMA_H__
 #define _ALMA_H__
 
-#define ALMA_VERSION "0.0"
-#define ALMA_VNAME "Dinosaur Days"
+#define ALMA_VERSION "0.1"
+#define ALMA_VNAME "Worker Bee"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -338,18 +338,5 @@ typedef struct AFuncRegistry {
     int size;
     int capacity;
 } AFuncRegistry;
-
-/*-*-* interactive.h *-*-*/
-
-typedef struct AInteractive {
-    int is_interactive;     // are we even interactive?
-    int at_eof;             // are we at the end of a whole structure?
-    int beginning;          // are we at the beginning? (should we show prompt1 or 2?)
-    int nested_blocks;
-    int nested_parens;
-    int nested_comments;
-    int nested_lists;
-    int nested_colons;
-} AInteractive;
 
 #endif

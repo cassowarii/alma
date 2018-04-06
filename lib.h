@@ -8,24 +8,24 @@
 #include "eval.h"
 
 /* Initialize builtin library functions into scope sc. */
-void lib_init(ASymbolTable symtab, AScope *sc);
+void lib_init(ASymbolTable *symtab, AScope *sc, int verbose);
 
 /* Initialize built-in functions. */
-void funclib_init(ASymbolTable symtab, AScope *sc);
+void funclib_init(ASymbolTable *symtab, AScope *sc);
 
 /* Initialize built-in operators. */
-void oplib_init(ASymbolTable symtab, AScope *sc);
+void oplib_init(ASymbolTable *symtab, AScope *sc);
 
 /* Initialize built-in stack operations. */
-void stacklib_init(ASymbolTable symtab, AScope *sc);
+void stacklib_init(ASymbolTable *symtab, AScope *sc);
 
 /* Initialize built-in control flow functions. */
-void controllib_init(ASymbolTable symtab, AScope *sc);
+void controllib_init(ASymbolTable *symtab, AScope *sc);
 
 /* Initialize built-in control flow functions. */
-void listlib_init(ASymbolTable symtab, AScope *sc);
+void listlib_init(ASymbolTable *symtab, AScope *sc);
 
 /* Add built in func to scope by wrapping it in a newly allocated AFunc */
-void addlibfunc(AScope *sc, ASymbolTable symtab, const char *name, APrimitiveFunc f);
+void addlibfunc(AScope *sc, ASymbolTable *symtab, const char *name, APrimitiveFunc f);
 
 #endif

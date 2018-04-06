@@ -162,7 +162,7 @@ void lib_equal(AStack* stack, AVarBuffer *buffer) {
 }
 
 /* Initialize built-in operators. */
-void oplib_init(ASymbolTable st, AScope *sc) {
+void oplib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "+", &lib_add);
     addlibfunc(sc, st, "-", &lib_subtract);
     addlibfunc(sc, st, "*", &lib_multiply);

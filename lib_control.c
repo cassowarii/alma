@@ -128,7 +128,7 @@ void lib_whilestar(AStack *stack, AVarBuffer *buffer) {
 }
 
 /* Initialize built-in control flow functions. */
-void controllib_init(ASymbolTable st, AScope *sc) {
+void controllib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "if", &lib_if);
     addlibfunc(sc, st, "if*", &lib_ifstar);
     addlibfunc(sc, st, "while", &lib_while);
