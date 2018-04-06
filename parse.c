@@ -688,7 +688,7 @@ ADeclNode *parse_decl(AParseState *state) {
         /* TODO parse imports */
         return NULL;
     } else {
-        printf("ok!\n");
+        EXPECT(';');
         return NULL;
     }
 }

@@ -27,4 +27,5 @@ void funclib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "print", &lib_print);
     addlibfunc(sc, st, "println", &lib_println);
     addlibfunc(sc, st, "quit", &lib_quit);
+    addlibfunc(sc, st, "exit", &lib_quit);
 }

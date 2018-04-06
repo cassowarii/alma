@@ -83,8 +83,8 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             /* Find the function bound to its name. */
             AScopeEntry *e = scope_lookup(scope, current->data.sym);
             if (e == NULL) {
-                fprintf(stderr, "error: unknown word ‘%s’ <%p> at line %d.\n",
-                        current->data.sym->name, current->data.sym, current->linenum);
+                fprintf(stderr, "error: unknown word ‘%s’ at line %d.\n",
+                        current->data.sym->name, current->linenum);
                 errors ++;
             } else {
                 /* Change symbol pointer to function pointer. */
