@@ -8,6 +8,11 @@
 
 #define ERROR(msg) do_error(msg, yylineno)
 
+extern int yyget_lineno (yyscan_t yyscanner );
+
+extern void yyset_lineno (int _line_number ,yyscan_t yyscanner );
+
+
 int yywrap(yyscan_t scanner) {
     return 1;
 }
@@ -24,12 +29,7 @@ size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
     } else {
         /* Interactive! We have to read from stdin. */
         if (state->chars_left == 0) {
-            /*if (state->inlets <= 0 && state->infuncs <= 0
-                    && state->nested_comments <= 0
-                    && state->nested_parens <= 0
-                    && state->nested_brackets <= 0
-                    && state->nested_curlies <= 0
-                    && state->beginning_line) {*/
+            free(state->current_string);
             if (state->beginning_line) {
                 state->current_string = readline(state->prompt1);
             } else {
@@ -44,15 +44,23 @@ size_t get_input(FILE *file, char *buf, size_t max, AParseState *state) {
         }
 
         int chars_read = 0;
-        for (int i = 0; i < max-1 && state->chars_left > 0; i++) {
+        for (int i = 0; i < max-2 && state->chars_left > 0; i++) {
             buf[i] = state->current_string[state->str_index + i];
             state->chars_left --;
             chars_read ++;
         }
         /* Put a newline at the end, since editline 'helpfully'
          * strips it off for us. */
+        /* (Actually put two newlines, so we can consume the first one
+            without having to read in another line to grab a lookahead
+            token.) */
         buf[chars_read] = '\n';
         chars_read ++;
+        buf[chars_read] = '\n';
+        chars_read ++;
+        /* Decrease lineno by one, to account for the extra newline
+           we added. */
+        yyset_lineno(yyget_lineno(state->scan) - 1, state->scan);
         state->str_index += chars_read;
         return chars_read;
     }

@@ -59,6 +59,13 @@ int compile_and_run(ADeclSeqNode *program, ASymbolTable symtab) {
 
         ACompileStatus stat = compile_in_context(program, symtab, reg, real_scope);
 
+        if (stat == compile_fail) {
+            fprintf(stderr, "Compilation aborted.\n");
+            free_scope(real_scope);
+            CLEANUP();
+            return 1;
+        }
+
         /* Find main, before we free top-level scope.. */
         AFunc *mainfunc = scope_find_func(real_scope, symtab, "main");
 

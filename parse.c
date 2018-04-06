@@ -239,6 +239,7 @@ int do_expect(ATokenType type, AParseState *state) {
         fprint_token_type(stderr, curr->tok);
     }
     fprintf(stderr, ".\n");
+    reset_tries(state);
 
     state->errors ++;
     return 0;
@@ -631,6 +632,11 @@ AWordSeqNode *parse_interactive_words(AParseState *state) {
         free(line);
     } while (ACCEPT('|'));
 
+    if (!EXPECT('\n')) {
+        PANIC('\n');
+        return NULL;
+    }
+
     return result;
 }
 
@@ -752,7 +758,7 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
         EXPECT(';');
         return NULL;
     } else {
-        ACCEPT(';');
+        EXPECT(';');
         return NULL;
     }
 }
@@ -896,7 +902,7 @@ void interact(ASymbolTable *symtab) {
                 state = initial_state;
                 state.scan = scan;
                 next(&state);
-                continue;
+                free(result);
             } else if (result != NULL) {
                 /* Delete previously defined functions from scope, so we can
                  * rewrite them to fix. */
@@ -905,24 +911,39 @@ void interact(ASymbolTable *symtab) {
                 ADeclSeqNode *program = ast_declseq_new();
                 ast_declseq_append(program, result);
                 compile_in_context(program, *symtab, reg, real_scope);
+
+                free(result);
                 free(program);
             }
-        } else {
+        } else if (state.nexttok.id != 0) {
             AWordSeqNode *result = parse_interactive_words(&state);
             if (result != NULL) {
                 ACompileStatus stat = compile_seq_context(result, *symtab, reg, real_scope);
                 if (stat == compile_success) {
                     eval_sequence(stack, NULL, result);
                 }
+                free_wordseq_node(result);
             } else if (state.nexttok.id != 0) {
                 /* Reset on syntax error */
                 state = initial_state;
                 state.scan = scan;
                 next(&state);
-                continue;
             }
         }
     } while (state.nexttok.id != 0);
+
+    reset_tries(&state);
+    free_stack(stack);
+    for (int i = 0; i < reg->size; i++) {
+        /* Need to free these manually, since we don't have just one
+         * big AST node pointer like we do when we're parsing
+         * a file. */
+        free_wordseq_node(reg->funcs[i]->data.userfunc->words);
+    }
+    free_registry(reg);
+    free_scope(real_scope);
+    free_lib_scope(lib_scope);
+    free_symbol_table(symtab);
 
     yylex_destroy(scan);
 }
