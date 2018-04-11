@@ -394,6 +394,7 @@ void free_protolist(AProtoList *to_free) {
 
 /* Free a word-sequence node. */
 void free_wordseq_node(AWordSeqNode *to_free) {
+    if (to_free == NULL) return;
     AAstNode *current = to_free->first;
     while (current != NULL) {
         AAstNode *next = current->next;

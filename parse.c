@@ -565,7 +565,6 @@ AAstNode *parse_cmplx_word(AParseState *state) {
             AValue *blockval = val_block(inner_block);
             return ast_valnode(line, blockval);
         } else {
-            fprintf(stderr, "null blokc\n");
             return NULL;
         }
     } else if (ACCEPT('{')) {
@@ -596,10 +595,20 @@ AAstNode *parse_cmplx_word(AParseState *state) {
          * scope of the let. By only permitting cmplx_words here,
          * we force let-blocks that have plain words as their scope
          * to use parentheses. */
-        AAstNode *content = parse_cmplx_word(state);
-        if (content != NULL) {
-            return ast_letnode(line, decls, unwrap_node(content));
+        if (complex_word_leadin(state->nexttok.id)) {
+            AAstNode *content = parse_cmplx_word(state);
+            if (content != NULL) {
+                return ast_letnode(line, decls, unwrap_node(content));
+            } else {
+                return NULL;
+            }
+        } else if (state->nexttok.id == WORD) {
+            fprintf(stderr, "Syntax error at line %d: let-block cannot be scoped over "
+                            "the single word ‘%s’.\n", LINENUM, state->nexttok.value.cs);
+            state->errors ++;
+            return NULL;
         } else {
+            /* Something wacky is going on, but we'll probably catch it up above? */
             return NULL;
         }
     } else {
