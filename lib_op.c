@@ -240,10 +240,10 @@ AValue *lt_int_val(AValue *a, AValue *b) {
 static
 AValue *lte_int_val(AValue *a, AValue *b) {
     if (a->refs <= 1) {
-        a->data.i = b->data.i < a->data.i;
+        a->data.i = b->data.i <= a->data.i;
         return ref(a);
     } else if (b->refs <= 1) {
-        b->data.i = b->data.i < a->data.i;
+        b->data.i = b->data.i <= a->data.i;
         return ref(b);
     } else {
         return ref(val_int(b->data.i <= a->data.i));
@@ -268,10 +268,10 @@ AValue *gt_int_val(AValue *a, AValue *b) {
 static
 AValue *gte_int_val(AValue *a, AValue *b) {
     if (a->refs <= 1) {
-        a->data.i = b->data.i > a->data.i;
+        a->data.i = b->data.i >= a->data.i;
         return ref(a);
     } else if (b->refs <= 1) {
-        b->data.i = b->data.i > a->data.i;
+        b->data.i = b->data.i >= a->data.i;
         return ref(b);
     } else {
         return ref(val_int(b->data.i >= a->data.i));

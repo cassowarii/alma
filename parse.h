@@ -41,6 +41,7 @@ typedef enum {
     TOKENOBRACK = '[',
     TOKENCBRACK = ']',
     TOKENLINE   = '\n',
+    TOKENCMTLN  = '#',
     TOKENNONE   = 'N', /* "default" token at beginning */
     /* This one gets put into the try-list instead of the
      * individual literal tokens, so we don't say

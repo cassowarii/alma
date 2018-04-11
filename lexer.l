@@ -139,6 +139,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 :   |
 ;   |
 ,   |
+#   |
 \|  return yytext[0];
 
 \r|\n {
@@ -165,16 +166,12 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
     return CMTOPEN;
 }
 
-# {
-    BEGIN(LINECMT);
-}
-
-<COMMENT,LINECMT>. { /* throw it into the trash ! */ }
-<COMMENT>\n|\r     { /* in case of block comment, also eat newlines */ }
+ /*<COMMENT>. { / * throw it into the trash ! * / }
+<COMMENT>\n|\r     { / * in case of block comment, also eat newlines * / }
 <LINECMT>\n|\r {
     BEGIN(INITIAL);
     return '\n';
-}
+} */
 
   /***** Various literals. *****/
 

@@ -168,6 +168,17 @@ void next(AParseState *state) {
         /* skip closing ) */
         state->nexttok = next_token(state->scan);
         state->nested_comments --;
+    } else if (state->nexttok.id == '#') {
+        /* Mark we're in a comment so that the interactive prompt will change
+         * if we end our comment with a \ */
+        state->beginning_line = 0;
+        /* Skip ahead to the next newline. */
+        while (state->nexttok.id != '\n' && state->nexttok.id != 0) {
+            state->nexttok = next_token(state->scan);
+            if (state->nexttok.id == WORD || state->nexttok.id == SYMBOL) {
+                free(state->nexttok.value.cs);
+            }
+        }
     }
 }
 
@@ -304,6 +315,7 @@ void do_expect_match(ATokenType match, ATokenType type, unsigned int line, APars
             fprintf(stderr, "Looks like a mismatched ");
             fprint_token_type(stderr, match);
             fprintf(stderr, " at line %d.\n", line);
+            /* then we get an 'unexpected EOF' error later */
         } else {
             /* otherwise, now we're looking at the matching ), so
              * just eat it. */
@@ -973,16 +985,21 @@ void interact(ASymbolTable *symtab) {
     do {
         state.beginning_line = 1;
         eat_newlines_or_semicolons(&state);
+        if (state.nexttok.id == 0) {
+            /* Can only exit between expressions. An EOF between expressions
+             * gives a syntax error (as seems to be common in REPLs) */
+            break;
+        }
         state.beginning_line = 0;
         if (decl_leadin(state.nexttok.id)) {
             ADeclNode *result = parse_interactive_decl(&state);
-            if (state.errors != 0 && state.nexttok.id != 0) {
+            if (state.errors != 0) {
                 /* If syntax error, reset */
                 state = initial_state;
                 state.scan = scan;
                 state.beginning_line = 1;
-                next(&state);
                 free(result);
+                next(&state);
             } else if (state.errors == 0) {
                 /* Delete previously defined functions from scope, so we can
                  * rewrite them to fix. */
@@ -1005,7 +1022,7 @@ void interact(ASymbolTable *symtab) {
                     eval_sequence(stack, NULL, result);
                 }
                 free_wordseq_node(result);
-            } else if (state.nexttok.id != 0) {
+            } else {
                 /* Reset on syntax error */
                 state = initial_state;
                 state.scan = scan;
@@ -1015,7 +1032,7 @@ void interact(ASymbolTable *symtab) {
         }
         state.beginning_line = 1;
         eat_newlines_or_semicolons(&state);
-    } while (state.nexttok.id != 0);
+    } while (1);
 
     free(state.current_string);
 
