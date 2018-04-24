@@ -49,15 +49,11 @@ func when*: dip [ dip [ [] ] ] | if*
 func concat: if* [= 0 len] [drop] [cons dip [concat] uncons]
 func 2dip f: dip [dip f]
 
-func sort-one-by comparison:
-    uncons -> first (
-        if [apply comparison first] [dip [cons first]] [2dip [cons first]]
-    )
+func sort-one-by comp:
+    uncons -> first (if [apply comp first] [dip [cons first]] [2dip [cons first]])
 
-func partition-by comparison:
-    dip [{} {}]
-    while* [not empty] [sort-one-by comparison]
-    drop
+func partition-by comp list:
+    while* [not empty] [sort-one-by comp] list {} {} | drop
 
 func quicksort:
     when* [not small] [
@@ -65,9 +61,11 @@ func quicksort:
             partition-by [< pivot]
             concat (quicksort) (dip [cons pivot (quicksort)])
         )
-    ]
+]
 ```
 This program executes the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
 algorithm.
 (In the future, the little things defined at the top would be part of the standard
  library... but there's no standard library yet ;) )
+
+Check out the `examples/` directory for a few more examples.
