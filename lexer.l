@@ -179,23 +179,39 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 \"(\\{UANYN}|[^"\r\n]|\\\n)*\" {
     //yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
     //strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
-    yylval->s = parse_string(yytext + 1, strlen(yytext)-2);
-    return STRING;
+    if (yyextra->nested_comments == 0) {
+        yylval->s = parse_string(yytext + 1, strlen(yytext)-2);
+        return STRING;
+    } else {
+        return TOKENBLAH;
+    }
 }
 
 \'(\\{UANYN}|[^'\r\n]|\\\n)*\' {
     //yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
     //strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
-    yylval->s = parse_string(yytext + 1, strlen(yytext)-2);
-    return STRING;
+    if (yyextra->nested_comments == 0) {
+        yylval->s = parse_string(yytext + 1, strlen(yytext)-2);
+        return STRING;
+    } else {
+        return TOKENBLAH;
+    }
 }
 
 \"(\\{UANYN}|[^"\r\n])*$ {
-    ERROR("syntax error, unterminated double-quoted string");
+    if (yyextra->nested_comments == 0) {
+        ERROR("syntax error, unterminated double-quoted string");
+    } else {
+        return TOKENBLAH;
+    }
 }
 
 \'(\\{UANYN}|[^'\r\n])*$ {
-    ERROR("syntax error, unterminated single-quoted string");
+    if (yyextra->nested_comments == 0) {
+        ERROR("syntax error, unterminated single-quoted string");
+    } else {
+        return TOKENBLAH;
+    }
 }
 
 [0-9]+                  yylval->i=atoi(yytext); return INTEGER;
@@ -207,17 +223,25 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 
   /* Symbol literals e.g. /whatever */
 \/([A-Za-z0-9]|{UONLY})([^{}\[\]\" \t\n()]|{UONLY})*  {
-    yylval->cs = (char*)calloc(strlen(yytext) - 1 + 1, sizeof(char));
-    strncpy(yylval->cs, yytext + 1, strlen(yytext) - 1);
-    return SYMBOL;
+    if (yyextra->nested_comments == 0) {
+        yylval->cs = (char*)calloc(strlen(yytext) - 1 + 1, sizeof(char));
+        strncpy(yylval->cs, yytext + 1, strlen(yytext) - 1);
+        return SYMBOL;
+    } else {
+        return TOKENBLAH;
+    }
 }
 
   /* Pretty much anything else is valid as something... */
 {IDBEGIN}({IDMID})*{IDEND}|{IDONECH} {
     // (We just treat these as bytes though, since we don't treat them like strings.)
-    yylval->cs = (char*)calloc(strlen(yytext) + 1, sizeof(char));
-    strncpy(yylval->cs, yytext, strlen(yytext));
-    return WORD;
+    if (yyextra->nested_comments == 0) {
+        yylval->cs = (char*)calloc(strlen(yytext) + 1, sizeof(char));
+        strncpy(yylval->cs, yytext, strlen(yytext));
+        return WORD;
+    } else {
+        return TOKENBLAH;
+    }
 }
 
   /* Ignored. */

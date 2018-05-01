@@ -217,6 +217,7 @@ void free_user_func(AUserFunc *f) {
          * decrease its closure's refcount.) */
         varbuf_unref(f->closure);
     }
+    f->words = NULL;
     free(f);
 }
 

@@ -48,6 +48,12 @@ typedef enum {
      * "expecting integer literal or float literal or ...",
      * we can just say "expecting literal" */
     TOKENLIT    = 1000,
+    /* This is returned for things inside comments which
+     * would normally have something allocated for them
+     * (e.g. strings.) Since we're in a comment, we don't
+     * actually care about stuff that happens to be inside
+     * of quotes, so we just BLAH them out. */
+    TOKENBLAH   = 1010,
     /* Here are the actual token tokens. */
     T_IMPORT    = 257,
     T_AS,
@@ -143,5 +149,8 @@ ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab);
 
 /* Parse interactive; ask for more text if necessary */
 void interact(ASymbolTable *symtab);
+
+/* Reset parse state to state specified by <initial_state>. */
+void reset_state(AParseState *state, AParseState initial_state);
 
 #endif

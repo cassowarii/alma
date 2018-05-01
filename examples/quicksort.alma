@@ -1,28 +1,38 @@
 func empty: len | = 0
 func small: len | ≤ 1
-func when*: dip [ dip [ [] ] ] | if*
 func concat: if* [= 0 len] [drop] [cons dip [concat] uncons]
 func 2dip f: dip [dip f]
+func when*: if* 2dip [ [] ]
 
-func sort-one-by comp:
-    uncons -> first (if [apply comp first] [dip [cons first]] [2dip [cons first]])
+# Given an element and two lists, cons the element onto the second one.
+func cons#2: swap | dip [cons]
 
-func partition-by comp list:
-    while* [not empty] [sort-one-by comp] list {} {} | drop
+# Given an element and three lists, cons the element onto the third one.
+func cons#3: swap | dip [cons#2]
 
+# Sort one element into the partitioned lists.
+func sort-one-by comp: if* [apply comp] [cons#2] [cons#3] uncons
+
+# Partition the list by repeatedly calling sort-one-by starting with two empty result lists.
+func partition-by comp list: while* [not empty] [sort-one-by comp] list {} {} | drop
+
+# Quicksort: when list length > 1, partition, sort halves, and concatenate together.
 func quicksort:
-    when* [not small] [
+    when* [not small] [             # only when list size > 1
         uncons -> pivot (
-            partition-by [< pivot]
-            concat (quicksort) (dip [cons pivot (quicksort)])
+            partition-by [< pivot]  # Partition list
+            quicksort               # Sort first half
+            dip [quicksort]         # Sort second half
+            cons#2 pivot            # Put pivot on front of second half
+            concat                  # concatenate halves together
         )
     ]
 
 func main:
-    # Random numbers from 1 to 10
+    # Sort random numbers from 1 to 10
     println quicksort { 3, 1, 6, 4, 10, 2, 5, 9, 8, 7 }
 
-    # Random numbers from 1 to 100
+    # Sort random numbers from 1 to 100
     println quicksort { 64, 46, 26, 76, 94, 92, 57, 20, 81, 43,
                         58, 69, 33, 59, 32, 44, 90, 25, 28,  4,
                         24, 75, 34, 60, 49, 10, 98, 88, 48, 61,

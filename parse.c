@@ -4,7 +4,7 @@
  * Alma grammar is pretty simple!
  *
  *      program     ::= declseq EOF
- *      declseq     ::= ø | decl ";" declseq
+ *      declseq     ::= ø | decl declseq
  *      decl        ::= "func" name nameseq ":" words
  *                    | "import" string ["as" name]
  *      names       ::= ø | names name
@@ -31,6 +31,16 @@
  *          like function names or integer values)
  *      - the next token (for lookahead purposes)
  *      - the number of syntax errors so far
+ */
+
+/* Current weirdness (which may be OK actually?):
+ * stuff inside comments still gets tokenized, so that
+ * we can nest other { } within block comments. But this
+ * means that stuff like #{ "hi } won't be parsed as a
+ * block comment since the } will end up within the
+ * string... Hm. But we do want to be able to comment
+ * out, e.g. #{ " }" } without fail, so maybe this is
+ * the price we have to pay.
  */
 
 #define ACCEPT(x) do_accept(x, state)
@@ -172,6 +182,7 @@ void next(AParseState *state) {
         /* Mark we're in a comment so that the interactive prompt will change
          * if we end our comment with a \ */
         state->beginning_line = 0;
+        state->nested_comments ++;
         /* Skip ahead to the next newline. */
         while (state->nexttok.id != '\n' && state->nexttok.id != 0) {
             state->nexttok = next_token(state->scan);
@@ -179,6 +190,7 @@ void next(AParseState *state) {
                 free(state->nexttok.value.cs);
             }
         }
+        state->nested_comments --;
     }
 }
 
@@ -261,17 +273,12 @@ int do_expect(ATokenType type, AParseState *state) {
     fprintf(stderr, "Syntax error at line %d: unexpected ", LINENUM);
     fprint_token(stderr, state->nexttok);
     fprintf(stderr, "; expecting ");
-    /* Move to end of list and go backwards, so it prints them
-     * out from most to least specific. (i.e. it prints out
-     * the ones it tries first first.) */
-    ATokenTypeList *last = state->tries;
-    for ( ; last->next; last = last->next);
-    /* Now move backwards and print them all out. */
-    for (ATokenTypeList *curr = last; curr; curr = curr->prev) {
-        if (curr->prev == NULL && curr->next != NULL) {
+    /* Now print out all tokens we tried to match. */
+    for (ATokenTypeList *curr = state->tries; curr; curr = curr->next) {
+        if (curr->next == NULL && curr->prev != NULL) {
             /* last one, but not only one */
-            fprintf(stderr, " or ");
-        } else if (curr != last) {
+            fprintf(stderr, ", or ");
+        } else if (curr->prev != NULL) {
             /* not first one */
             fprintf(stderr, ", ");
         }
@@ -603,8 +610,12 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                 return NULL;
             }
         } else if (state->nexttok.id == WORD) {
+            /* This means it was something like "let func c: 3 in c", which due
+             * to the above rule is illegal and should instead be "let func c: 3 in (c)". */
             fprintf(stderr, "Syntax error at line %d: let-block cannot be scoped over "
                             "the single word ‘%s’.\n", LINENUM, state->nexttok.value.cs);
+            fprintf(stderr, "Parentheses are required around the scope of the ‘let’; "
+                            "should be ‘let ... in (%s)’.\n", state->nexttok.value.cs);
             state->errors ++;
             return NULL;
         } else {
@@ -909,14 +920,10 @@ ADeclSeqNode *parse_program(AParseState *state) {
 
 /* Parse a file pointer, and set program and symbol table. */
 ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
-    yyscan_t scan;
-    yylex_init(&scan);
-    yyset_in(infile, scan);
-
     AToken notoken = { 0, { 0 }, { 0, 0 } };
     AParseState initial_state = {
-        symtab,    /* Symbol table */
-        scan,       /* Scanner */
+        symtab,     /* Symbol table */
+        NULL,       /* Scanner (to be filled in later) */
         notoken,    /* Curr token */
         notoken,    /* Next token */
         NULL,       /* Attempted matches list */
@@ -935,14 +942,27 @@ ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
         0,          /* Nested { } */
         1,          /* At beginning of line */
     };
-    next(&initial_state);
+    AParseState state = initial_state;
 
-    ADeclSeqNode *result = parse_program(&initial_state);
+    yyscan_t scan;
+
+    yylex_init_extra(&state, &scan);
+
+    state.scan = scan;
+
+    yyset_extra(&state, scan);
+
+    yyset_in(infile, scan);
+
+    next(&state);
+
+    ADeclSeqNode *result = parse_program(&state);
 
     if (initial_state.errors == 0) {
         yylex_destroy(scan);
         return result;
     } else {
+        yylex_destroy(scan);
         return NULL;
     }
 }
@@ -953,7 +973,7 @@ void interact(ASymbolTable *symtab) {
 
     AToken notoken = { TOKENNONE, { 0 }, { 0, 0 } };
     AParseState initial_state = {
-        symtab,       /* Symbol table */
+        symtab,     /* Symbol table */
         NULL,       /* Scanner */
         notoken,    /* Curr token */
         notoken,    /* Next token */
@@ -977,14 +997,16 @@ void interact(ASymbolTable *symtab) {
     AParseState state = initial_state;
 
     yyscan_t scan;
+    //yyset_extra(&state, scan);
     yylex_init_extra(&state, &scan);
-
-    AStack *stack = stack_new(20);
-    AScope *lib_scope = scope_new(NULL);
 
     state.scan = scan;
 
     yyset_extra(&state, scan);
+
+    AStack *stack = stack_new(20);
+    AScope *lib_scope = scope_new(NULL);
+
     AScope *real_scope = scope_new(lib_scope);
 
     AFuncRegistry *reg = registry_new(20);
@@ -1039,6 +1061,7 @@ void interact(ASymbolTable *symtab) {
                 next(&state);
             }
         }
+        print_stack(stack);
         state.beginning_line = 1;
         eat_newlines_or_semicolons(&state);
     } while (1);
