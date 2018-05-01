@@ -79,9 +79,9 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
         /* Word nodes, bind nodes, and paren nodes should have been replaced
          * during the compile stage. If they made it here, that means something
          * has gone horribly wrong. */
-        assert(node->type != word_node && "word-node in eval stage");
-        assert(node->type != bind_node && "bind-node in eval stage");
-        assert(node->type != paren_node && "paren-node in eval stage");
+        assert(node->type != word_node);
+        assert(node->type != bind_node);
+        assert(node->type != paren_node);
         fprintf(stderr, "error: unrecognized AST node type: %d\n", node->type);
     }
 }
