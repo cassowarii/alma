@@ -371,6 +371,10 @@ void free_ast_node(AAstNode *to_free) {
         free_wordseq_node(to_free->data.inside);
     } else if (to_free->type == let_node) {
         free_let(to_free->data.let);
+    } else if (to_free->type == bind_node) {
+        free_nameseq_node(to_free->data.bind->names);
+        free_wordseq_node(to_free->data.bind->words);
+        free(to_free->data.bind);
     } else if (to_free->type == var_bind) {
         free_wordseq_node(to_free->data.vbind->words);
         free(to_free->data.vbind);

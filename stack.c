@@ -59,7 +59,6 @@ void stack_pop(AStack *st, int n) {
 
 /* Print the contents of the stack. */
 void print_stack(AStack *st) {
-    printf("\tstack: ");
     for (int i = st->size-1; i >= 0; i--) {
         if (i != st->size-1) printf(" ");
         print_val(st->content[i]);

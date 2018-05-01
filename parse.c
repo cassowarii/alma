@@ -932,8 +932,8 @@ ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
         NULL,       /* current interactive string */
         0,          /* chars left to read from string */
         0,          /* current index into string */
-        "alma> ",   /* Prompt #1 */
-        "... > ",   /* Prompt #2 */
+        NULL,       /* Prompt #1 */
+        NULL,       /* Prompt #2 */
         0,          /* Nested let..in */
         0,          /* Nested function decls */
         0,          /* Nested comments */
@@ -983,8 +983,8 @@ void interact(ASymbolTable *symtab) {
         NULL,       /* current interactive string */
         0,          /* chars left to read from string */
         0,          /* current index into string */
-        "alma> ",   /* Prompt #1 */
-        "... > ",   /* Prompt #2 */
+        ": ",       /* Prompt #1 */
+        ". ",       /* Prompt #2 */
         0,          /* Nested let..in */
         0,          /* Nested function decls */
         0,          /* Nested comments */
@@ -1061,6 +1061,7 @@ void interact(ASymbolTable *symtab) {
                 next(&state);
             }
         }
+        printf("  ");
         print_stack(stack);
         state.beginning_line = 1;
         eat_newlines_or_semicolons(&state);
