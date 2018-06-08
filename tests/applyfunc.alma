@@ -1,1 +1,1 @@
-func main: apply [+] 4 5
+fn main [ apply [+] 4 5 ]

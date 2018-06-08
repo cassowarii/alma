@@ -171,12 +171,12 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
 
             ACompileResult r = compile_wordseq(scope_with_vars, reg, newbind->words, bindinfo_with_vars);
 
-            free_nameseq_node(current->data.bind->names);
-
             if (r.status == compile_fail) {
+                free(newbind);
                 errors ++;
             } else if (r.status == compile_success) {
                 /* Successfully compiled the inner scope, so alter the node. */
+                free_nameseq_node(current->data.bind->names);
                 free(current->data.bind);
                 current->type = var_bind;
                 current->data.vbind = newbind;

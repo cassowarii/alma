@@ -1,16 +1,17 @@
 # 99 Bottles of Beer
 
 # prints correct pluralization of bottles
-func bottle/s: if* [= 1] [print " bottle "] [print " bottles "] ;
+fn bottle/s [ if* [= 1] [print " bottle "] [print " bottles "] ]
 
 # string int → int, prints "X bottle(s) <msg>"
-func quantified-bottles msg:
+fn quantified-bottles msg [
     if* [> 0] [print dup] [print "No more"]
     bottle/s
     println msg
+]
 
 # int → , sings the song for how-many verses
-func bottles-of-beer how-many:
+fn bottles-of-beer how-many [
     how-many | while* [≥ 0] [
         quantified-bottles "of beer on the wall"
         quantified-bottles "of beer"
@@ -27,5 +28,6 @@ func bottles-of-beer how-many:
         ]
     ]
     drop
+]
 
-func main: 99 | bottles-of-beer
+fn main [ 99 | bottles-of-beer ]

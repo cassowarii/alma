@@ -122,7 +122,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 "import"                BEGIN(IMPORT); return T_IMPORT;
 "let"                   return T_LET;
 ->|→                    return T_BIND;
-"func"                  return T_FUNC;
+"fn"                    return T_FUNC;
 "in"                    return T_IN;
 \\[\r\n]                ; // allow escaping newlines
 <IMPORT>"as"            { BEGIN(INITIAL); return T_AS; }

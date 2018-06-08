@@ -1,23 +1,23 @@
-func empty: len | = 0
-func small: len | ≤ 1
-func concat: if* [= 0 len] [drop] [cons dip [concat] uncons]
-func 2dip f: dip [dip f]
-func when*: if* 2dip [ [] ]
+fn empty [ len | = 0 ]
+fn small [ len | ≤ 1 ]
+fn concat [ if* [= 0 len] [drop] [cons dip [concat] uncons] ]
+fn 2dip f [ dip [dip f] ]
+fn when* [ if* 2dip [ [] ] ]
 
 # Given an element and two lists, cons the element onto the second one.
-func cons#2: swap | dip [cons]
+fn cons#2 [ swap | dip [cons] ]
 
 # Given an element and three lists, cons the element onto the third one.
-func cons#3: swap | dip [cons#2]
+fn cons#3 [ swap | dip [cons#2] ]
 
 # Sort one element into the partitioned lists.
-func sort-one-by comp: if* [apply comp] [cons#2] [cons#3] uncons
+fn sort-one-by comp [ if* [apply comp] [cons#2] [cons#3] uncons ]
 
 # Partition the list by repeatedly calling sort-one-by starting with two empty result lists.
-func partition-by comp list: while* [not empty] [sort-one-by comp] list {} {} | drop
+fn partition-by comp list [ while* [not empty] [sort-one-by comp] list {} {} | drop ]
 
 # Quicksort: when list length > 1, partition, sort halves, and concatenate together.
-func quicksort:
+fn quicksort [
     when* [not small] [             # only when list size > 1
         uncons -> pivot (
             partition-by [< pivot]  # Partition list
@@ -27,8 +27,9 @@ func quicksort:
             concat                  # concatenate halves together
         )
     ]
+]
 
-func main:
+fn main [
     # Sort random numbers from 1 to 10
     println quicksort { 3, 1, 6, 4, 10, 2, 5, 9, 8, 7 }
 
@@ -43,3 +44,4 @@ func main:
                          1,  7, 30, 71, 97, 38, 78, 11, 91, 50,
                         82, 93, 36, 68, 14,  8, 37, 42, 39,  9,
                         35, 12, 67, 13, 52, 89, 83,  2, 99, 16 }
+]

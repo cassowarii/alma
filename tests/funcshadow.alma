@@ -1,9 +1,10 @@
-func main:
+fn main [
     let
-        func x: 2
+        fn x [ 2 ]
     in
         let
-            func x: 10
+            fn x [ 10 ]
         in
             (x)
+]
 

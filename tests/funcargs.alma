@@ -1,3 +1,3 @@
-func main: sumof 4 5 | sumof 10 20
+fn main [ sumof 4 5 | sumof 10 20 ]
 
-func sumof a b: + a b
+fn sumof a b [ + a b ]

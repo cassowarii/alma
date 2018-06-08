@@ -1,4 +1,5 @@
-func print_three_times: (→ a: print a | print a | println a)
+fn print_three_times [ → a: print a | print a | println a ]
 
-func main:
+fn main [
     print_three_times 4
+]

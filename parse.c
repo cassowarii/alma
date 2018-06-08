@@ -5,7 +5,7 @@
  *
  *      program     ::= declseq EOF
  *      declseq     ::= ø | decl declseq
- *      decl        ::= "func" name nameseq ":" words
+ *      decl        ::= "fn" name nameseq block
  *                    | "import" string ["as" name]
  *      names       ::= ø | names name
  *      words       ::= word-line | words separator word-line
@@ -73,7 +73,7 @@ void fprint_token_type(FILE *out, ATokenType type) {
         case T_BIND:
             fprintf(out, "‘->’"); break;
         case T_FUNC:
-            fprintf(out, "‘func’"); break;
+            fprintf(out, "‘fn’"); break;
         case T_IN:
             fprintf(out, "‘in’"); break;
         case WORD:
@@ -425,6 +425,65 @@ int parse_separator(AParseState *state) {
     return 0;
 }
 
+AAstNode *parse_cmplx_word(AParseState *state);
+
+/* Parse the inside of a set of square brackets. */
+/* (Probably could replace the inside-of-parens parsing
+ *  with this too. Just a thought) */
+AWordSeqNode *parse_block_guts(AParseState *state) {
+    AWordSeqNode *inner_block = NULL;
+    eat_newlines(state);
+    if (ACCEPT(T_BIND)) {
+        /* we have the same ambiguity here:
+         * [ -> a b : stuff ] vs [ -> a b ( stuff ) | more-stuff ] */
+        /* [ -> a b : stuff ] */
+        unsigned int bindline = LINENUM;
+        ANameSeqNode *names = parse_nameseq_opt(state);
+        AWordSeqNode *words;
+        if (complex_word_leadin(state->nexttok.id)) {
+            /* [ -> a b ( stuff ) ?? ] */
+            AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
+
+            if (innerbind == NULL) {
+                free_nameseq_node(names);
+            } else {
+                /* construct the bound node */
+                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
+                inner_block = ast_wordseq_new();
+                ast_wordseq_append(inner_block, bind);
+
+                /* there might be more stuff afterwards */
+                if (parse_separator(state)) {
+                    AWordSeqNode *rest = parse_words(state);
+
+                    if (rest == NULL) {
+                        free_wordseq_node(inner_block);
+                        free_nameseq_node(names);
+                    } else {
+                        ast_wordseq_concat(inner_block, rest);
+                        free(rest);
+                    }
+                }
+            }
+        } else {
+            /* [ -> a b : stuff ] */
+            if (EXPECT(':')) {
+                words = parse_words(state);
+                /* now build the block */
+                inner_block = ast_wordseq_new();
+                ast_wordseq_prepend(inner_block, ast_bindnode(bindline, names, words));
+            } else {
+                free_nameseq_node(names);
+            }
+        }
+    } else {
+        /* [ stuff ] */
+        inner_block = parse_words(state);
+    }
+
+    return inner_block;
+}
+
 /* Parse something that's counts as a single 'word', but
  * doesn't consist of just a name. Includes values,
  * parenthesized dealies, blocks, and let-nodes. */
@@ -448,12 +507,12 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         if (ACCEPT(T_BIND)) {
             /* ( -> a b  ...  ) */
             /* Now there's an ambiguity: is this going to be
-             * (-> a b : ... ) or (-> a b ( ... ) | ... ) ? So we
+             * (-> a b : blah) or (-> a b ( blah ) . blah ) ? So we
              * have to do a little bit of weirdness here. */
             unsigned int bindline = LINENUM;
             ANameSeqNode *names = parse_nameseq_opt(state);
             if (complex_word_leadin(state->nexttok.id)) {
-                /* (-> a b ( stuff ) | more things? ) */
+                /* (-> a b ( stuff ) . more things? ) */
                 AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
 
                 if (innerbind == NULL) {
@@ -515,57 +574,11 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         return result;
     } else if (ACCEPT('[')) {
         state->nested_brackets ++;
-        AWordSeqNode *inner_block = NULL;
-        eat_newlines(state);
-        if (ACCEPT(T_BIND)) {
-            /* we have the same ambiguity here:
-             * [ -> a b : stuff ] vs [ -> a b ( stuff ) | more-stuff ] */
-            /* [ -> a b : stuff ] */
-            unsigned int bindline = LINENUM;
-            ANameSeqNode *names = parse_nameseq_opt(state);
-            AWordSeqNode *words;
-            if (complex_word_leadin(state->nexttok.id)) {
-                /* [ -> a b ( stuff ) ?? ] */
-                AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
 
-                if (innerbind == NULL) {
-                    free_nameseq_node(names);
-                } else {
-                    /* construct the bound node */
-                    AAstNode *bind = ast_bindnode(bindline, names, innerbind);
-                    inner_block = ast_wordseq_new();
-                    ast_wordseq_append(inner_block, bind);
-
-                    /* there might be more stuff afterwards */
-                    if (parse_separator(state)) {
-                        AWordSeqNode *rest = parse_words(state);
-
-                        if (rest == NULL) {
-                            free_wordseq_node(inner_block);
-                            free_nameseq_node(names);
-                        } else {
-                            ast_wordseq_concat(inner_block, rest);
-                            free(rest);
-                        }
-                    }
-                }
-            } else {
-                /* [ -> a b : stuff ] */
-                if (EXPECT(':')) {
-                    words = parse_words(state);
-                    /* now build the block */
-                    inner_block = ast_wordseq_new();
-                    ast_wordseq_prepend(inner_block, ast_bindnode(bindline, names, words));
-                } else {
-                    free_nameseq_node(names);
-                }
-            }
-        } else {
-            /* [ stuff ] */
-            inner_block = parse_words(state);
-        }
+        AWordSeqNode *inner_block = parse_block_guts(state);
 
         EXPECT_MATCH('[', ']');
+
         state->nested_brackets --;
 
         if (inner_block != NULL) {
@@ -771,7 +784,7 @@ ADeclNode *parse_decl(AParseState *state) {
 
         AWordSeqNode *body = NULL;
         /* func body */
-        if (EXPECT(':')) {
+        /*if (EXPECT(':')) {
             body = parse_words(state);
         } else {
             free_nameseq_node(params);
@@ -781,6 +794,18 @@ ADeclNode *parse_decl(AParseState *state) {
 
         if (body == NULL) {
             state->infuncs--;
+            return NULL;
+        }*/
+
+        EXPECT('[');
+
+        body = parse_block_guts(state);
+
+        EXPECT_MATCH('[', ']');
+
+        if (body == NULL) {
+            state->infuncs --;
+            free_nameseq_node(params);
             return NULL;
         }
 
@@ -800,7 +825,6 @@ ADeclNode *parse_decl(AParseState *state) {
         /* TODO parse imports */
         return NULL;
     } else {
-        EXPECT(';');
         return NULL;
     }
 }
@@ -829,13 +853,19 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
 
         AWordSeqNode *body = NULL;
         /* func body */
-        if (EXPECT(':')) {
+        /*if (EXPECT(':')) {
             body = parse_words(state);
         } else {
             state->infuncs --;
             free_nameseq_node(params);
             return NULL;
-        }
+        }*/
+
+        EXPECT('[');
+
+        body = parse_block_guts(state);
+
+        EXPECT_MATCH('[', ']');
 
         if (body == NULL) {
             state->infuncs --;
@@ -846,7 +876,7 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
         /* Leave function. */
         state->infuncs --;
 
-        EXPECT(';');
+        //EXPECT(';');
         if (params->length == 0) {
             free_nameseq_node(params);
             return ast_declnode(line, name, body);
@@ -858,7 +888,7 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
         }
     } else if (ACCEPT(T_IMPORT)) {
         /* TODO parse imports */
-        EXPECT(';');
+        //EXPECT(';');
         return NULL;
     } else {
         EXPECT(';');
@@ -983,8 +1013,8 @@ void interact(ASymbolTable *symtab) {
         NULL,       /* current interactive string */
         0,          /* chars left to read from string */
         0,          /* current index into string */
-        ": ",       /* Prompt #1 */
-        ". ",       /* Prompt #2 */
+        "> ",       /* Prompt #1 */
+        "? ",       /* Prompt #2 */
         0,          /* Nested let..in */
         0,          /* Nested function decls */
         0,          /* Nested comments */

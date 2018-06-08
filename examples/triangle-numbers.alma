@@ -1,14 +1,15 @@
 # Print the triangular numbers from 1 to 5000
 
-func trianglenum:
+fn trianglenum [
     dip [0]
     while* [> 0] [
         dup | dip [+]
         - 1
     ]
     drop
+]
 
-func main:
+fn main [
     1
     while* [≤ 5000] [
         print "triangular number #"
@@ -17,3 +18,4 @@ func main:
         println trianglenum dup
         + 1
     ]
+]

@@ -1,16 +1,18 @@
-func main:
+fn main [
     let
-        func say-message :
+        fn say-message [
             print "The "
             print # prints message
             print " of "
             print dup
             print " is "
+        ]
     in (
         (say-message "double" | println double) 4
         (say-message "square" | println square) 4
     )
+]
 
-func double: * 2
-func square: * dup
+fn double [ * 2 ]
+fn square [ * dup ]
 

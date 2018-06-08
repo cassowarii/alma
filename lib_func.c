@@ -26,7 +26,7 @@ void lib_quit(AStack* stack, AVarBuffer *buffer) {
 void funclib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "print", &lib_print);
     addlibfunc(sc, st, "println", &lib_println);
-    addlibfunc(sc, st, ".", &lib_println); /* Alias */
+    addlibfunc(sc, st, "say", &lib_println); /* Alias */
     addlibfunc(sc, st, "quit", &lib_quit);
     addlibfunc(sc, st, "exit", &lib_quit);
 }
