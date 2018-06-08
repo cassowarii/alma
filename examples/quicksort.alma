@@ -1,30 +1,25 @@
 fn empty [ len | = 0 ]
 fn small [ len | ≤ 1 ]
+fn when* [ dip [ dip [ [] ] ] | if* ]
 fn concat [ if* [= 0 len] [drop] [cons dip [concat] uncons] ]
 fn 2dip f [ dip [dip f] ]
-fn when* [ if* 2dip [ [] ] ]
 
-# Given an element and two lists, cons the element onto the second one.
-fn cons#2 [ swap | dip [cons] ]
+fn sort-one-by comp [
+    uncons -> first (
+        if [apply comp first] [dip [cons first]] [2dip [cons first]]
+    )
+]
 
-# Given an element and three lists, cons the element onto the third one.
-fn cons#3 [ swap | dip [cons#2] ]
+fn partition-by comp list [
+    while* [not empty] [sort-one-by comp] list {} {}
+    drop
+]
 
-# Sort one element into the partitioned lists.
-fn sort-one-by comp [ if* [apply comp] [cons#2] [cons#3] uncons ]
-
-# Partition the list by repeatedly calling sort-one-by starting with two empty result lists.
-fn partition-by comp list [ while* [not empty] [sort-one-by comp] list {} {} | drop ]
-
-# Quicksort: when list length > 1, partition, sort halves, and concatenate together.
 fn quicksort [
-    when* [not small] [             # only when list size > 1
+    when* [not small] [
         uncons -> pivot (
-            partition-by [< pivot]  # Partition list
-            quicksort               # Sort first half
-            dip [quicksort]         # Sort second half
-            cons#2 pivot            # Put pivot on front of second half
-            concat                  # concatenate halves together
+            partition-by [< pivot]
+            concat (quicksort) (dip [cons pivot (quicksort)])
         )
     ]
 ]

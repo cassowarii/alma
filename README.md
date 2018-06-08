@@ -38,29 +38,35 @@ Simple example
 --------------
 
 ```
-func main: println "Hello world!";
+fn main [ say "Hello world!" ]
 ```
 This program prints "Hello world!" to the console, followed by a newline.
 
 ```
-func empty: len | = 0
-func small: len | ≤ 1
-func when*: dip [ dip [ [] ] ] | if*
-func concat: if* [= 0 len] [drop] [cons dip [concat] uncons]
-func 2dip f: dip [dip f]
+fn empty [ len | = 0 ]
+fn small [ len | ≤ 1 ]
+fn when* [ dip [ dip [ [] ] ] | if* ]
+fn concat [ if* [= 0 len] [drop] [cons dip [concat] uncons] ]
+fn 2dip f [ dip [dip f] ]
 
-func sort-one-by comp:
-    uncons -> first (if [apply comp first] [dip [cons first]] [2dip [cons first]])
+fn sort-one-by comp [
+    uncons -> first (
+        if [apply comp first] [dip [cons first]] [2dip [cons first]]
+    )
+]
 
-func partition-by comp list:
-    while* [not empty] [sort-one-by comp] list {} {} | drop
+fn partition-by comp list [
+    while* [not empty] [sort-one-by comp] list {} {}
+    drop
+]
 
-func quicksort:
+fn quicksort [
     when* [not small] [
         uncons -> pivot (
             partition-by [< pivot]
             concat (quicksort) (dip [cons pivot (quicksort)])
         )
+    ]
 ]
 ```
 This program executes the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
