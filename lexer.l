@@ -139,8 +139,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 :   |
 ;   |
 ,   |
-#   |
-\|  return yytext[0];
+#   return yytext[0];
 
 \r|\n {
     return '\n';

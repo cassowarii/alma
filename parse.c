@@ -415,9 +415,9 @@ ANameSeqNode *parse_nameseq_opt(AParseState *state) {
     return result;
 }
 
-/* Parse either a '|' or a newline. Doesn't matter which. */
+/* Parse either a ';' or a newline. Doesn't matter which. */
 int parse_separator(AParseState *state) {
-    if (ACCEPT('|')) {
+    if (ACCEPT(';')) {
         return 1;
     } else if (ACCEPT('\n')) {
         return 1;
@@ -661,50 +661,79 @@ AAstNode *parse_word(AParseState *state) {
  *  - a binding:
  *      - an arrow, a list of names, a cmplx_word.
  * Thus we can write something like:
- *  5 6 -> a b (+ a b)
+ *  5 6 -> a b (a b +)
  * and this counts as a 'full' wordline. */
 AWordSeqNode *parse_wordline(AParseState *state) {
     AWordSeqNode *result = ast_wordseq_new();
 
-    /* If there's no words before the binding arrow,
-     * we'll never enter this loop in the first place
-     * -- perfect! */
-    AAstNode *word = parse_word(state);
+    while (1) {
+        /* Represents everything between the last colon we've
+         * seen and the next colon (or end line or whatever.) */
+        AWordSeqNode *section = ast_wordseq_new();
 
-    while (word != &nonword) {
-        if (word == NULL) {
-            free_wordseq_node(result);
-            return NULL;
+        /* If there's no words before the binding arrow,
+         * we'll never enter this loop in the first place
+         * -- perfect! */
+        AAstNode *word = parse_word(state);
+
+        while (word != &nonword) {
+            if (word == NULL) {
+                free_wordseq_node(result);
+                free_wordseq_node(section);
+                return NULL;
+            }
+
+            if (word->type == paren_node) {
+                /* Unwrap the paren node, and put the stuff
+                 * we've done before AFTER it. */
+                AWordSeqNode *newresult = word->data.inside;
+                ast_wordseq_concat(section, newresult);
+                /* Essentially the inside of the paren-node
+                 * becomes the new main sequence. */
+                free(section);
+                free(word);
+                section = newresult;
+            } else {
+                ast_wordseq_append(section, word);
+            }
+
+            word = parse_word(state);
         }
 
-        if (word->type == paren_node) {
-            /* Unwrap the paren node, and put the stuff
-             * we've done before AFTER it. */
-            AWordSeqNode *newresult = word->data.inside;
-            ast_wordseq_concat(newresult, result);
-            /* Essentially the inside of the paren-node
-             * becomes the new main sequence. */
+        /* If we found a bind arrow, then the optional
+         * second part must be here. */
+        if (ACCEPT(T_BIND)) {
+            unsigned int bindline = LINENUM;
+            ANameSeqNode *names = parse_nameseq_opt(state);
+
+            AAstNode *node = parse_cmplx_word(state);
+            if (node != NULL) {
+                AWordSeqNode *innerbind = unwrap_node(node);
+                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
+                ast_wordseq_append(result, bind);
+            }
+            /* Now that must be the end of the line... I guess? */
+            /* TODO we don't need a special case here anymore actually.
+             * Please move the bind-arrow-parsing code into parse_cmplx_word
+             * instead, and add the bind-arrow to complex_word_leadin.
+             * Then we can just chain them together now since we go left-to-right */
+            break;
+        } else if (ACCEPT(':')) {
+            /* Everything we've done so far is to be done AFTER the stuff we find next.
+             * So we put these at the beginning of the overall sequence. */
+            /* TODO this is inefficient, fix up later */
+            ast_wordseq_concat(section, result);
             free(result);
-            free(word);
-            result = newresult;
+            result = section;
+            section = ast_wordseq_new();
         } else {
-            ast_wordseq_prepend(result, word);
-        }
-
-        word = parse_word(state);
-    }
-
-    /* If we found a bind arrow, then the optional
-     * second part must be here. */
-    if (ACCEPT(T_BIND)) {
-        unsigned int bindline = LINENUM;
-        ANameSeqNode *names = parse_nameseq_opt(state);
-
-        AAstNode *node = parse_cmplx_word(state);
-        if (node != NULL) {
-            AWordSeqNode *innerbind = unwrap_node(node);
-            AAstNode *bind = ast_bindnode(bindline, names, innerbind);
-            ast_wordseq_append(result, bind);
+            /* We probably hit a new line. Stick what we've got at the beginning and
+             * call it a day. */
+            ast_wordseq_concat(section, result);
+            free(result);
+            result = section;
+            section = ast_wordseq_new();
+            break;
         }
     }
 
@@ -715,7 +744,7 @@ AWordSeqNode *parse_wordline(AParseState *state) {
  * This is what makes up the elements of lists,
  * the inside of blocks, etc.
  * A series of 'word-lines' separated by newlines
- * or pipe characters ('|'). */
+ * or semicolons. */
 AWordSeqNode *parse_words(AParseState *state) {
     AWordSeqNode *result = ast_wordseq_new();
 
@@ -748,7 +777,7 @@ AWordSeqNode *parse_interactive_words(AParseState *state) {
         }
         ast_wordseq_concat(result, line);
         free(line);
-    } while (ACCEPT('|'));
+    } while (ACCEPT(';'));
 
     if (!EXPECT('\n')) {
         PANIC('\n');
@@ -1013,8 +1042,8 @@ void interact(ASymbolTable *symtab) {
         NULL,       /* current interactive string */
         0,          /* chars left to read from string */
         0,          /* current index into string */
-        "> ",       /* Prompt #1 */
-        "? ",       /* Prompt #2 */
+        "alma> ",       /* Prompt #1 */
+        "... > ",       /* Prompt #2 */
         0,          /* Nested let..in */
         0,          /* Nested function decls */
         0,          /* Nested comments */

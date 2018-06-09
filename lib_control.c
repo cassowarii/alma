@@ -4,9 +4,9 @@
  * below B and C, take the top element, and run
  * B if truthy, C if falsy. (integerwise.) */
 void lib_if(AStack *stack, AVarBuffer *buffer) {
-    AValue *ifpart = stack_get(stack, 0);
+    AValue *ifpart = stack_get(stack, 2);
     AValue *thenpart = stack_get(stack, 1);
-    AValue *elsepart = stack_get(stack, 2);
+    AValue *elsepart = stack_get(stack, 0);
     stack_pop(stack, 3);
 
     eval_block(stack, buffer, ifpart);
@@ -31,9 +31,9 @@ void lib_if(AStack *stack, AVarBuffer *buffer) {
  * B if truthy, C if falsy. But put the top element
  * of the stack back before running B or C. */
 void lib_ifstar(AStack *stack, AVarBuffer *buffer) {
-    AValue *ifpart = stack_get(stack, 0);
+    AValue *ifpart = stack_get(stack, 2);
     AValue *thenpart = stack_get(stack, 1);
-    AValue *elsepart = stack_get(stack, 2);
+    AValue *elsepart = stack_get(stack, 0);
     AValue *top = stack_get(stack, 3);
 
     /* don't pop off 'top' */
@@ -62,8 +62,8 @@ void lib_ifstar(AStack *stack, AVarBuffer *buffer) {
  * the stack below B and apply B over and over
  * again until applying A gives a falsy value. */
 void lib_while (AStack *stack, AVarBuffer *buffer) {
-    AValue *condpart = stack_get(stack, 0);
-    AValue *looppart = stack_get(stack, 1);
+    AValue *condpart = stack_get(stack, 1);
+    AValue *looppart = stack_get(stack, 0);
     stack_pop(stack, 2);
 
     eval_block(stack, buffer, condpart);
@@ -94,8 +94,8 @@ void lib_while (AStack *stack, AVarBuffer *buffer) {
  * But keep the top value on the stack after
  * applying A each time. */
 void lib_whilestar(AStack *stack, AVarBuffer *buffer) {
-    AValue *condpart = stack_get(stack, 0);
-    AValue *looppart = stack_get(stack, 1);
+    AValue *condpart = stack_get(stack, 1);
+    AValue *looppart = stack_get(stack, 0);
     AValue *top = stack_get(stack, 2);
 
     stack_pop(stack, 2);
