@@ -193,6 +193,8 @@ AValue *head_list_val(AValue *val) {
         return NULL;
     }
 
+    assert(val->data.list != NULL);
+    assert(val->data.list->first != NULL);
     AValue *hval = ref(val->data.list->first->val);
     return hval;
 }
@@ -208,6 +210,7 @@ AValue *last_list_val(AValue *val) {
         return NULL;
     }
 
+    assert(val->data.list != NULL);
     AValue *lval = ref(val->data.list->last->val);
     return lval;
 }

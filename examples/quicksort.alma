@@ -11,7 +11,7 @@ fn sort-one comp [
     )
 ]
 
-fn partition comp list [
+fn partition list comp [
     {} {} list
     while*: [empty not] [comp sort-one]
     drop
