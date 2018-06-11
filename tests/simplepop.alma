@@ -1,1 +1,1 @@
-fn main [ 4 | print "hi" | println # stack should be empty ]
+fn main [ 4 "hi" print say ] # stack should be empty

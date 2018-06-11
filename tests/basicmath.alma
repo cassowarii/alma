@@ -1,2 +1,2 @@
-fn main [ + 4 5 ]
-fn also [ + + 9 9 9 ]
+fn main [ 4 5 + ]
+fn also [ 9 9 9 + + ]

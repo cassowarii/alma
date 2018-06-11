@@ -1,3 +1,3 @@
-fn concat [ if* [= 0 len] [drop] [cons dip [concat] uncons] ]
+fn concat [ if*: [len 0 =] [drop] [unappend [concat] dip append] ]
 
-fn main [ concat {1, 2, 3} {4, 5, 6} ]
+fn main [ {1, 2, 3} {4, 5, 6} concat ]

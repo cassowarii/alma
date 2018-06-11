@@ -65,7 +65,7 @@ void eval_node(AStack *st, AVarBuffer *buf, AAstNode *node) {
         /* get the variables from the stack and put them in the var buffer */
         for (int i = 0; i < node->data.vbind->count; i++) {
             AValue *var = stack_get(st, i);
-            varbuf_put(newbuf, i, var);
+            varbuf_put(newbuf, node->data.vbind->count - i - 1, var);
         }
         stack_pop(st, node->data.vbind->count);
 

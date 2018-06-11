@@ -1,2 +1,2 @@
 # Should print '12'
-fn main [ let fn add3 [ + + ] in (add3 3 4 5) ]
+fn main [ let fn add3 [ + + ] in (3 4 5 add3) ]

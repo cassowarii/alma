@@ -105,13 +105,13 @@ void fprint_val(FILE *out, AValue *v) {
             || v->type == free_block_val) {
         fprintf(out, "[ ");
         fprint_wordseq_node(out, v->data.ast);
-        fprintf(out, " ]");
+        fprintf(out, "]");
     } else if (v->type == bound_block_val) {
         /* the '*' means it's attached to a closure.
          * does this make sense? idk. */
         fprintf(out, "*[ ");
         fprint_wordseq_node(out, v->data.uf->words);
-        fprintf(out, " ]");
+        fprintf(out, "]");
     } else if (v->type == str_val) {
         fprintf(out, "\"");
         ustr_fprint(out, v->data.str);

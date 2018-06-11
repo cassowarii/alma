@@ -98,11 +98,12 @@ typedef struct AValue {
 /*-*-* list.h *-*-*/
 
 /* A struct holding an element in a list.
- * (An element of a linked list -- points
- * to the value and the next element) */
+ * (An element of a double-linked list -- points
+ * to the value and the next and previous elements) */
 typedef struct AListElem {
     AValue *val;
     struct AListElem *next;
+    struct AListElem *prev;
 } AListElem;
 
 /* A linked list!

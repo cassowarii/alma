@@ -37,6 +37,22 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum);
  * doesn't work on lists of length 0. */
 AValue *tail_list_val(AValue *val);
 
+/* Given a value of type 'list', return a list
+ * containing all but the last element of the
+ * original list.
+ * of the list. If it has no other references,
+ * re-uses the original list value. */
+/* Also partial and returns NULL on lists
+ * of length 0. */
+AValue *init_list_val(AValue *val);
+
+/* Given a value of type 'list', return the last element
+ * of the list. (again, partial, list of length 0
+ * has no last) */
+/* (NOTE: doesn't destroy list object; returns a
+ * fresh reference to head value) */
+AValue *last_list_val(AValue *val);
+
 /* Given a value of type 'list', return the head
  * of the list. (again, partial, list of length 0
  * has no head) */
@@ -48,6 +64,11 @@ AValue *head_list_val(AValue *val);
  * the value cons'd onto the front of the list.
  * Can reuse the list value if only has one reference. */
 AValue *cons_list_val(AValue *val, AValue *list);
+
+/* Given a value and a value of type 'list', return
+ * the value appended to the end of the list.
+ * Can reuse the list value if only has one reference. */
+AValue *append_list_val(AValue *l, AValue *val);
 
 /* Print out a list. */
 void print_list(AList *l);

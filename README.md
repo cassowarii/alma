@@ -38,16 +38,16 @@ Simple example
 --------------
 
 ```
-fn main [ say "Hello world!" ]
+fn main [ "Hello world!" say ]
 ```
 This program prints "Hello world!" to the console, followed by a newline.
 
 ```
-fn empty [ len | = 0 ]
-fn small [ len | ≤ 1 ]
-fn when* [ dip [ dip [ [] ] ] | if* ]
-fn concat [ if* [= 0 len] [drop] [cons dip [concat] uncons] ]
-fn 2dip f [ dip [dip f] ]
+fn empty [ len 0 = ]
+fn small [ len 1 ≤ ]
+fn concat [ if*: [len 0 =] [drop] [cons dip [concat] uncons] ]
+fn 2dip f [ swap [dip] dip ]
+fn when* [ [ ] if* ]
 
 fn sort-one-by comp [
     uncons -> first (

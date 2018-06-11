@@ -1,5 +1,5 @@
 # should give { 1, 5, 6 }
-fn main [ chimera { 1, 2, 3 } { 4, 5, 6 } ]
+fn main [ { 1, 2, 3 } { 4, 5, 6 } chimera ]
 
 # given a::as and b::bs, give back a::bs
-fn chimera [ cons head dip [tail] ]
+fn chimera [ dip: [head] ; tail swap cons ]

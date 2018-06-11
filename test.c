@@ -243,7 +243,7 @@ START_TEST(test_listwarn) {
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->type, list_val);
-    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->val->data.i, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->val->data.i, 2);
     ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->next->val->data.i, 3);
     ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->next->next->val->data.i, 4);
     ALMATESTCLEAN();

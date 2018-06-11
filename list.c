@@ -23,7 +23,11 @@ AListElem *create_element(AValue *val) {
  * mutating the list. */
 void list_cons(AValue *val, AList *list) {
     AListElem *elem = create_element(val);
+    elem->prev = NULL;
     elem->next = list->first;
+    if (list->first != NULL) {
+        list->first->prev = elem;
+    }
     list->first = elem;
     if (list->last == NULL) {
         list->last = elem;
@@ -35,6 +39,7 @@ void list_cons(AValue *val, AList *list) {
  * mutating the list. */
 void list_append(AList *list, AValue *val) {
     AListElem *elem = create_element(val);
+    elem->prev = list->last;
     if (list->last != NULL) {
         list->last->next = elem;
     }
@@ -112,6 +117,9 @@ AValue *tail_list_val(AValue *val) {
             newlast = NULL;
         }
         val->data.list->first = newfirst;
+        if (newfirst != NULL) {
+            val->data.list->first->prev = NULL;
+        }
         val->data.list->last = newlast;
         val->data.list->length --;
 
@@ -124,6 +132,49 @@ AValue *tail_list_val(AValue *val) {
         AList *newlist = list_new();
         AListElem *current = val->data.list->first->next;
         while (current) {
+            list_append(newlist, ref(current->val));
+            current = current->next;
+        }
+        return ref(val_list(newlist));
+    }
+}
+
+/* Given a value of type 'list', return a list
+ * containing all but the last element of the
+ * original list.
+ * of the list. If it has no other references,
+ * re-uses the original list value. */
+/* Also partial and returns NULL on lists
+ * of length 0. */
+AValue *init_list_val(AValue *val) {
+    if (val->data.list->length == 0) {
+        fprintf(stderr, "error: attempt to take init of empty list");
+        return NULL;
+    }
+
+    if (val->refs == 1) {
+        AListElem *oldlast = val->data.list->last;
+        AListElem *newlast = val->data.list->last->prev;
+        AListElem *newfirst = val->data.list->first;
+        if (newlast == NULL) {
+            newfirst = NULL;
+        }
+        val->data.list->last = newlast;
+        if (newlast != NULL) {
+            val->data.list->last->next = NULL;
+        }
+        val->data.list->first = newfirst;
+        val->data.list->length --;
+
+        /* don't need the old head element-holder anymore */
+        delete_ref(oldlast->val);
+        free(oldlast);
+
+        return ref(val);
+    } else {
+        AList *newlist = list_new();
+        AListElem *current = val->data.list->first;
+        while (current->next) {
             list_append(newlist, ref(current->val));
             current = current->next;
         }
@@ -144,6 +195,21 @@ AValue *head_list_val(AValue *val) {
 
     AValue *hval = ref(val->data.list->first->val);
     return hval;
+}
+
+/* Given a value of type 'list', return the last element
+ * of the list. (again, partial, list of length 0
+ * has no last) */
+/* (NOTE: doesn't destroy list object; returns a
+ * fresh reference to head value) */
+AValue *last_list_val(AValue *val) {
+    if (val->data.list->length == 0) {
+        fprintf(stderr, "error: attempt to take last of empty list");
+        return NULL;
+    }
+
+    AValue *lval = ref(val->data.list->last->val);
+    return lval;
 }
 
 /* Print out a list to an arbitrary filehandle. */
@@ -180,6 +246,28 @@ AValue *cons_list_val(AValue *val, AValue *l) {
         }
 
         list_cons(ref(val), newlist);
+        return ref(val_list(newlist));
+    }
+}
+
+/* Given a value and a value of type 'list', return
+ * the value appended to the end of the list.
+ * Can reuse the list value if only has one reference. */
+AValue *append_list_val(AValue *l, AValue *val) {
+    if (l->refs == 1) {
+        list_append(l->data.list, ref(val));
+        return ref(l);
+    } else {
+        AList *newlist = list_new();
+        AListElem *current = l->data.list->first;
+
+        while (current) {
+            assert(current->val != NULL);
+            list_append(newlist, ref(current->val));
+            current = current->next;
+        }
+
+        list_append(newlist, ref(val));
         return ref(val_list(newlist));
     }
 }

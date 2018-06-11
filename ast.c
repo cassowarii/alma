@@ -264,17 +264,14 @@ void print_decl_seq(ADeclSeqNode *x) {
     fprint_decl_seq(stdout, x);
 }
 
-/* Print out an AST node but first print the stuff before it.
- * Even though stuff is linked in execution order, we still want
- * to print them out 'reversed.' */
-/* This is a little hard on the call stack though? Hm. */
+/* Print out a sequence of AST nodes. */
 static
 void fprint_linked_ast(FILE *out, AAstNode *x) {
-    if (x->next != NULL) {
-        fprint_linked_ast(out, x->next);
+    while (x != NULL) {
+        fprint_ast_node(out, x);
         fprintf(out, " ");
+        x = x->next;
     }
-    fprint_ast_node(out, x);
 }
 
 /* Print out an AST sequence. */

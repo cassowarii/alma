@@ -1120,8 +1120,10 @@ void interact(ASymbolTable *symtab) {
                 next(&state);
             }
         }
-        printf("  ");
-        print_stack(stack);
+        if (stack->size > 0) {
+            printf("  ");
+            print_stack(stack);
+        }
         state.beginning_line = 1;
         eat_newlines_or_semicolons(&state);
     } while (1);

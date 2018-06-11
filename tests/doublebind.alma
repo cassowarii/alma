@@ -1,8 +1,8 @@
 fn quadruple [
     (→ a:
-        + a a
-        (→ 2xa: + 2xa 2xa)
+        a a +
+        (→ 2xa: 2xa 2xa +)
     )
 ]
 
-fn main [ quadruple 6 | quadruple 5 ]
+fn main [ 6 quadruple 5 quadruple ]
