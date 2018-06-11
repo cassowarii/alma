@@ -347,6 +347,7 @@ int complex_word_leadin(ATokenType id) {
             || id == INTEGER
             || id == FLOAT
             || id == STRING
+            || id == T_BIND
             || id == T_LET) {
         return 1;
     } else {
@@ -500,6 +501,19 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         ASymbol *sym = get_symbol(state->symtab, state->currtok.value.cs);
         free(state->currtok.value.cs);
         return ast_valnode(line, val_sym(sym));
+        /* If we found a bind arrow, then the optional
+         * second part must be here. */
+    } else if (ACCEPT(T_BIND)) {
+        unsigned int bindline = LINENUM;
+        ANameSeqNode *names = parse_nameseq_opt(state);
+
+        AAstNode *node = parse_cmplx_word(state);
+        if (node != NULL) {
+            AWordSeqNode *innerbind = unwrap_node(node);
+            AAstNode *bind = ast_bindnode(bindline, names, innerbind);
+            return bind;
+        }
+        return NULL;
     } else if (ACCEPT('(')) {
         state->nested_parens ++;
         eat_newlines(state);
@@ -700,25 +714,7 @@ AWordSeqNode *parse_wordline(AParseState *state) {
             word = parse_word(state);
         }
 
-        /* If we found a bind arrow, then the optional
-         * second part must be here. */
-        if (ACCEPT(T_BIND)) {
-            unsigned int bindline = LINENUM;
-            ANameSeqNode *names = parse_nameseq_opt(state);
-
-            AAstNode *node = parse_cmplx_word(state);
-            if (node != NULL) {
-                AWordSeqNode *innerbind = unwrap_node(node);
-                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
-                ast_wordseq_append(result, bind);
-            }
-            /* Now that must be the end of the line... I guess? */
-            /* TODO we don't need a special case here anymore actually.
-             * Please move the bind-arrow-parsing code into parse_cmplx_word
-             * instead, and add the bind-arrow to complex_word_leadin.
-             * Then we can just chain them together now since we go left-to-right */
-            break;
-        } else if (ACCEPT(':')) {
+        if (ACCEPT(':')) {
             /* Everything we've done so far is to be done AFTER the stuff we find next.
              * So we put these at the beginning of the overall sequence. */
             /* TODO this is inefficient, fix up later */
