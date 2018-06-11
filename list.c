@@ -75,7 +75,7 @@ AList *list_reify(AVarBuffer *buf, AProtoList *proto, unsigned int linenum) {
             fprintf(stderr, "warning: expression ‘");
             fprint_wordseq_node(stderr, current);
             fprintf(stderr, "’ in list at line %d generated %d elements, "
-                            "but only the first one will be used\n",
+                            "but only the last one will be used\n",
                             linenum, tmp->size);
         } else if (tmp->size < 1) {
             fprintf(stderr, "warning: expression ‘");

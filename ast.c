@@ -269,7 +269,7 @@ static
 void fprint_linked_ast(FILE *out, AAstNode *x) {
     while (x != NULL) {
         fprint_ast_node(out, x);
-        fprintf(out, " ");
+        if (x->next != NULL) fprintf(out, " ");
         x = x->next;
     }
 }

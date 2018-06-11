@@ -327,6 +327,24 @@ START_TEST(test_blockparam) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_boundblock) {
+    ALMATESTINTRO("tests/boundblock.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+
+    ck_assert(mainfunc != NULL);
+
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 3);
+
+    ALMATESTCLEAN();
+} END_TEST
+
 START_TEST(test_2bind) {
     ALMATESTINTRO("tests/doublebind.alma");
 
@@ -552,6 +570,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_bind, test_2bind);
     tcase_add_test(tc_bind, test_funcargs);
     tcase_add_test(tc_bind, test_blockparam);
+    tcase_add_test(tc_bind, test_boundblock);
     tcase_add_test(tc_bind, test_closure);
     tcase_add_test(tc_bind, test_multibuf);
     tcase_add_test(tc_bind, test_namedclosure);
