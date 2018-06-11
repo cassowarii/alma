@@ -209,6 +209,7 @@ typedef struct ANameNode {
 /* Struct representing a series of names that can be bound with a 'bind'. */
 typedef struct ANameSeqNode {
     ANameNode *first;
+    ANameNode *penult;
     ANameNode *last;
     unsigned int length;
 } ANameSeqNode;

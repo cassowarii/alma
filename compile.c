@@ -157,6 +157,7 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             ANameNode *currname = current->data.bind->names->first;
 
             for (int i = 0; i < newbind->count; i++) {
+                assert(currname != NULL);
                 stat = scope_create_push(scope_with_vars, reg, currname->sym,
                                          bindinfo.var_depth + i, current->linenum);
                 if (stat == compile_fail) {

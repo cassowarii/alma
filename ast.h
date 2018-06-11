@@ -48,6 +48,11 @@ void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2);
 /* Prepend a new node to the beginning of an ANameSeqNode. */
 void ast_nameseq_append(ANameSeqNode *seq, ANameNode *node);
 
+/* Pop the last node off the end of an ANameSeqNode, and return it. */
+/* This can only really be done once, but that's ok because we
+ * only use this function when parsing function headers. */
+ANameNode *ast_nameseq_pop(ANameSeqNode *seq);
+
 /* Allocate a new AProtoList. */
 AProtoList *ast_protolist_new(void);
 

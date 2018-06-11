@@ -5,17 +5,18 @@
  *
  *      program     ::= declseq EOF
  *      declseq     ::= ø | decl declseq
- *      decl        ::= "fn" name nameseq block
+ *      decl        ::= ("fn" | ":") names name block
  *                    | "import" string ["as" name]
  *      names       ::= ø | names name
  *      words       ::= word-line | words separator word-line
- *      separator   ::= "|" | "\n"
- *      word-line   ::= {word}* ["->" cmplx-word]
+ *      separator   ::= ";" | "\n"
+ *      word-line   ::= {{word}* ":"}*
  *      word        ::= name | cmplx-word
  *      cmplx-word  ::= literal | list | block
  *                    | "let" declseq "in" cmplx-word
  *                    | "(" words ")"
  *                    | "(" "->" names ":" words ")"
+ *                    | "->" names cmplx-word
  *      block       ::= "[" words "]"
  *                    | "[" "->" names ":" words "]"
  *      list        ::= "{" list-guts "}"
@@ -334,7 +335,7 @@ void do_expect_match(ATokenType match, ATokenType type, unsigned int line, APars
 /* Check if the token could represent the
  * beginning of a declaration. */
 int decl_leadin(ATokenType id) {
-    return (id == T_FUNC || id == T_IMPORT);
+    return (id == ':' || id == T_FUNC || id == T_IMPORT);
 }
 
 /* Check if the token could represent the
@@ -788,7 +789,7 @@ AWordSeqNode *parse_interactive_words(AParseState *state) {
  * or an import right now.
  * (Later: type declarations?!) */
 ADeclNode *parse_decl(AParseState *state) {
-    if (ACCEPT(T_FUNC)) {
+    if (ACCEPT(T_FUNC) || ACCEPT(':')) {
         /* Mark we're inside a function now, so we can know to
          * ask for more lines in interactive mode. */
         state->infuncs ++;
@@ -796,16 +797,20 @@ ADeclNode *parse_decl(AParseState *state) {
 
         /* func name */
         ASymbol *name = NULL;
-        if (EXPECT(WORD)) {
+        /*if (EXPECT(WORD)) {
             name = get_symbol(state->symtab, state->currtok.value.cs);
             free(state->currtok.value.cs);
         } else {
             state->infuncs--;
             return NULL;
-        }
+        }*/
 
         /* func params */
         ANameSeqNode *params = parse_nameseq_opt(state);
+
+        ANameNode *funcname_node = ast_nameseq_pop(params);
+        name = funcname_node->sym;
+        free(funcname_node);
 
         AWordSeqNode *body = NULL;
         /* func body */
@@ -857,7 +862,7 @@ ADeclNode *parse_decl(AParseState *state) {
 /* Parse an interactive-mode declaration, which must be
  * terminated by a semicolon. */
 ADeclNode *parse_interactive_decl(AParseState *state) {
-    if (ACCEPT(T_FUNC)) {
+    if (ACCEPT(T_FUNC) || ACCEPT(':')) {
         /* Mark we're inside a function now, so we can know to
          * ask for more lines in interactive mode. */
         state->infuncs ++;
@@ -865,16 +870,20 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
 
         /* func name */
         ASymbol *name = NULL;
-        if (EXPECT(WORD)) {
+        /*if (EXPECT(WORD)) {
             name = get_symbol(state->symtab, state->currtok.value.cs);
             free(state->currtok.value.cs);
         } else {
             state->infuncs --;
             return NULL;
-        }
+        }*/
 
         /* func params */
         ANameSeqNode *params = parse_nameseq_opt(state);
+
+        ANameNode *funcname_node = ast_nameseq_pop(params);
+        name = funcname_node->sym;
+        free(funcname_node);
 
         AWordSeqNode *body = NULL;
         /* func body */

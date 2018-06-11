@@ -127,6 +127,7 @@ AWordSeqNode *ast_wordseq_new(void) {
 ANameSeqNode *ast_nameseq_new(void) {
     ANameSeqNode *newnode = malloc(sizeof(ANameSeqNode));
     newnode->first = NULL;
+    newnode->penult = NULL;
     newnode->last = NULL;
     newnode->length = 0;
     return newnode;
@@ -196,9 +197,10 @@ void ast_wordseq_concat(AWordSeqNode *seq1, AWordSeqNode *seq2) {
     }
 }
 
-/* Prepend a new node to the beginning of an ANameSeqNode. */
+/* Append a new node to the end of an ANameSeqNode. */
 void ast_nameseq_append(ANameSeqNode *seq, ANameNode *node) {
     if (node == NULL) return;
+    seq->penult = seq->last;
     if (seq->last == NULL) {
         seq->first = seq->last = node;
         seq->length ++;
@@ -210,6 +212,28 @@ void ast_nameseq_append(ANameSeqNode *seq, ANameNode *node) {
         /* Somehow, we're appending to the middle of the name-list. */
         fprintf(stderr, "Somehow appending to middle of name list. "
                 "This probably shouldn't happen.\n");
+    }
+}
+
+/* Pop the last node off the end of an ANameSeqNode, and return it. */
+/* This can only really be done once, but that's ok because we
+ * only use this function when parsing function headers. */
+ANameNode *ast_nameseq_pop(ANameSeqNode *seq) {
+    assert(seq != NULL);
+    if (seq->penult != NULL) {
+        assert(seq->length > 1);
+        ANameNode *old = seq->last;
+        seq->last = seq->penult;
+        seq->last->next = NULL;
+        seq->penult = NULL;
+        seq->length --;
+        return old;
+    } else {
+        assert(seq->length == 1);
+        ANameNode *old = seq->last;
+        seq->first = seq->last = NULL;
+        seq->length = 0;
+        return old;
     }
 }
 

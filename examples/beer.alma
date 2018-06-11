@@ -1,33 +1,28 @@
 # 99 Bottles of Beer
 
 # prints correct pluralization of bottles
-fn bottle/s [ if* [= 1] [print " bottle "] [print " bottles "] ]
+: bottle/s [ if*: [1 =] [" bottle " print] [" bottles " print] ]
 
-# string int → int, prints "X bottle(s) <msg>"
-fn quantified-bottles msg [
-    if* [> 0] [print dup] [print "No more"]
-    bottle/s
-    println msg
-]
+# prints "X bottle(s) " or "No more bottles " if 0
+: quantified-bottles [ if*: [0 >] [dup print] ["No more" print]; bottle/s ]
 
-# int → , sings the song for how-many verses
-fn bottles-of-beer how-many [
-    how-many | while* [≥ 0] [
-        quantified-bottles "of beer on the wall"
-        quantified-bottles "of beer"
-        if* [> 0] [
-            println "Take one down, pass it around"
-            - 1
-            quantified-bottles "of beer on the wall!"
-            println "" # between-verse empty line
+# int → , sings the song for n verses
+: n bottles-of-beer [
+    n ; while*: [0 ≥] [
+        quantified-bottles "of beer on the wall" say
+        quantified-bottles "of beer" say
+        if*: [0 >] [
+            "Take one down, pass it around" say
+            1 -
+            quantified-bottles "of beer on the wall!" say
+            "" say # empty line between verses
         ] [
-            println "Go to the store, buy some more"
-            print how-many
-            println " bottles of beer on the wall!"
-            - 1
+            "Go to the store, buy some more" say
+            n print " bottles of beer on the wall!" say
+            1 -
         ]
     ]
     drop
 ]
 
-fn main [ 99 | bottles-of-beer ]
+: main [ 99 bottles-of-beer ]

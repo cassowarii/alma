@@ -1,7 +1,7 @@
 # result should be 12
 
-fn main [ 5 warble ]
+: main [ 5 warble ]
 
-fn warble [ -> x (x 1 + bloople) ]
+: warble [ -> x (x 1 + bloople) ]
 
-fn bloople y [ y 2 * ]
+: y bloople [ y 2 * ]
