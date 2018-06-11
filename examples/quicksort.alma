@@ -5,8 +5,7 @@ fn 2dip [ swap [dip] dip ]
 fn when* [ [ ] if* ]
 
 fn sort-one comp [
-    uncons
-    -> first (
+    uncons -> first (
         if: [first comp apply] [2dip: [first append]] [dip: [first append]]
     )
 ]
@@ -19,8 +18,7 @@ fn partition list comp [
 
 fn quicksort [
     when*: [small not] [
-        uncons
-        -> pivot (
+        uncons -> pivot (
             [pivot <] partition
             dip: [quicksort pivot append] ; quicksort concat
         )

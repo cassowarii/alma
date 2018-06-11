@@ -45,26 +45,27 @@ This program prints "Hello world!" to the console, followed by a newline.
 ```
 fn empty [ len 0 = ]
 fn small [ len 1 ≤ ]
-fn concat [ if*: [len 0 =] [drop] [cons dip [concat] uncons] ]
-fn 2dip f [ swap [dip] dip ]
+fn concat [ if*: [empty] [drop] [unappend [concat] dip append] ]
+fn 2dip [ swap [dip] dip ]
 fn when* [ [ ] if* ]
 
-fn sort-one-by comp [
+fn sort-one comp [
     uncons -> first (
-        if [apply comp first] [dip [cons first]] [2dip [cons first]]
+        if: [first comp apply] [2dip: [first append]] [dip: [first append]]
     )
 ]
 
-fn partition-by comp list [
-    while* [not empty] [sort-one-by comp] list {} {}
+fn partition list comp [
+    {} {} list
+    while*: [empty not] [comp sort-one]
     drop
 ]
 
 fn quicksort [
-    when* [not small] [
+    when*: [small not] [
         uncons -> pivot (
-            partition-by [< pivot]
-            concat (quicksort) (dip [cons pivot (quicksort)])
+            [pivot <] partition
+            dip: [quicksort pivot append] ; quicksort concat
         )
     ]
 ]
