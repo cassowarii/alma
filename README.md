@@ -38,30 +38,30 @@ Simple example
 --------------
 
 ```
-fn main [ "Hello world!" say ]
+: main [ "Hello world!" say ]
 ```
 This program prints "Hello world!" to the console, followed by a newline.
 
 ```
-fn empty [ len 0 = ]
-fn small [ len 1 ≤ ]
-fn concat [ if*: [empty] [drop] [unappend [concat] dip append] ]
-fn 2dip [ swap [dip] dip ]
-fn when* [ [ ] if* ]
+: empty [ len 0 = ]
+: small [ len 1 ≤ ]
+: concat [ if*: [empty] [drop] [unappend [concat] dip append] ]
+: 2dip [ swap [dip] dip ]
+: when* [ [ ] if* ]
 
-fn sort-one comp [
+: comp sort-one [
     uncons -> first (
         if: [first comp apply] [2dip: [first append]] [dip: [first append]]
     )
 ]
 
-fn partition list comp [
+: list comp partition [
     {} {} list
     while*: [empty not] [comp sort-one]
     drop
 ]
 
-fn quicksort [
+: quicksort [
     when*: [small not] [
         uncons -> pivot (
             [pivot <] partition
