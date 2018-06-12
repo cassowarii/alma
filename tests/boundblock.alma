@@ -1,0 +1,3 @@
+# Just make sure that this actually works.
+# (Note: It doesn't yet work in interactive mode.)
+fn main [ 3 "hi" print -> a [ a ] "hi" print apply "hi" say ]
