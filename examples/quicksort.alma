@@ -10,8 +10,8 @@
     )
 ]
 
-: list comp partition [
-    {} {} list
+: comp partition [
+    dip: [{} {}]
     while*: [empty not] [comp sort-one]
     drop
 ]
