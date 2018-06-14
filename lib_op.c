@@ -173,8 +173,8 @@ void oplib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, ">=", &lib_greaterthanequal);
     addlibfunc(sc, st, "≥", &lib_greaterthanequal);
     addlibfunc(sc, st, "=", &lib_equal);
-    addlibfunc(sc, st, "!=", &lib_equal);
-    addlibfunc(sc, st, "≠", &lib_equal);
+    addlibfunc(sc, st, "!=", &lib_notequal);
+    addlibfunc(sc, st, "≠", &lib_notequal);
     addlibfunc(sc, st, "not", &lib_not);
 }
 
