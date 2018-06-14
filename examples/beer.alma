@@ -1,14 +1,15 @@
 # 99 Bottles of Beer
 
-# prints correct pluralization of bottles
+# prints correct pluralization of bottles, leaves number on stack
 : bottle/s [ if*: [1 =] [" bottle " print] [" bottles " print] ]
 
-# prints "X bottle(s) " or "No more bottles " if 0
+# prints "X bottle(s) " or "No more bottles " if 0, leaves number on stack
 : quantified-bottles [ if*: [0 >] [dup print] ["No more" print]; bottle/s ]
 
 # int → , sings the song for n verses
 : n bottles-of-beer [
-    n ; while*: [0 ≥] [
+    n
+    while*: [0 ≥] [
         quantified-bottles "of beer on the wall" say
         quantified-bottles "of beer" say
         if*: [0 >] [
