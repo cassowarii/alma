@@ -402,16 +402,12 @@ AProtoList *parse_list_guts(AParseState *state) {
 ANameSeqNode *parse_nameseq_opt(AParseState *state) {
     ANameSeqNode *result = ast_nameseq_new();
 
-    eat_newlines(state);
-
     while (ACCEPT(WORD)) {
         ASymbol *sym = get_symbol(state->symtab, state->currtok.value.cs);
         free(state->currtok.value.cs);
 
         ANameNode *nnode = ast_namenode(LINENUM, sym);
         ast_nameseq_append(result, nnode);
-
-        eat_newlines(state);
     }
 
     return result;
@@ -435,53 +431,8 @@ AAstNode *parse_cmplx_word(AParseState *state);
 AWordSeqNode *parse_block_guts(AParseState *state) {
     AWordSeqNode *inner_block = NULL;
     eat_newlines(state);
-    if (ACCEPT(T_BIND)) {
-        /* we have the same ambiguity here:
-         * [ -> a b : stuff ] vs [ -> a b ( stuff ) | more-stuff ] */
-        /* [ -> a b : stuff ] */
-        unsigned int bindline = LINENUM;
-        ANameSeqNode *names = parse_nameseq_opt(state);
-        AWordSeqNode *words;
-        if (complex_word_leadin(state->nexttok.id)) {
-            /* [ -> a b ( stuff ) ?? ] */
-            AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
 
-            if (innerbind == NULL) {
-                free_nameseq_node(names);
-            } else {
-                /* construct the bound node */
-                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
-                inner_block = ast_wordseq_new();
-                ast_wordseq_append(inner_block, bind);
-
-                /* there might be more stuff afterwards */
-                if (parse_separator(state)) {
-                    AWordSeqNode *rest = parse_words(state);
-
-                    if (rest == NULL) {
-                        free_wordseq_node(inner_block);
-                        free_nameseq_node(names);
-                    } else {
-                        ast_wordseq_concat(inner_block, rest);
-                        free(rest);
-                    }
-                }
-            }
-        } else {
-            /* [ -> a b : stuff ] */
-            if (EXPECT(':')) {
-                words = parse_words(state);
-                /* now build the block */
-                inner_block = ast_wordseq_new();
-                ast_wordseq_prepend(inner_block, ast_bindnode(bindline, names, words));
-            } else {
-                free_nameseq_node(names);
-            }
-        }
-    } else {
-        /* [ stuff ] */
-        inner_block = parse_words(state);
-    }
+    inner_block = parse_words(state);
 
     return inner_block;
 }
@@ -508,85 +459,45 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         unsigned int bindline = LINENUM;
         ANameSeqNode *names = parse_nameseq_opt(state);
 
-        AAstNode *node = parse_cmplx_word(state);
-        if (node != NULL) {
-            AWordSeqNode *innerbind = unwrap_node(node);
-            AAstNode *bind = ast_bindnode(bindline, names, innerbind);
-            return bind;
+        if (complex_word_leadin(state->nexttok.id)) {
+            /* It's a bind-arrow with a set of brackets or
+             * something, like -> a b (b a). */
+            AAstNode *node = parse_cmplx_word(state);
+            if (node != NULL) {
+                AWordSeqNode *innerbind = unwrap_node(node);
+                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
+                return bind;
+            }
+            return NULL;
+        } else if (ACCEPT(';') || ACCEPT('\n')) {
+            /* The rest of the tokens will be implicitly subsumed
+             * into the scope of this bind. This is just syntactic
+             * sugar, so we don't have to add a superfluous set of
+             * parentheses every time we want to bind a variable
+             * name. 'flat is better than nested', as they say. */
+            AWordSeqNode *words = parse_words(state);
+            if (words != NULL) {
+                AAstNode *bind = ast_bindnode(bindline, names, words);
+                return bind;
+            }
+            return NULL;
+        } else {
+            return NULL;
         }
-        return NULL;
     } else if (ACCEPT('(')) {
         state->nested_parens ++;
-        eat_newlines(state);
-        AAstNode *result = NULL;
-        if (ACCEPT(T_BIND)) {
-            /* ( -> a b  ...  ) */
-            /* Now there's an ambiguity: is this going to be
-             * (-> a b : blah) or (-> a b ( blah ) . blah ) ? So we
-             * have to do a little bit of weirdness here. */
-            unsigned int bindline = LINENUM;
-            ANameSeqNode *names = parse_nameseq_opt(state);
-            if (complex_word_leadin(state->nexttok.id)) {
-                /* (-> a b ( stuff ) . more things? ) */
-                AWordSeqNode *innerbind = unwrap_node(parse_cmplx_word(state));
 
-                if (innerbind == NULL) {
-                    free_nameseq_node(names);
-                    return NULL;
-                }
+        AWordSeqNode *inner_block = parse_block_guts(state);
 
-                /* construct the bound node */
-                AAstNode *bind = ast_bindnode(bindline, names, innerbind);
-                AWordSeqNode *content = ast_wordseq_new();
-                ast_wordseq_append(content, bind);
-
-                /* now see if there's any more in the outer set of parentheses */
-                if (parse_separator(state)) {
-                    /* there might be more stuff after the cmplx_word,
-                     * in this case. */
-                    AWordSeqNode *rest = parse_words(state);
-                    if (rest == NULL) {
-                        free_ast_node(bind);
-                        free_wordseq_node(content);
-                    }
-                    ast_wordseq_concat(content, rest);
-                    free(rest);
-                }
-
-                result = ast_parennode(line, content);
-            } else {
-                /* (-> a b : stuff) */
-                if (EXPECT(':')) {
-                    AWordSeqNode *words = parse_words(state);
-
-                    AWordSeqNode *param_wrapper = ast_wordseq_new();
-                    ast_wordseq_prepend(param_wrapper, ast_bindnode(bindline, names, words));
-                    result = ast_parennode(line, param_wrapper);
-                } else {
-                    result = NULL;
-                }
-            }
-        } else {
-            /* ( stuff ) */
-            AWordSeqNode *words = parse_words(state);
-            if (words == NULL) {
-                result = NULL;
-            } else {
-                result = ast_parennode(line, words);
-            }
-        }
-
-        /* EXPECT_MATCH will expect the second parameter. If it doesn't find it, it panics
-         * until it finds one that doesn't have a corresponding occurrence of the first
-         * parameter. Or until it runs off the end of the file, in which case it will
-         * print out that there was an unmatched '(' at the initial line. */
-        /* (Note also that it finds the line of the '(' by grabbing the variable 'line'
-         * from this scope... it's a little macro-magic-y, but.. just something to keep
-         * in mind.) */
         EXPECT_MATCH('(', ')');
+
         state->nested_parens --;
 
-        return result;
+        if (inner_block != NULL) {
+            return ast_parennode(line, inner_block);
+        } else {
+            return NULL;
+        }
     } else if (ACCEPT('[')) {
         state->nested_brackets ++;
 

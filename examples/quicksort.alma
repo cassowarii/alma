@@ -5,9 +5,8 @@
 : when* [ [ ] if* ]
 
 : comp sort-one [
-    uncons -> first (
-        if: [first comp apply] [2dip: [first append]] [dip: [first append]]
-    )
+    uncons → first
+    if: [first comp apply] [2dip: [first append]] [dip: [first append]]
 ]
 
 : comp partition [
@@ -18,10 +17,9 @@
 
 : quicksort [
     when*: [small not] [
-        uncons -> pivot (
-            [pivot <] partition
-            dip: [quicksort pivot append] ; quicksort concat
-        )
+        uncons → pivot
+        [pivot <] partition
+        dip: [quicksort pivot append] ; quicksort concat
     ]
 ]
 
