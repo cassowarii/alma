@@ -1,4 +1,4 @@
-: x make-multiplier [ [→ y: x y *] ]
+: x make-multiplier [ [→ y ; x y *] ]
 
 : main [
     5 make-multiplier 6 make-multiplier

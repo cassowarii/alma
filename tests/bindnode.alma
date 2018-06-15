@@ -1,1 +1,1 @@
-fn main [ 5 [→ a: a 4 +] apply ]
+fn main [ 5 [→ a ; a 4 +] apply ]

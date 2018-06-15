@@ -1,7 +1,7 @@
 fn quadruple [
-    (→ a:
+    (→ a
         a a +
-        (→ 2xa: 2xa 2xa +)
+        (→ 2xa ; 2xa 2xa +)
     )
 ]
 
