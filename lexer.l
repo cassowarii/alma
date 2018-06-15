@@ -165,6 +165,10 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
     return CMTOPEN;
 }
 
+"}#" {
+    return CMTCLOSE;
+}
+
  /*<COMMENT>. { / * throw it into the trash ! * / }
 <COMMENT>\n|\r     { / * in case of block comment, also eat newlines * / }
 <LINECMT>\n|\r {

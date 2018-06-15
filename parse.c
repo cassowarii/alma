@@ -173,8 +173,7 @@ void next(AParseState *state) {
                 free(state->currtok.value.cs);
             }
             if (state->nexttok.id == CMTOPEN) score ++;
-            if (state->nexttok.id == '{') score ++;
-            if (state->nexttok.id == '}') score --;
+            if (state->nexttok.id == CMTCLOSE) score --;
         }
         /* skip closing ) */
         state->nexttok = next_token(state->scan);
