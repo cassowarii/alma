@@ -201,6 +201,17 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
     }
 }
 
+`(\\{UANYN}|[^`\r\n]|\\\n)*\` {
+    //yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
+    //strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
+    if (yyextra->nested_comments == 0) {
+        yylval->s = parse_string(yytext + 1, strlen(yytext)-2);
+        return STRING;
+    } else {
+        return TOKENBLAH;
+    }
+}
+
 \"(\\{UANYN}|[^"\r\n])*$ {
     if (yyextra->nested_comments == 0) {
         ERROR("syntax error, unterminated double-quoted string");
@@ -217,9 +228,17 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
     }
 }
 
-[0-9]+                  yylval->i=atoi(yytext); return INTEGER;
+`(\\{UANYN}|[^`\r\n])*$ {
+    if (yyextra->nested_comments == 0) {
+        ERROR("syntax error, unterminated backquoted string");
+    } else {
+        return TOKENBLAH;
+    }
+}
 
-[0-9]+\.[0-9]+([Ee][0-9]+)? {
+-?[0-9]+                yylval->i=atoi(yytext); return INTEGER;
+
+-?[0-9]+\.[0-9]+([Ee][0-9]+)? {
     yylval->d = atof(yytext);
     return FLOAT;
 }
