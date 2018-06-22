@@ -25,6 +25,21 @@ void lib_over(AStack* stack, AVarBuffer *buffer) {
     stack_push(stack, b);
 }
 
+/* Move the value below NOS onto the top of the stack.
+ * (i.e. ( a b c -- b c a ) where top of stack is to
+ * the right) */
+void lib_rot(AStack* stack, AVarBuffer *buffer) {
+    AValue *a = stack_get(stack, 2);
+    AValue *b = stack_get(stack, 1);
+    AValue *c = stack_get(stack, 0);
+
+    stack_pop(stack, 3);
+
+    stack_push(stack, b);
+    stack_push(stack, c);
+    stack_push(stack, a);
+}
+
 /* Drop the top value off the stack. */
 void lib_drop(AStack* stack, AVarBuffer *buffer) {
     stack_pop(stack, 1);
@@ -68,6 +83,7 @@ void stacklib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "dup", &lib_dup);
     addlibfunc(sc, st, "swap", &lib_swap);
     addlibfunc(sc, st, "over", &lib_over);
+    addlibfunc(sc, st, "rot", &lib_rot);
     addlibfunc(sc, st, "dip", &lib_dip);
     addlibfunc(sc, st, "drop", &lib_drop);
     addlibfunc(sc, st, "apply", &lib_apply);
