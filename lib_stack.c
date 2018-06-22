@@ -17,6 +17,14 @@ void lib_swap(AStack* stack, AVarBuffer *buffer) {
     stack_push(stack, b);
 }
 
+/* Copy the value below the top of the stack and put it
+ * on top of the stack. ( a b -- a b a ) */
+void lib_over(AStack* stack, AVarBuffer *buffer) {
+    AValue *b = stack_get(stack, 1);
+
+    stack_push(stack, b);
+}
+
 /* Drop the top value off the stack. */
 void lib_drop(AStack* stack, AVarBuffer *buffer) {
     stack_pop(stack, 1);
@@ -59,6 +67,7 @@ void lib_stackprint(AStack* stack, AVarBuffer *buffer) {
 void stacklib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "dup", &lib_dup);
     addlibfunc(sc, st, "swap", &lib_swap);
+    addlibfunc(sc, st, "over", &lib_over);
     addlibfunc(sc, st, "dip", &lib_dip);
     addlibfunc(sc, st, "drop", &lib_drop);
     addlibfunc(sc, st, "apply", &lib_apply);
