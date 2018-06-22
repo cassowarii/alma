@@ -185,10 +185,10 @@ START_TEST(test_uncons) {
     eval_word(stack, NULL, mainfunc);
 
     ck_assert_int_eq(stack->size, 2);
-    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 1);
-    ck_assert_int_eq(stack_peek(stack, 1)->data.list->first->val->data.i, 2);
-    ck_assert_int_eq(stack_peek(stack, 1)->data.list->first->next->val->data.i, 3);
-    ck_assert_int_eq(stack_peek(stack, 1)->data.list->first->next->next->val->data.i, 4);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->val->data.i, 2);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->next->val->data.i, 3);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.list->first->next->next->val->data.i, 4);
+    ck_assert_int_eq(stack_peek(stack, 1)->data.i, 1);
     ALMATESTCLEAN();
 } END_TEST
 

@@ -1,1 +1,1 @@
-fn main [ { } 1 cons ]
+fn main [ 1 { } cons ]

@@ -13,8 +13,8 @@ void lib_len(AStack* stack, AVarBuffer *buffer) {
 
 /* put a value onto front a list */
 void lib_cons(AStack* stack, AVarBuffer *buffer) {
-    AValue *a = stack_get(stack, 0);
-    AValue *vlist = stack_get(stack, 1);
+    AValue *vlist = stack_get(stack, 0);
+    AValue *a = stack_get(stack, 1);
     stack_pop(stack, 2);
 
     AValue *result = cons_list_val(a, vlist);
@@ -90,8 +90,8 @@ void lib_uncons(AStack* stack, AVarBuffer *buffer) {
     AValue *head = head_list_val(a);
     AValue *tail = tail_list_val(a);
 
-    stack_push(stack, tail);
     stack_push(stack, head);
+    stack_push(stack, tail);
     delete_ref(a);
 }
 
