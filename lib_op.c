@@ -161,11 +161,28 @@ void lib_equal(AStack* stack, AVarBuffer *buffer) {
     delete_ref(b);
 }
 
+/* Take mod of NOS by TOS. */
+void lib_mod(AStack* stack, AVarBuffer *buffer) {
+    AValue *a = stack_get(stack, 1);
+    AValue *b = stack_get(stack, 0);
+    stack_pop(stack, 2);
+
+    // We don't do typechecking yet, so this might be garbage
+    // if it's not actually an int... we'll fix this later!
+    AValue *c = set_2int_val(a, b, a->data.i % b->data.i);
+
+    stack_push(stack, c);
+    delete_ref(a);
+    delete_ref(b);
+}
+
+
 /* Initialize built-in operators. */
 void oplib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "+", &lib_add);
     addlibfunc(sc, st, "-", &lib_subtract);
     addlibfunc(sc, st, "*", &lib_multiply);
+    addlibfunc(sc, st, "mod", &lib_mod);
     addlibfunc(sc, st, "<", &lib_lessthan);
     addlibfunc(sc, st, ">", &lib_greaterthan);
     addlibfunc(sc, st, "<=", &lib_lessthanequal);
