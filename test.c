@@ -229,6 +229,21 @@ START_TEST(test_concat) {
     ALMATESTCLEAN();
 } END_TEST
 
+START_TEST(test_stackshuffle) {
+    ALMATESTINTRO("tests/stackshuffle.alma");
+
+    ACompileStatus stat = compile(scope, reg, program, bi);
+    ck_assert_int_eq(stat, compile_success);
+
+    AFunc *mainfunc = scope_find_func(scope, symtab, "main");
+    ck_assert(mainfunc != NULL);
+    eval_word(stack, NULL, mainfunc);
+
+    ck_assert_int_eq(stack->size, 1);
+    ck_assert_int_eq(stack_peek(stack, 0)->data.i, 36);
+    ALMATESTCLEAN();
+} END_TEST
+
 START_TEST(test_listwarn) {
     ALMATESTINTRO("tests/listwarn.alma");
 
@@ -546,6 +561,7 @@ Suite *simple_suite(void) {
     tcase_add_test(tc_core, test_uncons);
     tcase_add_test(tc_core, test_chimera);
     tcase_add_test(tc_core, test_concat);
+    tcase_add_test(tc_core, test_stackshuffle);
     suite_add_tcase(s, tc_core);
 
     /* test compilation */
