@@ -61,6 +61,8 @@ typedef enum {
     T_BIND,
     T_FUNC,
     T_IN,
+    T_MATCH,
+    T_END,
     WORD,
     SYMBOL,
     INTEGER,

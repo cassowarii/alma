@@ -124,6 +124,8 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 ->|→                    return T_BIND;
 "fn"                    return T_FUNC;
 "in"                    return T_IN;
+"match"                 return T_MATCH;
+"end"                   return T_END;
 \\[\r\n]                ; // allow escaping newlines
 <IMPORT>"as"            { BEGIN(INITIAL); return T_AS; }
 <IMPORT>\|              return '|';
