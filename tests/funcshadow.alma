@@ -1,9 +1,9 @@
 fn main [
     let
-        fn x [ 2 ]
+        x [ 2 ]
     in
         let
-            fn x [ 10 ]
+            x [ 10 ]
         in
             (x)
 ]

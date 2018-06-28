@@ -852,7 +852,7 @@ ADeclSeqNode *parse_declseq(AParseState *state) {
         }
         ast_declseq_append(result, dec);
         eat_newlines_or_semicolons(state);
-    } while (state->nexttok.id);
+    } while (state->nexttok.id && state->nexttok.id != T_IN);
 
     eat_newlines_or_semicolons(state);
 
@@ -918,7 +918,7 @@ ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
 
 /* Parse interactive; ask for more text if necessary */
 void interact(ASymbolTable *symtab) {
-    printf("-- alma v"ALMA_VERSION" ‘"ALMA_VNAME"’ --\n");
+    printf("-- Alma v"ALMA_VERSION" ‘"ALMA_VNAME"’ --\n");
 
     AToken notoken = { TOKENNONE, { 0 }, { 0, 0 } };
     AParseState initial_state = {

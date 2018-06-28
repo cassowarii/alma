@@ -8,11 +8,10 @@
 fn main [ generate apply ]
 
 fn generate [
-    2
-    → a (
+    2 → a (
         let
-            fn b [[f]]
-            fn f [a]
+            b [[f]]
+            f [a]
         in (b)
     )
 ]
