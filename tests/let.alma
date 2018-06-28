@@ -1,2 +1,2 @@
 # Should print '12'
-main [ let add3 [ + + ] in (3 4 5 add3) ]
+main [ use add3 [ + + ] in (3 4 5 add3) ]

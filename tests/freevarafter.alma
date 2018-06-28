@@ -9,7 +9,7 @@ fn main [ generate apply ]
 
 fn generate [
     2 → a (
-        let
+        use
             b [[f]]
             f [a]
         in (b)

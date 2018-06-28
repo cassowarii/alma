@@ -63,7 +63,7 @@ void fprint_token_type(FILE *out, ATokenType type) {
             fprintf(out, "‘import’"); break;
         case T_AS:
             fprintf(out, "‘as’"); break;
-        case T_LET:
+        case T_USE:
             fprintf(out, "‘let’"); break;
         case T_BIND:
             fprintf(out, "‘->’"); break;
@@ -348,7 +348,7 @@ int complex_word_leadin(ATokenType id) {
             || id == FLOAT
             || id == STRING
             || id == T_BIND
-            || id == T_LET) {
+            || id == T_USE) {
         return 1;
     } else {
         return 0;
@@ -520,7 +520,7 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         state->nested_curlies --;
 
         return ast_valnode(line, val_protolist(proto));
-    } else if (ACCEPT(T_LET)) {
+    } else if (ACCEPT(T_USE)) {
         /* Mark that we're inside the 'let..in' for interactive mode
          * so we can ask for more lines. */
         state->inlets ++;

@@ -120,7 +120,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 
   /* Reserved words. */
 "import"                BEGIN(IMPORT); return T_IMPORT;
-"let"                   return T_LET;
+"use"                   return T_USE;
 ->|→                    return T_BIND;
 "fn"                    return T_FUNC;
 "in"                    return T_IN;

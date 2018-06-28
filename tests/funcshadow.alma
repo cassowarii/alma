@@ -1,8 +1,8 @@
 fn main [
-    let
+    use
         x [ 2 ]
     in
-        let
+        use
             x [ 10 ]
         in
             (x)

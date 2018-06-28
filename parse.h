@@ -57,7 +57,7 @@ typedef enum {
     /* Here are the actual token tokens. */
     T_IMPORT    = 257,
     T_AS,
-    T_LET,
+    T_USE,
     T_BIND,
     T_FUNC,
     T_IN,

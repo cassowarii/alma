@@ -1,5 +1,5 @@
 fn main [
-    let sum [ + ]
-    in let 4sum [ dip: [dip: [sum]] ; sum sum ]
+    use sum [ + ]
+    in use 4sum [ dip: [dip: [sum]] ; sum sum ]
        in (3 4 5 6 4sum)
 ]
