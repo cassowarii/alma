@@ -715,13 +715,6 @@ ADeclNode *parse_decl(AParseState *state) {
 
         /* func name */
         ASymbol *name = NULL;
-        /*if (EXPECT(WORD)) {
-            name = get_symbol(state->symtab, state->currtok.value.cs);
-            free(state->currtok.value.cs);
-        } else {
-            state->infuncs--;
-            return NULL;
-        }*/
 
         /* func params */
         ANameSeqNode *params = parse_nameseq_opt(state);
@@ -731,20 +724,8 @@ ADeclNode *parse_decl(AParseState *state) {
         free(funcname_node);
 
         AWordSeqNode *body = NULL;
+
         /* func body */
-        /*if (EXPECT(':')) {
-            body = parse_words(state);
-        } else {
-            free_nameseq_node(params);
-            state->infuncs--;
-            return NULL;
-        }
-
-        if (body == NULL) {
-            state->infuncs--;
-            return NULL;
-        }*/
-
         EXPECT('[');
 
         body = parse_block_guts(state);
