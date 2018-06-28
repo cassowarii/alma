@@ -5,7 +5,7 @@
  *
  *      program     ::= declseq EOF
  *      declseq     ::= ø | decl declseq
- *      decl        ::= ("fn" | ":") names name block
+ *      decl*       ::= names name block
  *                    | "import" string ["as" name]
  *      names       ::= ø | names name
  *      words       ::= word-line | words separator word-line
@@ -23,6 +23,10 @@
  *      list-guts   ::= ø | words "," list-guts
  *      literal     ::= string | int | float | symbol
  *
+ *      * In interactive mode, function definitions must be
+ *        preceded by a colon or "fn", to distinguish
+ *        them from regular interactive commands.
+ *
  * The current parse state is passed around in the
  * AParseState* object; it holds:
  *      - the current symbol table (for name lookup)
@@ -32,16 +36,6 @@
  *          like function names or integer values)
  *      - the next token (for lookahead purposes)
  *      - the number of syntax errors so far
- */
-
-/* Current weirdness (which may be OK actually?):
- * stuff inside comments still gets tokenized, so that
- * we can nest other { } within block comments. But this
- * means that stuff like #{ "hi } won't be parsed as a
- * block comment since the } will end up within the
- * string... Hm. But we do want to be able to comment
- * out, e.g. #{ " }" } without fail, so maybe this is
- * the price we have to pay.
  */
 
 #define ACCEPT(x) do_accept(x, state)
@@ -77,6 +71,10 @@ void fprint_token_type(FILE *out, ATokenType type) {
             fprintf(out, "‘fn’"); break;
         case T_IN:
             fprintf(out, "‘in’"); break;
+        case T_END:
+            fprintf(out, "‘end’"); break;
+        case T_MATCH:
+            fprintf(out, "‘match’"); break;
         case WORD:
             fprintf(out, "word"); break;
         case SYMBOL:
@@ -241,7 +239,7 @@ int is_literal_type(ATokenType type) {
  * 'things that were expected'? */
 static
 int hide_try(ATokenType type) {
-    return (type == '|' || type == '\n');
+    return (type == ';' || type == ':' || type == '\n');
 }
 
 /* Move to the next token and return true
@@ -255,8 +253,10 @@ int do_accept(ATokenType type, AParseState *state) {
         return 1;
     }
     if (is_literal_type(type)) {
+        /* If it was a literal, just say we tried "a literal." */
         try_token(state, TOKENLIT);
     } else if (!hide_try(type)) {
+        /* Otherwise, mark we tried it unless we said not to above. */
         try_token(state, type);
     }
     return 0;
@@ -699,7 +699,15 @@ AWordSeqNode *parse_interactive_words(AParseState *state) {
  * or an import right now.
  * (Later: type declarations?!) */
 ADeclNode *parse_decl(AParseState *state) {
-    if (ACCEPT(T_FUNC) || ACCEPT(':')) {
+    if (ACCEPT(T_IMPORT)) {
+        /* TODO parse imports */
+        return NULL;
+    } else {
+        /* Allow optional 'fn' or ':'. (But not both, that's weird.) */
+        if (!ACCEPT(T_FUNC)) {
+            ACCEPT(':');
+        }
+
         /* Mark we're inside a function now, so we can know to
          * ask for more lines in interactive mode. */
         state->infuncs ++;
@@ -761,11 +769,6 @@ ADeclNode *parse_decl(AParseState *state) {
             ast_wordseq_prepend(param_wrapper, ast_bindnode(params->first->linenum, params, body));
             return ast_declnode(line, name, param_wrapper);
         }
-    } else if (ACCEPT(T_IMPORT)) {
-        /* TODO parse imports */
-        return NULL;
-    } else {
-        return NULL;
     }
 }
 
@@ -780,31 +783,23 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
 
         /* func name */
         ASymbol *name = NULL;
-        /*if (EXPECT(WORD)) {
-            name = get_symbol(state->symtab, state->currtok.value.cs);
-            free(state->currtok.value.cs);
-        } else {
-            state->infuncs --;
-            return NULL;
-        }*/
 
         /* func params */
         ANameSeqNode *params = parse_nameseq_opt(state);
 
+        if (params->length == 0) {
+            fprintf(stderr, "Cannot define a function with no name!\n");
+            return NULL;
+        }
+
+        /* take last 'parameter' and use it as name instead */
         ANameNode *funcname_node = ast_nameseq_pop(params);
         name = funcname_node->sym;
         free(funcname_node);
 
         AWordSeqNode *body = NULL;
-        /* func body */
-        /*if (EXPECT(':')) {
-            body = parse_words(state);
-        } else {
-            state->infuncs --;
-            free_nameseq_node(params);
-            return NULL;
-        }*/
 
+        /* func body */
         EXPECT('[');
 
         body = parse_block_guts(state);
@@ -820,12 +815,11 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
         /* Leave function. */
         state->infuncs --;
 
-        //EXPECT(';');
         if (params->length == 0) {
             free_nameseq_node(params);
             return ast_declnode(line, name, body);
         } else {
-            /* Convert func name a b: words ; to func name: -> a b (words) ; */
+            /* Convert func a b name [ words ] to func name [ -> a b ; words ] */
             AWordSeqNode *param_wrapper = ast_wordseq_new();
             ast_wordseq_prepend(param_wrapper, ast_bindnode(params->first->linenum, params, body));
             return ast_declnode(line, name, param_wrapper);
@@ -877,7 +871,7 @@ ADeclSeqNode *parse_declseq(AParseState *state) {
         }
         ast_declseq_append(result, dec);
         eat_newlines_or_semicolons(state);
-    } while (decl_leadin(state->nexttok.id));
+    } while (state->nexttok.id);
 
     eat_newlines_or_semicolons(state);
 
@@ -998,7 +992,7 @@ void interact(ASymbolTable *symtab) {
         state.beginning_line = 0;
         if (decl_leadin(state.nexttok.id)) {
             ADeclNode *result = parse_interactive_decl(&state);
-            if (state.errors != 0) {
+            if (state.errors != 0 || result == NULL) {
                 /* If syntax error, reset */
                 state = initial_state;
                 state.scan = scan;
@@ -1021,7 +1015,7 @@ void interact(ASymbolTable *symtab) {
             /* Otherwise, it isn't a declaration, it's just
              * a regular command. */
             AWordSeqNode *result = parse_interactive_words(&state);
-            if (state.errors == 0) {
+            if (state.errors == 0 && result != NULL) {
                 ACompileStatus stat = compile_seq_context(result, *symtab, reg, real_scope);
                 if (stat == compile_success) {
                     eval_sequence(stack, NULL, result);

@@ -1,1 +1,1 @@
-fn main [ say "Hello world!" ]
+main [ say "Hello world!" ]
