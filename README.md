@@ -38,39 +38,38 @@ Simple example
 --------------
 
 ```
-: main [ "Hello world!" say ]
+main [ "Hello world!" say ]
 ```
 This program prints "Hello world!" to the console, followed by a newline.
 
 ```
-: empty [ len 0 = ]
-: small [ len 1 ≤ ]
-: concat [ if*: [empty] [drop] [unappend [concat] dip append] ]
-: 2dip [ swap [dip] dip ]
-: when* [ [ ] if* ]
+empty [ len 0 = ]
+small [ len 1 ≤ ]
+concat [ if*: [empty] [drop] [unappend [concat] dip append] ]
+2dip [ swap [dip] dip ]
+when* [ [ ] if* ]
+shift [ uncons swap ]
 
-: comp sort-one [
-    uncons -> first (
-        if: [first comp apply] [2dip: [first append]] [dip: [first append]]
-    )
+comp sort-one [
+    shift -> first
+    if: [first comp apply] [2dip: [first append]] [dip: [first append]]
 ]
 
-: list comp partition [
-    {} {} list
+comp partition [
+    dip: [{} {}]
     while*: [empty not] [comp sort-one]
     drop
 ]
 
-: quicksort [
+quicksort [
     when*: [small not] [
-        uncons -> pivot (
-            [pivot <] partition
-            dip: [quicksort pivot append] ; quicksort concat
-        )
+        shift -> pivot
+        [pivot <] partition
+        dip: [quicksort pivot append] ; quicksort concat
     ]
 ]
 ```
-This program executes the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
+This program implements the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
 algorithm.
 (In the future, the little things defined at the top would be part of the standard
  library... but there's no standard library yet ;) )
