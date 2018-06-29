@@ -1,18 +1,17 @@
-fn main [
-    let
-        fn say-message [
-            print "The "
-            print # prints message
-            print " of "
-            print dup
-            print " is "
+main [
+    use
+        say-message [
+            "The "  print
+                    print
+            " of "  print
+            dup     print
+            " is "  print
         ]
     in (
-        (say-message "double" | println double) 4
-        (say-message "square" | println square) 4
+        4 "double" say-message double println
+        4 "square" say-message square println
     )
 ]
 
-fn double [ * 2 ]
-fn square [ * dup ]
-
+double [ 2 * ]
+square [ dup * ]

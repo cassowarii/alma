@@ -1,6 +1,6 @@
 # Print the triangular numbers from 1 to 5000
 
-: trianglenum [
+trianglenum [
     dip: [0]
     while*: [0 >] [
         dup
@@ -10,7 +10,7 @@
     drop
 ]
 
-: main [
+main [
     1
     while*: [5000 ≤] [
         "triangular number #" print
