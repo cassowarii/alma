@@ -1,6 +1,6 @@
-main [
+func main [
     use
-        say-message [
+        func say-message [
             "The "  print
                     print
             " of "  print
@@ -13,5 +13,5 @@ main [
     )
 ]
 
-double [ 2 * ]
-square [ dup * ]
+func double [ 2 * ]
+func square [ dup * ]

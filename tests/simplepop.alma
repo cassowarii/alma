@@ -1,1 +1,1 @@
-fn main [ 4 "hi" print say ] # stack should be empty
+func main [ 4 "hi" print say ] # stack should be empty

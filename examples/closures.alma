@@ -1,10 +1,10 @@
-f1 f2 compose [ [ f1 apply f2 apply ] ]
+func f1 f2 compose [ [ f1 apply f2 apply ] ]
 
-make-sum-printer [ [+] [say] compose ]
+func make-sum-printer [ [+] [say] compose ]
 
-x make-adder [ [→ y ; x y +] ]
+func x make-adder [ [→ y ; x y +] ]
 
-fn main [
+func main [
     6 5 make-sum-printer apply  # Should print 11
     5 make-adder → 5adder       # Close over 5
     3  5adder apply say         # Should print 8

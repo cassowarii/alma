@@ -1,7 +1,7 @@
 # result should be 12
 
-: main [ 5 warble ]
+func main [ 5 warble ]
 
-: warble [ -> x (x 1 + bloople) ]
+func warble [ -> x (x 1 + bloople) ]
 
-: y bloople [ y 2 * ]
+func y bloople [ y 2 * ]

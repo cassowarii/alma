@@ -5,7 +5,7 @@
  *
  *      program     ::= declseq EOF
  *      declseq     ::= ø | decl declseq
- *      decl*       ::= names name block
+ *      decl*       ::= "func" names name block
  *                    | "import" string ["as" name]
  *      names       ::= ø | names name
  *      words       ::= word-line | words separator word-line
@@ -22,10 +22,6 @@
  *      list        ::= "{" list-guts "}"
  *      list-guts   ::= ø | words "," list-guts
  *      literal     ::= string | int | float | symbol
- *
- *      * In interactive mode, function definitions must be
- *        preceded by a colon or "fn", to distinguish
- *        them from regular interactive commands.
  *
  * The current parse state is passed around in the
  * AParseState* object; it holds:
@@ -68,7 +64,7 @@ void fprint_token_type(FILE *out, ATokenType type) {
         case T_BIND:
             fprintf(out, "‘->’"); break;
         case T_FUNC:
-            fprintf(out, "‘fn’"); break;
+            fprintf(out, "‘func’"); break;
         case T_IN:
             fprintf(out, "‘in’"); break;
         case T_END:
@@ -334,7 +330,7 @@ void do_expect_match(ATokenType match, ATokenType type, unsigned int line, APars
 /* Check if the token could represent the
  * beginning of a declaration. */
 int decl_leadin(ATokenType id) {
-    return (id == ':' || id == T_FUNC || id == T_IMPORT);
+    return (id == T_FUNC || id == T_IMPORT);
 }
 
 /* Check if the token could represent the
@@ -703,10 +699,7 @@ ADeclNode *parse_decl(AParseState *state) {
         /* TODO parse imports */
         return NULL;
     } else {
-        /* Allow optional 'fn' or ':'. (But not both, that's weird.) */
-        if (!ACCEPT(T_FUNC)) {
-            ACCEPT(':');
-        }
+        EXPECT(T_FUNC);
 
         /* Mark we're inside a function now, so we can know to
          * ask for more lines in interactive mode. */

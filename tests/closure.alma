@@ -1,6 +1,6 @@
-: x make-multiplier [ [→ y ; x y *] ]
+func x make-multiplier [ [→ y ; x y *] ]
 
-: main [
+func main [
     5 make-multiplier 6 make-multiplier
     → ×5 ×6 (
         5 ×6 apply

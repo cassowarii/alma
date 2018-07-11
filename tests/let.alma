@@ -1,2 +1,2 @@
 # Should print '12'
-main [ use add3 [ + + ] in (3 4 5 add3) ]
+func main [ use func add3 [ + + ] in (3 4 5 add3) ]

@@ -1,9 +1,9 @@
-fn main [
+func main [
     use
-        x [ 2 ]
+        func x [ 2 ]
     in
         use
-            x [ 10 ]
+            func x [ 10 ]
         in
             (x)
 ]

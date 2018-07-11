@@ -1,5 +1,5 @@
-fn print_three_times [ → a: a print a print a say ]
+func print_three_times [ → a: a print a print a say ]
 
-fn main [
+func main [
     print_three_times 4
 ]

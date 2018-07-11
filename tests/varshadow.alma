@@ -1,4 +1,4 @@
-fn main [
+func main [
     4
     (-> a ; a 1 + ; -> a (a))
 ]
