@@ -630,15 +630,9 @@ AWordSeqNode *parse_wordline(AParseState *state) {
             }
 
             if (word->type == paren_node) {
-                /* Unwrap the paren node, and put the stuff
-                 * we've done before AFTER it. */
+                /* Unwrap the paren node so everything gets flattened. */
                 AWordSeqNode *newresult = word->data.inside;
                 ast_wordseq_concat(section, newresult);
-                /* Essentially the inside of the paren-node
-                 * becomes the new main sequence. */
-                free(section);
-                free(word);
-                section = newresult;
             } else {
                 ast_wordseq_append(section, word);
             }
@@ -660,7 +654,6 @@ AWordSeqNode *parse_wordline(AParseState *state) {
             ast_wordseq_concat(section, result);
             free(result);
             result = section;
-            section = ast_wordseq_new();
             break;
         }
     }
