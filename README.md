@@ -38,34 +38,35 @@ Simple example
 --------------
 
 ```
-main [ "Hello world!" say ]
+func main [ "Hello world!" say ]
 ```
 This program prints "Hello world!" to the console, followed by a newline.
 
 ```
-empty [ len 0 = ]
-small [ len 1 ≤ ]
-concat [ if*: [empty] [drop] [unappend [concat] dip append] ]
-2dip [ swap [dip] dip ]
-when* [ [ ] if* ]
-shift [ uncons swap ]
+func empty [ len 0 = ]
+func small [ len 1 ≤ ]
+func concat [ if*: [empty] [drop] [unappend [concat] dip append] ]
+func 2dip [ swap [dip] dip ]
+func when* [ [ ] if* ]
+func shift [ uncons swap ]
+func bi [ [dip] dip apply ]
 
-comp sort-one [
+func comp sort-one [
     shift -> first
     if: [first comp apply] [2dip: [first append]] [dip: [first append]]
 ]
 
-comp partition [
+func comp partition [
     dip: [{} {}]
     while*: [empty not] [comp sort-one]
     drop
 ]
 
-quicksort [
+func quicksort [
     when*: [small not] [
         shift -> pivot
         [pivot <] partition
-        dip: [quicksort pivot append] ; quicksort concat
+        [quicksort pivot append] [quicksort] bi concat
     ]
 ]
 ```

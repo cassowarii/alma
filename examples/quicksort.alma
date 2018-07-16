@@ -1,17 +1,20 @@
 func empty [ len 0 = ]
-func small [ len 1 ≤ ]
-func concat [ if*: [empty] [drop] [unappend [concat] dip append] ]
-func 2dip [ swap [dip] dip ]
+func ++ [ if*: [empty] [drop] [unappend '++ dip append] ]
+func 2dip [ swap 'dip dip ]
 func when* [ [ ] if* ]
 func shift [ uncons swap ]
+func bi [ [dip] dip apply ]
+
+func small [ len 1 ≤ ]
 
 func comp sort-one [
     shift -> first
-    if: [first comp apply] [2dip: [first append]] [dip: [first append]]
+    [first append]
+    if: [first comp apply] [2dip] [dip]
 ]
 
 func comp partition [
-    dip: [{} {}]
+    [{} {}] dip
     while*: [empty not] [comp sort-one]
     drop
 ]
@@ -20,7 +23,7 @@ func quicksort [
     when*: [small not] [
         shift -> pivot
         [pivot <] partition
-        dip: [quicksort pivot append] ; quicksort concat
+        [quicksort pivot append] [quicksort] bi ++
     ]
 ]
 

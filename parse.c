@@ -339,6 +339,7 @@ int complex_word_leadin(ATokenType id) {
     if (id == '['
             || id == '('
             || id == '{'
+            || id == '\''
             || id == SYMBOL
             || id == INTEGER
             || id == FLOAT
@@ -432,6 +433,8 @@ AWordSeqNode *parse_block_guts(AParseState *state) {
     return inner_block;
 }
 
+AAstNode *parse_word(AParseState *state);
+
 /* Parse something that's counts as a single 'word', but
  * doesn't consist of just a name. Includes values,
  * parenthesized dealies, blocks, and let-nodes. */
@@ -448,8 +451,6 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         ASymbol *sym = get_symbol(state->symtab, state->currtok.value.cs);
         free(state->currtok.value.cs);
         return ast_valnode(line, val_sym(sym));
-        /* If we found a bind arrow, then the optional
-         * second part must be here. */
     } else if (ACCEPT(T_BIND)) {
         unsigned int bindline = LINENUM;
         ANameSeqNode *names = parse_nameseq_opt(state);
@@ -516,6 +517,30 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         state->nested_curlies --;
 
         return ast_valnode(line, val_protolist(proto));
+    } else if (ACCEPT('\'')) {
+        /* It's a reference to a single word. */
+        /* For now, we'll just model this so that 'abcd is syntactic sugar
+         * for '[abcd]'. */
+        /* Also since we're using parse_word here we also get other sorts of
+         * things for free, like '[a b c] to represent [[a b c]], or '4 for [4].
+         * You could even write '(a b c) to get [a b c]. But why would you do that?
+         * Okay, maybe for lisp reasons. */
+        AAstNode *inner_word = parse_word(state);
+        AWordSeqNode *block_contents;
+        if (inner_word->type == paren_node) {
+            block_contents = inner_word->data.inside;
+            free(inner_word);
+        } else {
+            block_contents = ast_wordseq_new();
+            ast_wordseq_append(block_contents, inner_word);
+        }
+
+        if (inner_word != NULL) {
+            AValue *blockval = val_block(block_contents);
+            return ast_valnode(line, blockval);
+        } else {
+            return NULL;
+        }
     } else if (ACCEPT(T_USE)) {
         /* Mark that we're inside the 'let..in' for interactive mode
          * so we can ask for more lines. */

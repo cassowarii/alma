@@ -40,6 +40,7 @@ typedef enum {
     TOKENCBRACE = '}',
     TOKENOBRACK = '[',
     TOKENCBRACK = ']',
+    TOKENQUOTE  = '\'',
     TOKENLINE   = '\n',
     TOKENCMTLN  = '#',
     TOKENNONE   = 'N', /* "default" token at beginning */

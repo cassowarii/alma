@@ -111,9 +111,9 @@ UANYN   {ASCN}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 UONLY   {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 
  /* ([^{}\[\]\" \t\n()]|{UONLY}) */
-IDBEGIN [^{[(\"\' \t\n,;]|{UONLY}
+IDBEGIN [^{[(\"\' \t\n,;\\]|{UONLY}
 IDMID   [^ \t\n,{[()\]}]|{UONLY}
-IDEND   [^}\]) \t\n,:;]|{UONLY}
+IDEND   [^}\]) \t\n,:;\\]|{UONLY}
 IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 
 %%
@@ -141,6 +141,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 :   |
 ;   |
 ,   |
+'   |
 #   return yytext[0];
 
 \r|\n {
@@ -192,7 +193,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
     }
 }
 
-\'(\\{UANYN}|[^'\r\n]|\\\n)*\' {
+ /* \'(\\{UANYN}|[^'\r\n]|\\\n)*\' {
     //yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
     //strncpy(yylval->s, &yytext[1], strlen(yytext)-2);
     if (yyextra->nested_comments == 0) {
@@ -201,7 +202,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
     } else {
         return TOKENBLAH;
     }
-}
+} */
 
 `(\\{UANYN}|[^`\r\n]|\\\n)*\` {
     //yylval->s = (char*)calloc(strlen(yytext)-1, sizeof(char));
@@ -222,13 +223,13 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
     }
 }
 
-\'(\\{UANYN}|[^'\r\n])*$ {
+ /* \'(\\{UANYN}|[^'\r\n])*$ {
     if (yyextra->nested_comments == 0) {
         ERROR("syntax error, unterminated single-quoted string");
     } else {
         return TOKENBLAH;
     }
-}
+} */
 
 `(\\{UANYN}|[^`\r\n])*$ {
     if (yyextra->nested_comments == 0) {
