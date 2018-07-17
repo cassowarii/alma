@@ -23,7 +23,11 @@ int main (int argc, char **argv) {
 
     ADeclSeqNode *stdlib_parsed = NULL;
 
-    put_file_into_scope("lib/std.alma", &symtab, comp.scope, comp.reg);
+    ACompileStatus stdlib_stat = put_file_into_scope("lib/std.alma", &symtab, comp.scope, comp.reg);
+    if (stdlib_stat == compile_fail) {
+        fprintf(stderr, "failed to init stdlib file\n");
+        exit(1);
+    }
 
     free_decl_seq_top(stdlib_parsed);
 
@@ -69,15 +73,11 @@ ACompileStatus put_file_into_scope(const char *filename, ASymbolTable *symtab,
         AScope *scope, AFuncRegistry *reg) {
     FILE *file = fopen(filename, "r");
     if (!file) {
-        fprintf(stderr, "Error: couldn't open file %s\n", filename);
         return compile_fail;
     } else {
         ADeclSeqNode *file_parsed = parse_file(file, symtab);
         fclose(file);
         ACompileStatus stat = compile_file(file_parsed, *symtab, scope, reg);
-        if (stat == compile_fail) {
-            fprintf(stderr, "Error compiling file %s\n", filename);
-        }
         free_decl_seq_top(file_parsed);
         return stat;
     }
