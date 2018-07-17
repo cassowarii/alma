@@ -249,6 +249,15 @@ typedef struct ABindInfo {
          * ones need to be closed over from the outside. */
 } ABindInfo;
 
+/* Stuff allocated by compile_file (in alma.c); returned so
+ * we can keep track of the various scopes and whatnot that
+ * it allocates */
+typedef struct ACompileAllocation {
+    ACompileStatus stat;
+    struct AFuncRegistry *reg;
+    struct AScope *scope;
+} ACompileAllocation;
+
 /*-*-* stack.h *-*-*/
 
 /* Struct representing the stack. */

@@ -39,6 +39,9 @@ AWordSeqNode *ast_wordseq_new(void);
 /* Prepend a new node to the beginning of an AWordSeqNode. */
 void ast_wordseq_prepend(AWordSeqNode *seq, AAstNode *node);
 
+/* Prepend an AWordSeqNode to another AWordSeqNode. */
+void ast_wordseq_preconcat(AWordSeqNode * restrict after, AWordSeqNode * restrict before);
+
 /* Append a new node to the end of an AWordSeqNode. */
 void ast_wordseq_append(AWordSeqNode *seq, AAstNode *node);
 
@@ -103,5 +106,9 @@ void free_decl_node(ADeclNode *to_free);
 
 /* Free a declaration sequence node COMPLETELY. (Careful!) */
 void free_decl_seq(ADeclSeqNode *to_free);
+
+/* Free only the ADeclNodes of an ADeclSeq -- doesn't free the
+ * wordseqs, so we can keep those in the User Func Registry. */
+void free_decl_seq_top(ADeclSeqNode *to_free);
 
 #endif

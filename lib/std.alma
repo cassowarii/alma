@@ -1,0 +1,25 @@
+func 2dup [ over over ]
+func 2dip [ swap [ dip ] dip ]
+func f 3dip [ [f 2dip] dip ]
+func 2>>2 [ 'dip dip apply ]
+func bi [ 2>>2 ]
+func 2fork [ '2>>2 dip apply ]
+func fork [ [dup] 3dip 2fork ]
+func 2hook [ [[]] 2dip 2fork ]
+func hook [ [dup] 2dip 2hook ]
+func a b max [ if: [a b <] 'b 'a ]
+func neg [ -1 * ]
+func abs [ 'neg 'max hook ]
+
+func empty [ len 0 = ]
+func small [ len 1 ≤ ]
+func ++ [ if*: [empty] [drop] [unappend '++ dip append] ]
+func when* [ [ ] if* ]
+
+func ! [ if*: [0 =] [drop 1] [dup 1 - ! *] ]
+
+func f map [ when*: [empty not] [unappend f apply [f map] dip append] ]
+
+func shift [ uncons swap ]
+
+func a b C T E if** [ if: [a b C apply] [a b T apply] [a b E apply] ]

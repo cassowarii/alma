@@ -1,39 +1,37 @@
 # 99 Bottles of Beer
 
-func when* [ [] if* ]
+# prints correct pluralization of bottles, leaves number on stack
+func bottle/s [
+    " bottle" print
+    when*: [1 ≠] ["s" print]
+    " " print
+]
 
-# Vocabularies
-func N [ if*: [0 >] [dup print] ["No more" print] ]
-func bottles [ " bottle" print; when*: [1 ≠] ["s" print]; " " print ]
-func of [ "of " print ]
-func beer [ "beer " print ]
-func on [ "on " print ]
-func the [ "the " print ]
-func wall [ "wall" print ]
-
-func Take-one-down-pass-it-around [ "Take one down, pass it around" print 1 - ]
-func Go-to-the-store-buy-some-more [ "Go to the store, buy some more" print drop ]
-
-func ... [ "" say ]
-func !!! [ "!" say drop 0 ]
+# prints "X bottle(s) " or "No more bottles " if 0, leaves number on stack
+func quantified-bottles [
+    if*: [0 >] [dup] ["No more"]
+    print
+    bottle/s
+]
 
 # int → , sings the song for n verses
-func bottles-of-beer [
-    dup # save original number for end
+func n bottles-of-beer [
+    n
     while*: [0 ≥] [
-        N bottles of beer on the wall ...
-        N bottles of beer ...
-
+        quantified-bottles "of beer on the wall" say
+        quantified-bottles "of beer" say
         if*: [0 >] [
-            Take-one-down-pass-it-around ...
-            N bottles of beer on the wall ...
-            ...
+            "Take one down, pass it around" say
+            1 -
+            quantified-bottles "of beer on the wall!" say
+            "" say # empty line between verses
         ] [
-            Go-to-the-store-buy-some-more ...
-            N bottles of beer on the wall !!!
+            "Go to the store, buy some more" say
+            n quantified-bottles drop "of beer on the wall!" say
+            1 -
         ]
     ]
-    drop # remove the hanging 0
+    drop
 ]
 
 func main [ 99 bottles-of-beer ]

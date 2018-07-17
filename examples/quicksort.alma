@@ -1,12 +1,3 @@
-func empty [ len 0 = ]
-func ++ [ if*: [empty] [drop] [unappend '++ dip append] ]
-func 2dip [ swap 'dip dip ]
-func when* [ [ ] if* ]
-func shift [ uncons swap ]
-func bi [ [dip] dip apply ]
-
-func small [ len 1 ≤ ]
-
 func comp sort-one [
     shift -> first
     [first append]

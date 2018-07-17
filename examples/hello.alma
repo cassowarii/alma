@@ -1,1 +1,1 @@
-func main [ say "Hello world!" ]
+func main [ "Hello world!" say ]

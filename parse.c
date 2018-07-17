@@ -647,7 +647,6 @@ AWordSeqNode *parse_wordline(AParseState *state) {
             ast_wordseq_concat(section, result);
             free(result);
             result = section;
-            section = ast_wordseq_new();
         } else {
             /* We probably hit a new line. Stick what we've got at the beginning and
              * call it a day. */
@@ -818,7 +817,6 @@ ADeclNode *parse_interactive_decl(AParseState *state) {
         }
     } else if (ACCEPT(T_IMPORT)) {
         /* TODO parse imports */
-        //EXPECT(';');
         return NULL;
     } else {
         EXPECT(';');
@@ -835,26 +833,12 @@ void eat_newlines(AParseState *state) {
     while (ACCEPT('\n'));
 }
 
-void eat_newlines_or_semicolons(AParseState *state) {
-    /* Allow any number of newlines
-     * (or additional semicolons.) Useful
-     * in between declarations, where we don't
-     * actually care about line spacing, and
-     * can have optional semicolons anywhere. */
-    do {
-        /* In interactive mode, this means we basically
-         * entered a blank line, so we should reset
-         * the prompt. */
-        state->beginning_line = 1;
-    } while (ACCEPT('\n') || ACCEPT(';'));
-}
-
 /* Parse a sequence of declarations separated by
  * semicolons. */
 ADeclSeqNode *parse_declseq(AParseState *state) {
     ADeclSeqNode *result = ast_declseq_new();
 
-    eat_newlines_or_semicolons(state);
+    eat_newlines(state);
     do {
         ADeclNode *dec = parse_decl(state);
         if (dec == NULL) {
@@ -862,10 +846,10 @@ ADeclSeqNode *parse_declseq(AParseState *state) {
             return NULL;
         }
         ast_declseq_append(result, dec);
-        eat_newlines_or_semicolons(state);
+        eat_newlines(state);
     } while (state->nexttok.id && state->nexttok.id != T_IN);
 
-    eat_newlines_or_semicolons(state);
+    eat_newlines(state);
 
     return result;
 }
@@ -943,8 +927,8 @@ void interact(ASymbolTable *symtab) {
         NULL,       /* current interactive string */
         0,          /* chars left to read from string */
         0,          /* current index into string */
-        "alma> ",       /* Prompt #1 */
-        "... > ",       /* Prompt #2 */
+        "alma> ",   /* Prompt #1 */
+        "... > ",   /* Prompt #2 */
         0,          /* Nested let..in */
         0,          /* Nested function decls */
         0,          /* Nested comments */
@@ -957,7 +941,6 @@ void interact(ASymbolTable *symtab) {
     AParseState state = initial_state;
 
     yyscan_t scan;
-    //yyset_extra(&state, scan);
     yylex_init_extra(&state, &scan);
 
     state.scan = scan;
@@ -975,7 +958,7 @@ void interact(ASymbolTable *symtab) {
     next(&state);
     do {
         state.beginning_line = 1;
-        eat_newlines_or_semicolons(&state);
+        eat_newlines(&state);
         if (state.nexttok.id == 0) {
             /* Can only exit between expressions. An EOF between expressions
              * gives a syntax error (as seems to be common in REPLs) */
@@ -1026,27 +1009,13 @@ void interact(ASymbolTable *symtab) {
             print_stack(stack);
         }
         state.beginning_line = 1;
-        eat_newlines_or_semicolons(&state);
+        eat_newlines(&state);
     } while (1);
 
     free(state.current_string);
 
     reset_tries(&state);
     free_stack(stack);
-
-    for (int i = 0; i < reg->size; i++) {
-        /* Need to free these manually, since we don't have just one
-         * big AST node pointer like we do when we're parsing
-         * a file. */
-        if (reg->funcs[i] != NULL) {
-            if (reg->funcs[i]->type == user_func
-                    && reg->funcs[i]->data.userfunc != NULL
-                    && reg->funcs[i]->data.userfunc->words != NULL) {
-                /* If it's a var push, it's just an int so nothing to free. */
-                free_wordseq_node(reg->funcs[i]->data.userfunc->words);
-            }
-        }
-    }
 
     free_registry(reg);
     free_scope(real_scope);

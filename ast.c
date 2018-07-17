@@ -171,6 +171,18 @@ void ast_wordseq_prepend(AWordSeqNode *seq, AAstNode *node) {
     }
 }
 
+/* Prepend an AWordSeqNode to another AWordSeqNode. */
+void ast_wordseq_preconcat(AWordSeqNode * restrict after, AWordSeqNode * restrict before) {
+    if (after == NULL || before == NULL) return;
+    if (after->last != NULL) {
+        after->first = before->first;
+        after->last = before->last;
+    } else {
+        before->last->next = after->first;
+        after->first = before->first;
+    }
+}
+
 /* Append a new node to the end of an AWordSeqNode. */
 void ast_wordseq_append(AWordSeqNode *seq, AAstNode *node) {
     if (node == NULL) return;
@@ -459,9 +471,28 @@ void free_decl_seq(ADeclSeqNode *to_free) {
     free(to_free);
 }
 
+/* Free only the ADeclNodes of an ADeclSeq -- doesn't free the
+ * wordseqs, so we can keep those in the User Func Registry. */
+void free_decl_seq_top(ADeclSeqNode *to_free) {
+    if (to_free == NULL) return;
+
+    ADeclNode *current = to_free->first;
+    while (current != NULL) {
+        ADeclNode *next = current->next;
+        /* (don't free internals of declarations) */
+        free(current);
+        current = next;
+    }
+    free(to_free);
+}
+
 /* Free a let node. */
 void free_let(ALetNode *to_free) {
-    free_decl_seq(to_free->decls);
+    /* Don't free the actual 'let' functions here --
+     * they live in the func registry and will get freed
+     * from there on program end. However, we do end up
+     * freeing the top-level declarations. */
+    free_decl_seq_top(to_free->decls);
     free_wordseq_node(to_free->words);
     free(to_free);
 }
