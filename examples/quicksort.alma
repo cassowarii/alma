@@ -14,7 +14,7 @@ func quicksort [
     when*: [small not] [
         shift -> pivot
         [pivot <] partition
-        [quicksort pivot append] [quicksort] bi ++
+        'quicksort [quicksort pivot &] '++ 2fork
     ]
 ]
 
