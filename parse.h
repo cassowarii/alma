@@ -151,7 +151,7 @@ void yy_delete_buffer(YY_BUFFER_STATE buffer, yyscan_t scanner);
 ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab);
 
 /* Parse interactive; ask for more text if necessary */
-void interact(ASymbolTable *symtab);
+void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg);
 
 /* Reset parse state to state specified by <initial_state>. */
 void reset_state(AParseState *state, AParseState initial_state);

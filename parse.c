@@ -902,17 +902,17 @@ ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
 
     ADeclSeqNode *result = parse_program(&state);
 
-    if (initial_state.errors == 0) {
-        yylex_destroy(scan);
+    yylex_destroy(scan);
+
+    if (state.errors == 0) {
         return result;
     } else {
-        yylex_destroy(scan);
         return NULL;
     }
 }
 
 /* Parse interactive; ask for more text if necessary */
-void interact(ASymbolTable *symtab) {
+void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
     printf("-- Alma v"ALMA_VERSION" ‘"ALMA_VNAME"’ --\n");
 
     AToken notoken = { TOKENNONE, { 0 }, { 0, 0 } };
@@ -948,12 +948,6 @@ void interact(ASymbolTable *symtab) {
     yyset_extra(&state, scan);
 
     AStack *stack = stack_new(20);
-    AScope *lib_scope = scope_new(NULL);
-
-    AScope *real_scope = scope_new(lib_scope);
-
-    AFuncRegistry *reg = registry_new(20);
-    lib_init(symtab, lib_scope, 1);
 
     next(&state);
     do {
@@ -977,11 +971,11 @@ void interact(ASymbolTable *symtab) {
             } else if (state.errors == 0) {
                 /* Delete previously defined functions from scope, so we can
                  * rewrite them to fix. */
-                scope_delete(real_scope, result->sym);
+                scope_delete(scope, result->sym);
 
                 ADeclSeqNode *program = ast_declseq_new();
                 ast_declseq_append(program, result);
-                compile_in_context(program, *symtab, reg, real_scope);
+                compile_in_context(program, *symtab, reg, scope);
 
                 free(result);
                 free(program);
@@ -991,7 +985,7 @@ void interact(ASymbolTable *symtab) {
              * a regular command. */
             AWordSeqNode *result = parse_interactive_words(&state);
             if (state.errors == 0 && result != NULL) {
-                ACompileStatus stat = compile_seq_context(result, *symtab, reg, real_scope);
+                ACompileStatus stat = compile_seq_context(result, *symtab, reg, scope);
                 if (stat == compile_success) {
                     eval_sequence(stack, NULL, result);
                 }
@@ -1016,11 +1010,6 @@ void interact(ASymbolTable *symtab) {
 
     reset_tries(&state);
     free_stack(stack);
-
-    free_registry(reg);
-    free_scope(real_scope);
-    free_lib_scope(lib_scope);
-    free_symbol_table(symtab);
 
     yylex_destroy(scan);
 }

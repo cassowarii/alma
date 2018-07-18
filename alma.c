@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "alma.h"
 #include "parse.h"
 #include "ast.h"
@@ -16,67 +15,83 @@ ACompileStatus put_file_into_scope(const char *filename, ASymbolTable *symtab,
 AFunc *finalize_compilation(AScope *scope, ASymbolTable symtab, AFuncRegistry *reg);
 int run_main(AFunc *mainfunc);
 
+const char *STDLIB_FILE = "lib/std.alma";
+
 int main (int argc, char **argv) {
+
+    const char *ALMA_PATH = getenv("ALMA_PATH");
+    if (!ALMA_PATH) ALMA_PATH = ".";
+    int extra_slash = 0;
+    if (ALMA_PATH[strlen(ALMA_PATH)-1] != '/') extra_slash = 1;
+    char *stdlibpath = malloc(strlen(ALMA_PATH) + strlen(STDLIB_FILE) + 1 + extra_slash);
+
+    strcpy(stdlibpath, ALMA_PATH);
+    if (extra_slash) strcat(stdlibpath, "/");
+    strcat(stdlibpath, STDLIB_FILE);
+
     ASymbolTable symtab = NULL;
 
     ACompileAllocation comp = initialize_compilation(&symtab);
 
-    ADeclSeqNode *stdlib_parsed = NULL;
+    AScope *libscope = comp.scope->parent;
 
-    ACompileStatus stdlib_stat = put_file_into_scope("lib/std.alma", &symtab, comp.scope, comp.reg);
+    ACompileStatus stdlib_stat = put_file_into_scope(stdlibpath, &symtab, comp.scope, comp.reg);
+
     if (stdlib_stat == compile_fail) {
-        fprintf(stderr, "failed to init stdlib file\n");
+        fprintf(stderr, "Failed to initialize standard library! Aborting.\n");
         exit(1);
     }
 
-    free_decl_seq_top(stdlib_parsed);
-
-    FILE *infile = NULL;
     if (argc == 2) {
-        infile = fopen(argv[1], "r");
-        if (infile == NULL) {
-            fprintf(stderr, "couldn't open file\n");
+        ACompileStatus file_stat = put_file_into_scope(argv[1], &symtab, comp.scope, comp.reg);
+
+        if (file_stat == compile_fail) {
             exit(1);
         }
+
+        AFunc *mainfunc = finalize_compilation(comp.scope, symtab, comp.reg);
+
+        if (file_stat == compile_success) {
+            run_main(mainfunc);
+        }
     } else if (argc == 1) {
-        interact(&symtab);
+        interact(&symtab, comp.scope, comp.reg);
         exit(0);
     } else {
         fprintf(stderr, "Please supply one file name.\n");
         return 0;
     }
 
-    //parse_file(infile, &program, &symtab);
-    ADeclSeqNode *program = parse_file(infile, &symtab);
-
-    fclose(infile);
-
-    ACompileStatus stat = compile_file(program, symtab, comp.scope, comp.reg);
-
-    free_decl_seq_top(program);
-
-    AScope *libscope = comp.scope->parent;
-    AFunc *mainfunc = finalize_compilation(comp.scope, symtab, comp.reg);
-
-    if (stat == compile_success) {
-        run_main(mainfunc);
-    }
-
     free_lib_scope(libscope);
     free_registry(comp.reg);
     free_symbol_table(&symtab);
 
-    return stat == compile_success? 0 : 1;
+    return 0;
 }
 
 ACompileStatus put_file_into_scope(const char *filename, ASymbolTable *symtab,
         AScope *scope, AFuncRegistry *reg) {
     FILE *file = fopen(filename, "r");
     if (!file) {
+        char errbuf[512];
+        int err_result = strerror_r(errno, errbuf, 512);
+        if (err_result == 0) {
+            fprintf(stderr, "Couldn't open file %s: [Errno %d] %s\n", filename, errno, errbuf);
+        } else {
+            fprintf(stderr, "Couldn't open file %s: [Errno %d]\n", filename, errno);
+            fprintf(stderr, "Also, an error occurred trying to figure out what error occurred. "
+                            "May god have mercy on our souls.\n");
+        }
         return compile_fail;
     } else {
         ADeclSeqNode *file_parsed = parse_file(file, symtab);
         fclose(file);
+
+        if (file_parsed == NULL) {
+            fprintf(stderr, "Compilation aborted.\n");
+            return compile_fail;
+        }
+
         ACompileStatus stat = compile_file(file_parsed, *symtab, scope, reg);
         free_decl_seq_top(file_parsed);
         return stat;
