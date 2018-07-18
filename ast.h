@@ -15,8 +15,12 @@ AAstNode *ast_parennode(unsigned int location, AWordSeqNode *content);
 /* A node representing a "let" introducing a scope. */
 AAstNode *ast_letnode(unsigned int location, ADeclSeqNode *decls, AWordSeqNode *words);
 
-/* A node representing a declaration. */
-ADeclNode *ast_declnode(unsigned int location, ASymbol *sym, AWordSeqNode *body);
+/* A node representing an import declaration. */
+ADeclNode *ast_importdeclnode(unsigned int location, int just_string, const char *module,
+        ASymbol *as, ANameSeqNode *names);
+
+/* A node representing a function declaration. */
+ADeclNode *ast_funcdeclnode(unsigned int location, ASymbol *sym, AWordSeqNode *body);
 
 /* Create a new node representing name sequence. */
 ANameNode *ast_namenode(unsigned int location, ASymbol *symbol);

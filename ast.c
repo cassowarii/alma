@@ -14,13 +14,31 @@ AAstNode *ast_newnode(void) {
 
 /* Allocate a new declaration node with no information */
 static
-ADeclNode *ast_newdecl(void) {
+ADeclNode *ast_newfuncdecl(void) {
     ADeclNode *newnode = malloc(sizeof(ADeclNode));
     if (newnode == NULL) {
         fprintf(stderr, "Error: can't allocate a new declaration node: out of memory");
         return NULL;
     }
     newnode->next = NULL;
+    AFuncDecl *fd = malloc(sizeof(AFuncDecl));
+    newnode->type = func_decl;
+    newnode->data.func = fd;
+    return newnode;
+}
+
+/* Allocate a new import node with no information */
+static
+ADeclNode *ast_newimportdecl(void) {
+    ADeclNode *newnode = malloc(sizeof(ADeclNode));
+    if (newnode == NULL) {
+        fprintf(stderr, "Error: can't allocate a new declaration node: out of memory");
+        return NULL;
+    }
+    newnode->next = NULL;
+    AImportStmt *is = malloc(sizeof(AImportStmt));
+    newnode->type = import_decl;
+    newnode->data.imp = is;
     return newnode;
 }
 
@@ -71,11 +89,23 @@ AAstNode *ast_parennode(unsigned int location, AWordSeqNode *content) {
     return newnode;
 }
 
-/* A node representing a declaration. */
-ADeclNode *ast_declnode(unsigned int location, ASymbol *sym, AWordSeqNode *body) {
-    ADeclNode *newnode = ast_newdecl();
-    newnode->sym = sym;
-    newnode->node = body;
+/* A node representing an import declaration. */
+ADeclNode *ast_importdeclnode(unsigned int location, int just_string, const char *module,
+        ASymbol *as, ANameSeqNode *names) {
+    ADeclNode *newnode = ast_newimportdecl();
+    newnode->data.imp->just_string = just_string;
+    newnode->data.imp->module = module;
+    newnode->data.imp->as = as;
+    newnode->data.imp->names = names;
+    newnode->linenum = location;
+    return newnode;
+}
+
+/* A node representing a function declaration. */
+ADeclNode *ast_funcdeclnode(unsigned int location, ASymbol *sym, AWordSeqNode *body) {
+    ADeclNode *newnode = ast_newfuncdecl();
+    newnode->data.func->sym = sym;
+    newnode->data.func->node = body;
     newnode->linenum = location;
     return newnode;
 }
@@ -358,7 +388,7 @@ void fprint_ast_node(FILE *out, AAstNode *x) {
     } else if (x->type == bind_node) {
         fprintf(out, "(→ ");
         fprint_name_seq(out, x->data.bind->names);
-        fprintf(out, ": ");
+        fprintf(out, "; ");
         fprint_wordseq_node(out, x->data.bind->words);
         fprintf(out, ")");
     } else {
@@ -368,11 +398,25 @@ void fprint_ast_node(FILE *out, AAstNode *x) {
 
 /* Print out a single declaration. */
 void fprint_declaration(FILE *out, ADeclNode *a) {
-    fprintf(out, "func ");
-    fprint_symbol(out, a->sym);
-    fprintf(out, " : ");
-    fprint_wordseq_node(out, a->node);
-    fprintf(out, " ;");
+    if (a->type == func_decl) {
+        fprintf(out, "func ");
+        fprint_symbol(out, a->data.func->sym);
+        fprintf(out, " [");
+        fprint_wordseq_node(out, a->data.func->node);
+        fprintf(out, "]");
+    } else if (a->type == import_decl) {
+        fprintf(out, "import %s", a->data.imp->module);
+        if (a->data.imp->as) {
+            fprintf(out, " as ");
+            fprint_symbol(out, a->data.imp->as);
+        }
+        if (a->data.imp->names) {
+            fprintf(out, ": ");
+            fprint_name_seq(out, a->data.imp->names);
+        }
+    } else {
+        fprintf(out, "?DECL?%d", a->type);
+    }
 }
 
 /* Print out a declaration sequence. */
@@ -454,8 +498,10 @@ void free_nameseq_node(ANameSeqNode *to_free) {
 
 /* Free a declaration node COMPLETELY. (Careful!) */
 void free_decl_node(ADeclNode *to_free) {
-    free_wordseq_node(to_free->node);
-    free(to_free);
+    if (to_free->type == func_decl) {
+        free_wordseq_node(to_free->data.func->node);
+        free(to_free);
+    }
 }
 
 /* Free a declaration sequence node COMPLETELY. (Careful!) */
@@ -480,6 +526,7 @@ void free_decl_seq_top(ADeclSeqNode *to_free) {
     while (current != NULL) {
         ADeclNode *next = current->next;
         /* (don't free internals of declarations) */
+        /* TODO probably DO free internals of imports tho */
         free(current);
         current = next;
     }

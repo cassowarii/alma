@@ -600,7 +600,7 @@ AAstNode *parse_word(AParseState *state) {
 }
 
 /* Parse a word-line. This is something that's separated
- * from other word-lines by pipes or newlines. i.e. the
+ * from other word-lines by semicolons or newlines. i.e. the
  * part that's executed right to left. */
 /* This has two parts (both optional):
  *  - a sequence of words
@@ -683,7 +683,7 @@ AWordSeqNode *parse_words(AParseState *state) {
 
 /* Parse a generalized "sequence of words," in
  * interactive mode at top level. This permits
- * separating things by pipes, but not newlines.
+ * separating things by semicolons, but not newlines.
  * (since a newline means you're finished with
  *  the command.) */
 AWordSeqNode *parse_interactive_words(AParseState *state) {
@@ -712,16 +712,45 @@ AWordSeqNode *parse_interactive_words(AParseState *state) {
  * or an import right now.
  * (Later: type declarations?!) */
 ADeclNode *parse_decl(AParseState *state) {
+    unsigned int line = LINENUM;
     if (ACCEPT(T_IMPORT)) {
-        /* TODO parse imports */
-        return NULL;
+        /* syntax for imports e.g.:
+         *  import time         <- imports everything qualified with 'time'
+         *  import json as J    <- imports everything qualified with 'J'
+         *  import math: pi cos <- imports 'pi' and 'cos' from 'math' unqualified
+         *  import math as M: pi cos <- imports 'pi' and 'cos' as 'M.pi' and 'M.cos' (sort of useless)
+         *  import "my-file.alma" <- imports everything unqualified (can't import libraries this way)
+         *  import "my-file.alma": func <- imports 'func' unqualified */
+        /* Note these libraries don't yet exist, haha. Just examples! */
+        int just_string = 0;
+        char *module;
+        ASymbol *as = NULL;
+        ANameSeqNode *names = NULL;
+        if (ACCEPT(WORD)) {
+            /* we're importing something like the first 4 */
+            module = state->currtok.value.cs;
+            if (ACCEPT(T_AS)) {
+                EXPECT(WORD);
+                as = get_symbol(state->symtab, state->currtok.value.cs);
+            }
+            if (ACCEPT(':')) {
+                names = parse_nameseq_opt(state);
+            }
+        } else {
+            /* we're importing a raw file */
+            /* TODO we have to turn the ustring back into a regular string ugh */
+            EXPECT(STRING);
+            fprintf(stderr, "this part isn't done yet!\n");
+            return NULL;
+        }
+        EXPECT('\n');
+        return ast_importdeclnode(line, just_string, module, as, names);
     } else {
         EXPECT(T_FUNC);
 
         /* Mark we're inside a function now, so we can know to
          * ask for more lines in interactive mode. */
         state->infuncs ++;
-        unsigned int line = LINENUM;
 
         /* func name */
         ASymbol *name = NULL;
@@ -753,74 +782,13 @@ ADeclNode *parse_decl(AParseState *state) {
 
         if (params->length == 0) {
             free_nameseq_node(params);
-            return ast_declnode(line, name, body);
+            return ast_funcdeclnode(line, name, body);
         } else {
             /* Convert func name a b: words ; to func name: -> a b (words) ; */
             AWordSeqNode *param_wrapper = ast_wordseq_new();
             ast_wordseq_prepend(param_wrapper, ast_bindnode(params->first->linenum, params, body));
-            return ast_declnode(line, name, param_wrapper);
+            return ast_funcdeclnode(line, name, param_wrapper);
         }
-    }
-}
-
-/* Parse an interactive-mode declaration, which must be
- * terminated by a semicolon. */
-ADeclNode *parse_interactive_decl(AParseState *state) {
-    if (ACCEPT(T_FUNC) || ACCEPT(':')) {
-        /* Mark we're inside a function now, so we can know to
-         * ask for more lines in interactive mode. */
-        state->infuncs ++;
-        unsigned int line = LINENUM;
-
-        /* func name */
-        ASymbol *name = NULL;
-
-        /* func params */
-        ANameSeqNode *params = parse_nameseq_opt(state);
-
-        if (params->length == 0) {
-            fprintf(stderr, "Cannot define a function with no name!\n");
-            return NULL;
-        }
-
-        /* take last 'parameter' and use it as name instead */
-        ANameNode *funcname_node = ast_nameseq_pop(params);
-        name = funcname_node->sym;
-        free(funcname_node);
-
-        AWordSeqNode *body = NULL;
-
-        /* func body */
-        EXPECT('[');
-
-        body = parse_block_guts(state);
-
-        EXPECT_MATCH('[', ']');
-
-        if (body == NULL) {
-            state->infuncs --;
-            free_nameseq_node(params);
-            return NULL;
-        }
-
-        /* Leave function. */
-        state->infuncs --;
-
-        if (params->length == 0) {
-            free_nameseq_node(params);
-            return ast_declnode(line, name, body);
-        } else {
-            /* Convert func a b name [ words ] to func name [ -> a b ; words ] */
-            AWordSeqNode *param_wrapper = ast_wordseq_new();
-            ast_wordseq_prepend(param_wrapper, ast_bindnode(params->first->linenum, params, body));
-            return ast_declnode(line, name, param_wrapper);
-        }
-    } else if (ACCEPT(T_IMPORT)) {
-        /* TODO parse imports */
-        return NULL;
-    } else {
-        EXPECT(';');
-        return NULL;
     }
 }
 
@@ -833,8 +801,7 @@ void eat_newlines(AParseState *state) {
     while (ACCEPT('\n'));
 }
 
-/* Parse a sequence of declarations separated by
- * semicolons. */
+/* Parse a sequence of declarations separated by newlines. */
 ADeclSeqNode *parse_declseq(AParseState *state) {
     ADeclSeqNode *result = ast_declseq_new();
 
@@ -960,7 +927,7 @@ void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
         }
         state.beginning_line = 0;
         if (decl_leadin(state.nexttok.id)) {
-            ADeclNode *result = parse_interactive_decl(&state);
+            ADeclNode *result = parse_decl(&state);
             if (state.errors != 0 || result == NULL) {
                 /* If syntax error, reset */
                 state = initial_state;
@@ -971,7 +938,9 @@ void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
             } else if (state.errors == 0) {
                 /* Delete previously defined functions from scope, so we can
                  * rewrite them to fix. */
-                scope_delete(scope, result->sym);
+                if (result->type == func_decl) {
+                    scope_delete(scope, result->data.func->sym);
+                }
 
                 ADeclSeqNode *program = ast_declseq_new();
                 ast_declseq_append(program, result);

@@ -270,7 +270,7 @@ START_TEST(test_definition) {
     ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, NULL, program->first->node);
+    eval_sequence(stack, NULL, program->first->data.func->node);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 24);
@@ -284,7 +284,7 @@ START_TEST(test_let) {
     ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, NULL, program->first->node);
+    eval_sequence(stack, NULL, program->first->data.func->node);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 12);
@@ -298,7 +298,7 @@ START_TEST(test_2let) {
     ACompileStatus stat = compile(scope, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
-    eval_sequence(stack, NULL, program->first->node);
+    eval_sequence(stack, NULL, program->first->data.func->node);
 
     ck_assert_int_eq(stack->size, 1);
     ck_assert_int_eq(stack_peek(stack, 0)->data.i, 18);

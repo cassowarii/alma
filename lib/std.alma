@@ -20,7 +20,7 @@ func when* [ [ ] if* ]
 
 func factorial [ if*: [0 =] [drop 1] ['(1 - factorial) '* hook] ]
 
-func f map [ when*: [empty not] [unappend '(f map) 'f 'append 2hook] ]
+func f map [ when*: [empty not] [unappend '(f map) '(f apply) 'append 2fork] ]
 
 func shift [ uncons swap ]
 

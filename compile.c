@@ -226,16 +226,23 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
     /* (We do this in a separate pass so that functions being defined can
      * refer to functions later without fear.) */
     while (current != NULL) {
-        /* Mark that the function will be compiled later. */
-        ACompileStatus stat = scope_placehold(scope, reg, current->sym, current->linenum);
+        if (current->type == func_decl) {
+            /* Mark that the function will be compiled later. */
+            ACompileStatus stat = scope_placehold(scope, reg,
+                    current->data.func->sym, current->linenum);
 
-        if (stat == compile_fail) {
-            errors ++;
-        } else if (stat != compile_success) {
-            /* in the future, i will probably add another status and
-             * forget to check for it here. future proofing */
-            fprintf(stderr, "internal error: unrecognized compile status %d in pass 1.\n", stat);
-            errors ++;
+            if (stat == compile_fail) {
+                errors ++;
+            } else if (stat != compile_success) {
+                /* in the future, i will probably add another status and
+                 * forget to check for it here. future proofing */
+                fprintf(stderr, "internal error: unrecognized compile status %d in pass 1.\n", stat);
+                errors ++;
+            }
+        } else if (current->type == import_decl) {
+            printf("I'm just gonna pretend to compile that import.\n");
+        } else {
+            fprintf(stderr, "internal error: unrecognized declnode type %d\n", current->type);
         }
 
         current = current->next;
@@ -251,32 +258,35 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
     current = program->first;
     while (current != NULL) {
         ACompileStatus stat;
-        ACompileResult r = compile_wordseq(scope, reg, current->node, bindinfo);
 
-        /* ... check for errors ... */
-        if (r.status == compile_fail) {
-            fprintf(stderr, "Failed to compile word ‘%s’.\n", current->sym->name);
-            errors ++;
-            current = current->next;
-            continue;
-        } else if (r.status == compile_success) {
-            stat = scope_user_register(scope, current->sym, r.lowest_free,
-                                       bindinfo.var_depth, current->node);
-        } else {
-            fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", r.status);
-            current = current->next;
-            errors ++;
-            continue;
-        }
+        if (current->type == func_decl) {
+            ACompileResult r = compile_wordseq(scope, reg, current->data.func->node, bindinfo);
 
-        // This is also where we'll eventually typecheck stuff before registering it.
-        // .. Or will we do that in a third pass? Hmm.
+            /* ... check for errors ... */
+            if (r.status == compile_fail) {
+                fprintf(stderr, "Failed to compile word ‘%s’.\n", current->data.func->sym->name);
+                errors ++;
+                current = current->next;
+                continue;
+            } else if (r.status == compile_success) {
+                stat = scope_user_register(scope, current->data.func->sym, r.lowest_free,
+                        bindinfo.var_depth, current->data.func->node);
+            } else {
+                fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", r.status);
+                current = current->next;
+                errors ++;
+                continue;
+            }
 
-        if (stat == compile_fail) {
-            fprintf(stderr, "Failed to compile word ‘%s’.\n", current->sym->name);
-            errors ++;
-        } else if (stat != compile_success) {
-            fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", stat);
+            // This is also where we'll eventually typecheck stuff before registering it.
+            // .. Or will we do that in a third pass? Hmm.
+
+            if (stat == compile_fail) {
+                fprintf(stderr, "Failed to compile word ‘%s’.\n", current->data.func->sym->name);
+                errors ++;
+            } else if (stat != compile_success) {
+                fprintf(stderr, "internal error: unrecognized compile status %d in pass 2.\n", stat);
+            }
         }
 
         current = current->next;

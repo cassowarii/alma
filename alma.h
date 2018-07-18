@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
-#include <errno.h>
 #include "uthash.h"
 
 /*-*-* symbols.h *-*-*/
@@ -180,10 +179,34 @@ typedef struct AProtoList {
     AWordSeqNode *last;     // (not sure exec. order matters here but w/e)
 } AProtoList;
 
-/* Struct representing a declaration node. */
-typedef struct ADeclNode {
+/* Possible types of declarations. */
+typedef enum {
+    func_decl,              // function declaration
+    import_decl,            // import
+    type_decl,              // future ??!
+} ADeclType;
+
+/* Struct representing a function declaration. */
+typedef struct AFuncDecl {
     ASymbol *sym;           // symbol to bind node to
     AWordSeqNode *node;     // node to bind to name
+} AFuncDecl;
+
+/* Struct representing an 'import' statement. */
+typedef struct AImportStmt {
+    const char *module;     // name of module to import
+    int just_string;        // boolean: is it imported like 'import A' or like 'import "A.al"'?
+    ASymbol *as;            // qualified-import name (may be null)
+    struct ANameSeqNode *names; // names to import from module (may be null)
+} AImportStmt;
+
+/* Struct representing a declaration node. */
+typedef struct ADeclNode {
+    ADeclType type;         // what kind of declaration?
+    union {
+        AFuncDecl *func;    // function declaration
+        AImportStmt *imp;   // import
+    } data;
     unsigned int linenum;   // where is?
     struct ADeclNode *next; // also a linked list
 } ADeclNode;
