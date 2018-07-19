@@ -2,9 +2,10 @@
 func n crappy-sqrt [ 1; while*: [dup * n <] [1 +] ]
 func divides [ swap multiple ]
 func max-of-list [ 0 [max] fold ] # should really be -Inf [max] fold
+func multiple-of-any [ ['multiple curry] map satisfies-any ]
 func n prime-candidates [ range-ends: 2 n crappy-sqrt ]
 
-func prime? [ if*: [1 =] [drop 0] [dup prime-candidates ['multiple curry] map satisfies-any not] ]
+func prime? [ if*: [1 =] [drop 0] [dup prime-candidates multiple-of-any not] ]
 func n prime-factors [ n prime-candidates [n divides] filter 'prime? filter ]
 func largest-prime-factor [ prime-factors max-of-list ]
 
