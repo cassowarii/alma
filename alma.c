@@ -10,16 +10,13 @@
 ACompileAllocation initialize_compilation(ASymbolTable *symtab);
 ACompileStatus compile_file(ADeclSeqNode *program, ASymbolTable symtab,
         AScope *scope, AFuncRegistry *reg);
-ACompileStatus put_file_into_scope(const char *filename, ASymbolTable *symtab,
-        AScope *scope, AFuncRegistry *reg);
 AFunc *finalize_compilation(AScope *scope, ASymbolTable symtab, AFuncRegistry *reg);
 int run_main(AFunc *mainfunc);
 
 const char *STDLIB_FILE = "lib/std.alma";
 
 int main (int argc, char **argv) {
-
-    const char *ALMA_PATH = getenv("ALMA_PATH");
+    ALMA_PATH = getenv("ALMA_PATH");
     if (!ALMA_PATH) ALMA_PATH = ".";
     int extra_slash = 0;
     if (ALMA_PATH[strlen(ALMA_PATH)-1] != '/') extra_slash = 1;
@@ -69,35 +66,6 @@ int main (int argc, char **argv) {
     return 0;
 }
 
-ACompileStatus put_file_into_scope(const char *filename, ASymbolTable *symtab,
-        AScope *scope, AFuncRegistry *reg) {
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        char errbuf[512];
-        int err_result = strerror_r(errno, errbuf, 512);
-        if (err_result == 0) {
-            fprintf(stderr, "Couldn't open file %s: [Errno %d] %s\n", filename, errno, errbuf);
-        } else {
-            fprintf(stderr, "Couldn't open file %s: [Errno %d]\n", filename, errno);
-            fprintf(stderr, "Also, an error occurred trying to figure out what error occurred. "
-                            "May god have mercy on our souls.\n");
-        }
-        return compile_fail;
-    } else {
-        ADeclSeqNode *file_parsed = parse_file(file, symtab);
-        fclose(file);
-
-        if (file_parsed == NULL) {
-            fprintf(stderr, "Compilation aborted.\n");
-            return compile_fail;
-        }
-
-        ACompileStatus stat = compile_file(file_parsed, *symtab, scope, reg);
-        free_decl_seq_top(file_parsed);
-        return stat;
-    }
-}
-
 ACompileAllocation initialize_compilation(ASymbolTable *symtab) {
     AScope *lib_scope = scope_new(NULL);
 
@@ -108,23 +76,6 @@ ACompileAllocation initialize_compilation(ASymbolTable *symtab) {
 
     ACompileAllocation result = { compile_success, reg, real_scope };
     return result;
-}
-
-ACompileStatus compile_file(ADeclSeqNode *program, ASymbolTable symtab,
-        AScope *scope, AFuncRegistry *reg) {
-
-    if (program == NULL) {
-        fprintf(stderr, "Compilation aborted.\n");
-        return compile_fail;
-    }
-
-    ACompileStatus stat = compile_in_context(program, symtab, reg, scope);
-
-    if (stat == compile_fail) {
-        fprintf(stderr, "Compilation aborted.\n");
-    }
-
-    return stat;
 }
 
 /* Finalizes compilation; frees compilation data structures and returns

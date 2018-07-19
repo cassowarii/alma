@@ -44,7 +44,7 @@ START_TEST(test_stack_push) {
 
     ck_assert(program->first != NULL);
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -69,7 +69,7 @@ START_TEST(test_stack_push) {
 START_TEST(test_stack_pop_print) {
     ALMATESTINTRO("tests/simplepop.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     printf("The next thing printed should be ‘hi4’.\n");
@@ -86,7 +86,7 @@ START_TEST(test_stack_pop_print) {
 START_TEST(test_addition) {
     ALMATESTINTRO("tests/basicmath.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -102,7 +102,7 @@ START_TEST(test_addition) {
 START_TEST(test_apply) {
     ALMATESTINTRO("tests/applyfunc.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -120,7 +120,7 @@ START_TEST(test_duplicate_func_error) {
 
     printf("The next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     /* Compilation should fail due to duplicate function name. */
     ck_assert_int_eq(stat, compile_fail);
 
@@ -132,7 +132,7 @@ START_TEST(test_unknown_func_error) {
 
     printf("The next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     /* Compilation should fail due to unknown function name. */
     ck_assert_int_eq(stat, compile_fail);
 
@@ -142,7 +142,7 @@ START_TEST(test_unknown_func_error) {
 START_TEST(test_basiclist) {
     ALMATESTINTRO("tests/basiclist.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -161,7 +161,7 @@ START_TEST(test_basiclist) {
 START_TEST(test_emptylist) {
     ALMATESTINTRO("tests/emptylist.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -177,7 +177,7 @@ START_TEST(test_emptylist) {
 START_TEST(test_uncons) {
     ALMATESTINTRO("tests/uncons.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -195,7 +195,7 @@ START_TEST(test_uncons) {
 START_TEST(test_chimera) {
     ALMATESTINTRO("tests/listchimera.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -212,7 +212,7 @@ START_TEST(test_chimera) {
 START_TEST(test_concat) {
     ALMATESTINTRO("tests/concat.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -232,7 +232,7 @@ START_TEST(test_concat) {
 START_TEST(test_stackshuffle) {
     ALMATESTINTRO("tests/stackshuffle.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -249,7 +249,7 @@ START_TEST(test_listwarn) {
 
     printf("The next thing printed should be a warning.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -267,7 +267,7 @@ START_TEST(test_listwarn) {
 START_TEST(test_definition) {
     ALMATESTINTRO("tests/definition.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->data.func->node);
@@ -281,7 +281,7 @@ START_TEST(test_definition) {
 START_TEST(test_let) {
     ALMATESTINTRO("tests/let.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->data.func->node);
@@ -295,7 +295,7 @@ START_TEST(test_let) {
 START_TEST(test_2let) {
     ALMATESTINTRO("tests/doublelet.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     eval_sequence(stack, NULL, program->first->data.func->node);
@@ -309,7 +309,7 @@ START_TEST(test_2let) {
 START_TEST(test_bind) {
     ALMATESTINTRO("tests/bind.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -327,7 +327,7 @@ START_TEST(test_bind) {
 START_TEST(test_blockparam) {
     ALMATESTINTRO("tests/bindnode.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -345,7 +345,7 @@ START_TEST(test_blockparam) {
 START_TEST(test_boundblock) {
     ALMATESTINTRO("tests/boundblock.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -363,7 +363,7 @@ START_TEST(test_boundblock) {
 START_TEST(test_2bind) {
     ALMATESTINTRO("tests/doublebind.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -382,7 +382,7 @@ START_TEST(test_2bind) {
 START_TEST(test_funcargs) {
     ALMATESTINTRO("tests/funcargs.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -401,7 +401,7 @@ START_TEST(test_funcargs) {
 START_TEST(test_closure) {
     ALMATESTINTRO("tests/closure.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -422,7 +422,7 @@ START_TEST(test_closure) {
 START_TEST(test_multibuf) {
     ALMATESTINTRO("tests/multibuf.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -440,7 +440,7 @@ START_TEST(test_multibuf) {
 START_TEST(test_namedclosure) {
     ALMATESTINTRO("tests/namedclosure.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -458,7 +458,7 @@ START_TEST(test_namedclosure) {
 START_TEST(test_freevarafter) {
     ALMATESTINTRO("tests/freevarafter.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -474,7 +474,7 @@ START_TEST(test_freevarafter) {
 START_TEST(test_doubleclosure) {
     ALMATESTINTRO("tests/doubleclosure.alma");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -494,7 +494,7 @@ START_TEST(test_redefineprint) {
 
     printf("The next thing printed should be a warning.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
     ALMATESTCLEAN();
 } END_TEST
@@ -504,7 +504,7 @@ START_TEST(test_dupvar) {
 
     printf("The next thing printed should be an error message.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_fail);
     ALMATESTCLEAN();
 } END_TEST
@@ -514,7 +514,7 @@ START_TEST(test_funcshadow) {
 
     printf("The next thing printed should be a warning.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");
@@ -531,7 +531,7 @@ START_TEST(test_varshadow) {
 
     printf("The next thing printed should be a warning.\n");
 
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, &symtab, reg, program, bi);
     ck_assert_int_eq(stat, compile_success);
 
     AFunc *mainfunc = scope_find_func(scope, symtab, "main");

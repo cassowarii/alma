@@ -9,7 +9,8 @@ unsigned int NOFREEVARS = 100000;
  * many variables are in scopes below, so we can pass the correct indices
  * to scope_create_push. */
 static
-ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *seq, ABindInfo bindinfo) {
+ACompileResult compile_wordseq(AScope *scope, ASymbolTable *symtab, AFuncRegistry *reg,
+        AWordSeqNode *seq, ABindInfo bindinfo) {
     if (seq == NULL) {
         ACompileResult nil_result = {compile_success, NOFREEVARS};
         return nil_result;
@@ -26,7 +27,7 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 /* Set the last-block-depth to the current var depth. (so any variables from
                  * outside the block will be correctly recognized as 'free' variables.) */
                 ABindInfo bindinfo_block = {bindinfo.var_depth, bindinfo.var_depth};
-                ACompileResult blockstat = compile_wordseq(scope,
+                ACompileResult blockstat = compile_wordseq(scope, symtab,
                         reg, current->data.val->data.ast, bindinfo_block);
                 if (blockstat.status == compile_fail) {
                     errors ++;
@@ -50,7 +51,7 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
                 /* Compile the things in the protolist. */
                 AWordSeqNode *plcurrent = current->data.val->data.pl->first;
                 while (plcurrent != NULL) {
-                    ACompileResult plstat = compile_wordseq(scope, reg, plcurrent, bindinfo);
+                    ACompileResult plstat = compile_wordseq(scope, symtab, reg, plcurrent, bindinfo);
                     if (plstat.status == compile_fail) {
                         errors ++;
                     } else if (plstat.status == compile_success) {
@@ -117,7 +118,7 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             ABindInfo closed = {bindinfo.var_depth, bindinfo.var_depth};
 
             /* Compile the declarations into this lexical scope. */
-            ACompileStatus stat = compile(child_scope, reg, current->data.let->decls, closed);
+            ACompileStatus stat = compile(child_scope, symtab, reg, current->data.let->decls, closed);
 
             if (stat == compile_fail) {
                 errors ++;
@@ -128,7 +129,7 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
             }
 
             /* Compile the executed part using the new scope. */
-            ACompileResult r = compile_wordseq(child_scope, reg, current->data.let->words, bindinfo);
+            ACompileResult r = compile_wordseq(child_scope, symtab, reg, current->data.let->words, bindinfo);
 
             if (r.status == compile_fail) {
                 errors ++;
@@ -170,7 +171,8 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
 
             ABindInfo bindinfo_with_vars = {bindinfo.var_depth + newbind->count, bindinfo.last_block_depth};
 
-            ACompileResult r = compile_wordseq(scope_with_vars, reg, newbind->words, bindinfo_with_vars);
+            ACompileResult r = compile_wordseq(scope_with_vars, symtab, reg,
+                   newbind->words, bindinfo_with_vars);
 
             if (r.status == compile_fail) {
                 free(newbind);
@@ -216,7 +218,8 @@ ACompileResult compile_wordseq(AScope *scope, AFuncRegistry *reg, AWordSeqNode *
 /* Mutate an ADeclSeqNode by replacing compile-time-resolvable
  * symbol references with references to AFunc*'s. */
 /* var_depth = how many variables are bound below this scope */
-ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program, ABindInfo bindinfo) {
+ACompileStatus compile(AScope *scope, ASymbolTable *symtab, AFuncRegistry *reg,
+                        ADeclSeqNode *program, ABindInfo bindinfo) {
     if (program == NULL) return compile_success;
     unsigned int errors = 0;
     ADeclNode *current;
@@ -240,7 +243,10 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
                 errors ++;
             }
         } else if (current->type == import_decl) {
-            printf("I'm just gonna pretend to compile that import.\n");
+            //AScope *module_scope = scope_new(scope);
+            char *filename = resolve_import(current->data.imp->module);
+            put_file_into_scope(filename, symtab, scope, reg);
+            free(filename);
         } else {
             fprintf(stderr, "internal error: unrecognized declnode type %d\n", current->type);
         }
@@ -260,7 +266,7 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
         ACompileStatus stat;
 
         if (current->type == func_decl) {
-            ACompileResult r = compile_wordseq(scope, reg, current->data.func->node, bindinfo);
+            ACompileResult r = compile_wordseq(scope, symtab, reg, current->data.func->node, bindinfo);
 
             /* ... check for errors ... */
             if (r.status == compile_fail) {
@@ -301,20 +307,20 @@ ACompileStatus compile(AScope *scope, AFuncRegistry *reg, ADeclSeqNode *program,
 
 /* Compile a given declseq in context of preexisting symbol table, registry, scope. */
 ACompileStatus compile_in_context(ADeclSeqNode *program,
-        ASymbolTable symtab, AFuncRegistry *reg, AScope *scope) {
+        ASymbolTable *symtab, AFuncRegistry *reg, AScope *scope) {
     /* We start with no variables! */
     ABindInfo bi = {0, 0};
-    ACompileStatus stat = compile(scope, reg, program, bi);
+    ACompileStatus stat = compile(scope, symtab, reg, program, bi);
 
     return stat;
 }
 
 /* Compile a given wordseq in context of preexisting symbol table, registry, scope. */
-ACompileStatus compile_seq_context(AWordSeqNode *seq,
-        ASymbolTable symtab, AFuncRegistry *reg, AScope *scope) {
+ACompileStatus compile_seq_context(AWordSeqNode *seq, ASymbolTable *symtab,
+        AFuncRegistry *reg, AScope *scope) {
     /* We start with no variables! */
     ABindInfo bi = {0, 0};
-    ACompileResult r = compile_wordseq(scope, reg, seq, bi);
+    ACompileResult r = compile_wordseq(scope, symtab, reg, seq, bi);
 
     return r.status;
 }

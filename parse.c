@@ -944,7 +944,7 @@ void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
 
                 ADeclSeqNode *program = ast_declseq_new();
                 ast_declseq_append(program, result);
-                compile_in_context(program, *symtab, reg, scope);
+                compile_in_context(program, symtab, reg, scope);
 
                 free(result);
                 free(program);
@@ -954,7 +954,7 @@ void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
              * a regular command. */
             AWordSeqNode *result = parse_interactive_words(&state);
             if (state.errors == 0 && result != NULL) {
-                ACompileStatus stat = compile_seq_context(result, *symtab, reg, scope);
+                ACompileStatus stat = compile_seq_context(result, symtab, reg, scope);
                 if (stat == compile_success) {
                     eval_sequence(stack, NULL, result);
                 }

@@ -11,6 +11,8 @@
 #include <assert.h>
 #include "uthash.h"
 
+const char *ALMA_PATH;
+
 /*-*-* symbols.h *-*-*/
 
 /* A mapping from names to unique symbols. */

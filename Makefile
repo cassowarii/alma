@@ -2,7 +2,7 @@
 CFLAGS=-std=c99 -Wall -pedantic -g -Og -D_POSIX_C_SOURCE=200112L
 
 ALMALIBS=lib_func.o lib_op.o lib_stack.o lib_control.o lib_list.o
-ALMAREQS=ustrings.o symbols.o value.o ast.o stack.o scope.o list.o eval.o $(ALMALIBS) lib.o registry.o vars.o compile.o lex.yy.o parse.o
+ALMAREQS=ustrings.o symbols.o value.o ast.o stack.o scope.o list.o eval.o $(ALMALIBS) lib.o registry.o vars.o lex.yy.o compile.o parse.o import.o
 
 LIBS=-lreadline
 
