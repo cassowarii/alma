@@ -16,7 +16,7 @@ typedef struct YYLTYPE {
 } YYLTYPE;
 
 union lexresult {
-    int i;
+    long i;
     char c;
     char *cs; // cstring
     struct AUstr *s;

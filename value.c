@@ -12,7 +12,7 @@ AValue *alloc_val(void) {
     return new_val;
 }
 
-AValue *val_int(int data) {
+AValue *val_int(long data) {
     AValue *v = alloc_val();
     v->type = int_val;
     v->data.i = data;
@@ -99,7 +99,7 @@ void delete_ref(AValue *v) {
 /* Print out a value to an arbitrary filehandle. */
 void fprint_val(FILE *out, AValue *v) {
     if (v->type == int_val) {
-        fprintf(out, "%d", v->data.i);
+        fprintf(out, "%ld", v->data.i);
     } else if (v->type == block_val
             || v->type == proto_block
             || v->type == free_block_val) {

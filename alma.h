@@ -85,7 +85,7 @@ typedef enum {
 typedef struct AValue {
     AValueType type;
     union {
-        int i;
+        long i;
         double fl;
         AUstr *str;
         ASymbol *sym;

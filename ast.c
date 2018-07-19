@@ -527,6 +527,9 @@ void free_decl_seq_top(ADeclSeqNode *to_free) {
         ADeclNode *next = current->next;
         /* (don't free internals of declarations) */
         /* TODO probably DO free internals of imports tho */
+        if (current->type == func_decl) {
+            free(current->data.func);
+        }
         free(current);
         current = next;
     }

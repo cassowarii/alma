@@ -35,20 +35,32 @@ ACompileStatus put_file_into_scope(const char *filename, ASymbolTable *symtab,
  * (and the current directory) */
 /* NOTE: allocates a new string! Don't forget to free it. */
 char *resolve_import(const char *module_name) {
-    int extra_slash = 0;
-    int extra_extension = 0;
-    if (ALMA_PATH[strlen(ALMA_PATH)-1] != '/') extra_slash = 1;
-    if (strcmp(module_name + (strlen(module_name) - 5), ".alma") != 0) {
-        extra_extension = 5;
+    char *tokiter = malloc(strlen(ALMA_PATH)+1);
+    strcpy(tokiter, ALMA_PATH);
+
+    char *buf = malloc(strlen(ALMA_PATH)+1); // for strtok_r
+
+    char *modulepath;
+
+    for (char *token = strtok_r(tokiter, ":", &buf); token; token = strtok_r(NULL, ":", &buf)) {
+        int extra_slash = 0;
+        int extra_extension = 0;
+        if (ALMA_PATH[strlen(ALMA_PATH)-1] != '/') extra_slash = 1;
+        if (strcmp(module_name + (strlen(module_name) - 5), ".alma") != 0) {
+            extra_extension = 5;
+        }
+
+        char *modulepath = malloc(strlen(ALMA_PATH) + strlen(module_name)
+                + 1 + extra_slash + extra_extension);
+
+        strcpy(modulepath, ALMA_PATH);
+        if (extra_slash) strcat(modulepath, "/");
+        strcat(modulepath, module_name);
+        if (extra_extension) strcat(modulepath, ".alma");
     }
 
-    char *modulepath = malloc(strlen(ALMA_PATH) + strlen(module_name)
-                                + 1 + extra_slash + extra_extension);
-
-    strcpy(modulepath, ALMA_PATH);
-    if (extra_slash) strcat(modulepath, "/");
-    strcat(modulepath, module_name);
-    if (extra_extension) strcat(modulepath, ".alma");
+    free(buf);
+    free(tokiter);
 
     return modulepath;
 }

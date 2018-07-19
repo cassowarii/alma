@@ -1,0 +1,4 @@
+func factors multiple-one [ factors ['multiple curry] map satisfies-any ]
+func factors sum-multiples [ range [factors multiple-one] filter sum ]
+
+func main [ 1000 {3,5} sum-multiples say ]

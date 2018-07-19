@@ -5,26 +5,67 @@ func nip [ swap drop ]
 func 2>>2 [ 'dip dip apply ]
 func bi [ 2>>2 ]
 func 2fork [ 'bi dip apply ]
+func a b f g h dfork [ a b f apply a b g apply h apply ]
 func fork [ 'dup 3dip 2fork ]
 func 2hook [ '[] 2dip 2fork ]
 func hook [ [dup] 2dip 2hook ]
+func save [ 'dup dip dip ]
 func neg [ -1 * ]
 func abs [ 'neg 'max hook ]
 
+func >> [ unappend ]
+func << [ append ]
 func empty [ len 0 = ]
 func small [ len 1 ≤ ]
 func ++ [ if*: [empty] [drop] [unappend '++ dip append] ]
 func & [ swap cons ]
 
+func or [ + ] # TODO: replace this when we have real booleans
+func and [ * ] # same as above
+func both [ 'and fork ]
+func either [ 'or fork ]
+
+func when [ [ ] if ]
 func when* [ [ ] if* ]
 
 func factorial [ if*: [0 =] [drop 1] ['(1 - factorial) '* hook] ]
+func multiple [mod 0 =]
 
-func f map [ when*: [empty not] [unappend '(f map) '(f apply) 'append 2fork] ]
+func f map [ '{} dip; while*: [empty not] [>> f apply swap '& dip]; drop ]
+func p filter [ '{} dip; while*: [empty not] [>>; if*: p [swap '& dip] [drop]]; drop ]
+func f fold [ swap; while*: [empty not] [uncons f dip]; drop ]
+
+# Recursive elegant versions for when we replace the call stack with an in-memory thing?
+func p recfilter [ when*: [empty not] [ shift; [p filter] dip; if*: p [&] [drop] ] ]
+func f recmap [ when*: [empty not] [unappend '(f map) '(f apply) 'append 2fork] ]
+
+func pred gen list-iter-while [ while*: pred gen; >> drop ]
+func pred gen list-iter-until [ [pred apply not] gen list-iter-while ]
+
+func pred gen iter-while [ {} cons; [last pred apply] [dup last gen apply <<] list-iter-while ]
+func pred gen iter-until [ [pred apply not] gen iter-while ]
+
+func sum [ 0 [+] fold ]
+func product [ 1 [*] fold ]
+
+func n iota [ 1; iter-until: [n >] [1 +] ]
+func n range [ 0; iter-while: [n <] [1 +] ]
+
+func lo hi range-ends [ if: [lo hi <] [lo; iter-while: [hi <] [1 +]] [{}] ]
+func range-from [ swap range-ends ]
 
 func shift [ uncons swap ]
 
 func a b C T E if** [ if: [a b C apply] [a b T apply] [a b E apply] ]
+func a b C T when** [ when: [a b C apply] [a b T apply] ]
 
 func max [ if**: [>] 'drop 'nip ]
 func min [ if**: [<] 'drop 'nip ]
+
+func a quote [ 'a ]
+func arg blk curry [ [ arg blk apply ] ]
+func a b compose [ [ a apply b apply ] ]
+
+func val funcs apply-all [ funcs [val swap apply] map ]
+func satisfies-all [ apply-all 1 [and] fold ]
+func satisfies-any [ apply-all 0 [or] fold ]

@@ -240,7 +240,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
     }
 }
 
--?[0-9]+                yylval->i=atoi(yytext); return INTEGER;
+-?[0-9]+                yylval->i=atol(yytext); return INTEGER;
 
 -?[0-9]+\.[0-9]+([Ee][0-9]+)? {
     yylval->d = atof(yytext);

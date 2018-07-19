@@ -1,0 +1,4 @@
+func next-fib [ >> -> b; >> -> a; a << b << a b + << ]
+func N fibs-less-than [ {1,1}; list-iter-until: [last N ≥] [next-fib] ]
+
+func main [ 4000000 fibs-less-than [2 multiple] filter sum say ]

@@ -1,9 +1,6 @@
 #include "lib.h"
 
 /* optimizing value-math functions (see bottom of file) */
-static AValue *sum_int_val(AValue *a, AValue *b);
-static AValue *diff_int_val(AValue *a, AValue *b);
-static AValue *prod_int_val(AValue *a, AValue *b);
 static AValue *gt_int_val(AValue *a, AValue *b);
 static AValue *lt_int_val(AValue *a, AValue *b);
 static AValue *gte_int_val(AValue *a, AValue *b);
@@ -13,7 +10,7 @@ static AValue *eq_int_val(AValue *a, AValue *b);
 /* TODO replace all these with set_2int_val.
  * I am not very smart. */
 static AValue *set_int_val(AValue *a, int x);
-static AValue *set_2int_val(AValue *a, AValue *b, int x);
+static AValue *set_2int_val(AValue *a, AValue *b, long x);
 
 /* Boolean-negate the top value on the stack. */
 void lib_not(AStack* stack, AVarBuffer *buffer) {
@@ -34,7 +31,7 @@ void lib_add(AStack* stack, AVarBuffer *buffer) {
 
     // We don't do typechecking yet, so this might be garbage
     // if it's not actually an int... we'll fix this later!
-    AValue *c = sum_int_val(a, b);
+    AValue *c = set_2int_val(a, b, b->data.i + a->data.i);
 
     stack_push(stack, c);
     delete_ref(a);
@@ -49,7 +46,7 @@ void lib_subtract(AStack* stack, AVarBuffer *buffer) {
 
     // We don't do typechecking yet, so this might be garbage
     // if it's not actually an int... we'll fix this later!
-    AValue *c = diff_int_val(a, b);
+    AValue *c = set_2int_val(a, b, b->data.i - a->data.i);
 
     stack_push(stack, c);
     delete_ref(a);
@@ -64,7 +61,22 @@ void lib_multiply(AStack* stack, AVarBuffer *buffer) {
 
     // We don't do typechecking yet, so this might be garbage
     // if it's not actually an int... we'll fix this later!
-    AValue *c = prod_int_val(a, b);
+    AValue *c = set_2int_val(a, b, b->data.i * a->data.i);
+
+    stack_push(stack, c);
+    delete_ref(a);
+    delete_ref(b);
+}
+
+/* Divide the NOS by TOS. (Integer division only!) */
+void lib_div(AStack* stack, AVarBuffer *buffer) {
+    AValue *a = stack_get(stack, 0);
+    AValue *b = stack_get(stack, 1);
+    stack_pop(stack, 2);
+
+    // We don't do typechecking yet, so this might be garbage
+    // if it's not actually an int... we'll fix this later!
+    AValue *c = set_2int_val(a, b, b->data.i / a->data.i);
 
     stack_push(stack, c);
     delete_ref(a);
@@ -182,6 +194,7 @@ void oplib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "+", &lib_add);
     addlibfunc(sc, st, "-", &lib_subtract);
     addlibfunc(sc, st, "*", &lib_multiply);
+    addlibfunc(sc, st, "/", &lib_div);
     addlibfunc(sc, st, "mod", &lib_mod);
     addlibfunc(sc, st, "<", &lib_lessthan);
     addlibfunc(sc, st, ">", &lib_greaterthan);
@@ -193,50 +206,6 @@ void oplib_init(ASymbolTable *st, AScope *sc) {
     addlibfunc(sc, st, "!=", &lib_notequal);
     addlibfunc(sc, st, "≠", &lib_notequal);
     addlibfunc(sc, st, "not", &lib_not);
-}
-
-/* Save a memory allocation if possible when adding:
- * if one of the variables is only referenced once,
- * don't allocate a new one. */
-static
-AValue *sum_int_val(AValue *a, AValue *b) {
-    if (a->refs <= 1) {
-        a->data.i += b->data.i;
-        return ref(a);
-    } else if (b->refs <= 1) {
-        b->data.i += a->data.i;
-        return ref(b);
-    } else {
-        return ref(val_int(a->data.i + b->data.i));
-    }
-}
-
-/* Same but for subtraction. */
-static
-AValue *diff_int_val(AValue *a, AValue *b) {
-    if (b->refs <= 1) {
-        b->data.i -= a->data.i;
-        return ref(b);
-    } else if (a->refs <= 1) {
-        a->data.i = b->data.i - a->data.i;
-        return ref(a);
-    } else {
-        return ref(val_int(b->data.i - a->data.i));
-    }
-}
-
-/* Same but for multiplication. */
-static
-AValue *prod_int_val(AValue *a, AValue *b) {
-    if (a->refs <= 1) {
-        a->data.i *= b->data.i;
-        return ref(a);
-    } else if (b->refs <= 1) {
-        b->data.i *= a->data.i;
-        return ref(b);
-    } else {
-        return ref(val_int(b->data.i * a->data.i));
-    }
 }
 
 /* Same but for lessthan. */
@@ -334,7 +303,7 @@ static AValue *set_int_val(AValue *a, int x) {
 }
 
 static
-AValue *set_2int_val(AValue *a, AValue *b, int x) {
+AValue *set_2int_val(AValue *a, AValue *b, long x) {
     if (a->refs <= 1) {
         a->data.i = x;
         return ref(a);

@@ -9,7 +9,7 @@
 #include "symbols.h"
 
 /* Create a value holding an int */
-AValue *val_int(int data);
+AValue *val_int(long data);
 
 /* Create a value holding a float */
 AValue *val_float(float data);

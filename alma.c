@@ -39,7 +39,18 @@ int main (int argc, char **argv) {
         exit(1);
     }
 
-    if (argc == 2) {
+    free(stdlibpath);
+
+    if (argc == 3 && !strcmp(argv[1], "-i")) {
+        ACompileStatus file_stat = put_file_into_scope(argv[2], &symtab, comp.scope, comp.reg);
+
+        if (file_stat == compile_fail) {
+            exit(1);
+        }
+
+        interact(&symtab, comp.scope, comp.reg);
+        exit(0);
+    } else if (argc == 2) {
         ACompileStatus file_stat = put_file_into_scope(argv[1], &symtab, comp.scope, comp.reg);
 
         if (file_stat == compile_fail) {

@@ -1,0 +1,7 @@
+func gcd [ if*: [0 =] [drop] [swap over mod gcd] ]
+
+func lcm [ '* 'gcd '/ dfork ]
+
+func lcm-up-to [ iota 1 [lcm] fold ]
+
+func main [ 20 lcm-up-to say ]
