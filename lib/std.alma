@@ -2,6 +2,7 @@ func 2dup [ over over ]
 func 2dip [ swap 'dip dip ]
 func 3dip [ swap '2dip dip ]
 func nip [ swap drop ]
+func 2drop [ drop drop ]
 func 2>>2 [ 'dip dip apply ]
 func bi [ 2>>2 ]
 func 2fork [ 'bi dip apply ]
@@ -28,7 +29,13 @@ func either [ 'or fork ]
 func when [ [ ] if ]
 func when* [ [ ] if* ]
 
-func factorial [ if*: [0 =] [drop 1] ['(1 - factorial) '* hook] ]
+func a b C T E if** [ if: [a b C apply] [a b T apply] [a b E apply] ]
+func a b C T when** [ if: [a b C apply] [a b T apply] [a b] ]
+func C B while** [ while: [2dup C 2dip rot] [B apply] ]
+
+func incr [ 1 + ]
+func decr [ 1 - ]
+func factorial [ if*: [0 =] [drop 1] ['(decr factorial) '* hook] ]
 func multiple [mod 0 =]
 
 func f map [ '{} dip; while*: [empty not] [>> f apply swap '& dip]; drop ]
@@ -39,33 +46,49 @@ func f fold [ swap; while*: [empty not] [uncons f dip]; drop ]
 func p recfilter [ when*: [empty not] [ shift; [p filter] dip; if*: p [&] [drop] ] ]
 func f recmap [ when*: [empty not] [unappend '(f map) '(f apply) 'append 2fork] ]
 
+func pred gen list-iter-upto [ while*: [pred apply not] gen ]
 func pred gen list-iter-while [ while*: pred gen; >> drop ]
 func pred gen list-iter-until [ [pred apply not] gen list-iter-while ]
 
+func pred gen iter-upto [ {} cons; [last pred apply] [dup last gen apply <<] list-iter-upto ]
 func pred gen iter-while [ {} cons; [last pred apply] [dup last gen apply <<] list-iter-while ]
 func pred gen iter-until [ [pred apply not] gen iter-while ]
 
 func sum [ 0 [+] fold ]
 func product [ 1 [*] fold ]
 
-func n iota [ 1; iter-until: [n >] [1 +] ]
-func n range [ 0; iter-while: [n <] [1 +] ]
+func n iota [ 1; iter-until: [n >] [incr] ]
+func n range [ 0; iter-while: [n <] [incr] ]
 
-func lo hi range-ends [ if: [lo hi <] [lo; iter-while: [hi <] [1 +]] [{}] ]
+func lo hi range-ends [ if: [lo hi <] [lo; iter-while: [hi <] [incr]] [{}] ]
 func range-from [ swap range-ends ]
 
 func shift [ uncons swap ]
-
-func a b C T E if** [ if: [a b C apply] [a b T apply] [a b E apply] ]
-func a b C T when** [ when: [a b C apply] [a b T apply] ]
 
 func max [ if**: [>] 'drop 'nip ]
 func min [ if**: [<] 'drop 'nip ]
 
 func a quote [ 'a ]
 func arg blk curry [ [ arg blk apply ] ]
+func f curry-all [ [f curry] map ]
 func a b compose [ [ a apply b apply ] ]
 
 func val funcs apply-all [ funcs [val swap apply] map ]
-func satisfies-all [ apply-all 1 [and] fold ]
-func satisfies-any [ apply-all 0 [or] fold ]
+func naïve-satisfies-all [ apply-all 1 [and] fold ]
+func naïve-satisfies-any [ apply-all 0 [or] fold ]
+
+# Short-circuiting version... kinda unreadable but
+# our concern is efficiency
+func satisfies-any [
+    0; while**: ['(empty not) 'not 'and 2fork] [
+        drop 'dup dip uncons 'apply dip swap
+    ]
+    '2drop dip
+]
+
+func satisfies-all [
+    1; while**: ['(empty not) '() 'and 2fork] [
+        drop 'dup dip uncons 'apply dip swap
+    ]
+    '2drop dip
+]

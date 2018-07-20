@@ -1,4 +1,9 @@
-func multiple-of-any [ ['multiple curry] map satisfies-any ]
+# Given a list of integers, check whether a given integer is a multiple of any of them.
+func multiple-of-any [ 'multiple curry-all satisfies-any ]
+
+# Takes two parameters: an integer and a list of integers.
+# Returns the sum of all multiples of those integers below the
+# first integer.
 func factors sum-multiples [ range [factors multiple-of-any] filter sum ]
 
 func main [ 1000 {3,5} sum-multiples say ]
