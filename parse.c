@@ -128,7 +128,7 @@ void fprint_token(FILE *out, AToken tok) {
         ustr_fprint(out, tok.value.s);
         fprintf(out, "\"");
     } else if (tok.id == INTEGER) {
-        fprintf(out, " ‘%d’", tok.value.i);
+        fprintf(out, " ‘%ld’", tok.value.i);
     } else if (tok.id == FLOAT) {
         fprintf(out, " ‘%g’", tok.value.d);
     } else if (tok.id == SYMBOL) {
