@@ -20,6 +20,12 @@ int main (int argc, char **argv) {
 
     char *stdlibpath = resolve_import(STDLIB_MODULE);
 
+    if (stdlibpath == NULL) {
+        fprintf(stderr, "Couldn't find std.alma in ALMA_PATH, aborting.\n");
+        fprintf(stderr, "(ALMA_PATH is: %s)\n", ALMA_PATH);
+        exit(1);
+    }
+
     ASymbolTable symtab = NULL;
 
     ACompileAllocation comp = initialize_compilation(&symtab);
