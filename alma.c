@@ -13,18 +13,12 @@ ACompileStatus compile_file(ADeclSeqNode *program, ASymbolTable symtab,
 AFunc *finalize_compilation(AScope *scope, ASymbolTable symtab, AFuncRegistry *reg);
 int run_main(AFunc *mainfunc);
 
-const char *STDLIB_FILE = "lib/std.alma";
+const char *STDLIB_MODULE = "std";
 
 int main (int argc, char **argv) {
     ALMA_PATH = getenv("ALMA_PATH");
-    if (!ALMA_PATH) ALMA_PATH = ".";
-    int extra_slash = 0;
-    if (ALMA_PATH[strlen(ALMA_PATH)-1] != '/') extra_slash = 1;
-    char *stdlibpath = malloc(strlen(ALMA_PATH) + strlen(STDLIB_FILE) + 1 + extra_slash);
 
-    strcpy(stdlibpath, ALMA_PATH);
-    if (extra_slash) strcat(stdlibpath, "/");
-    strcat(stdlibpath, STDLIB_FILE);
+    char *stdlibpath = resolve_import(STDLIB_MODULE);
 
     ASymbolTable symtab = NULL;
 

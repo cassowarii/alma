@@ -38,29 +38,46 @@ char *resolve_import(const char *module_name) {
     char *tokiter = malloc(strlen(ALMA_PATH)+1);
     strcpy(tokiter, ALMA_PATH);
 
-    char *buf = malloc(strlen(ALMA_PATH)+1); // for strtok_r
+    char *buf;
 
     char *modulepath;
 
+    int found = 0;
+    char *path = NULL;
     for (char *token = strtok_r(tokiter, ":", &buf); token; token = strtok_r(NULL, ":", &buf)) {
         int extra_slash = 0;
         int extra_extension = 0;
-        if (ALMA_PATH[strlen(ALMA_PATH)-1] != '/') extra_slash = 1;
+        if (token[strlen(token)-1] != '/') {
+            extra_slash = 1;
+        }
         if (strcmp(module_name + (strlen(module_name) - 5), ".alma") != 0) {
             extra_extension = 5;
         }
 
-        char *modulepath = malloc(strlen(ALMA_PATH) + strlen(module_name)
+        free(path);
+        path = malloc(strlen(token) + strlen(module_name)
                 + 1 + extra_slash + extra_extension);
 
-        strcpy(modulepath, ALMA_PATH);
-        if (extra_slash) strcat(modulepath, "/");
-        strcat(modulepath, module_name);
-        if (extra_extension) strcat(modulepath, ".alma");
+        strcpy(path, token);
+        if (extra_slash) strcat(path, "/");
+        strcat(path, module_name);
+        if (extra_extension) strcat(path, ".alma");
+
+        if (access (path, F_OK) != -1) {
+            found = 1;
+            break;
+        }
     }
 
-    free(buf);
+    if (found) {
+        modulepath = path;
+    } else {
+        free(path);
+        modulepath = NULL;
+    }
+
     free(tokiter);
+    //free(buf);
 
     return modulepath;
 }
