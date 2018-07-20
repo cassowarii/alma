@@ -1,8 +1,8 @@
 #ifndef _ALMA_H__
 #define _ALMA_H__
 
-#define ALMA_VERSION "0.1"
-#define ALMA_VNAME "Worker Bee"
+#define ALMA_VERSION "0.2"
+#define ALMA_VNAME "Foreign Affairs"
 
 #include <stdlib.h>
 #include <stdio.h>
