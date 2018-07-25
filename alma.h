@@ -341,6 +341,11 @@ typedef enum {
 typedef struct AFunc {
     AFuncType type;
     ASymbol *sym;   // we might want to print it at runtime
+                    // this is sort of weird because functions might
+                    // be known as different things due to imports
+                    // or w/e, but this means they'll always show up
+                    // as the thing they were first named...
+                    // maybe something to change later
     union {
         int varindex; // if var_push, which var to push?
         APrimitiveFunc primitive;
@@ -369,6 +374,7 @@ typedef struct AScopeEntry {
 /* Struct representing a (possibly nested) lexical scope. */
 typedef struct AScope {
     struct AScope *parent;
+    struct AScope *libscope;
     AScopeEntry *content;
 } AScope;
 

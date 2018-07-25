@@ -5,6 +5,15 @@ AScope *scope_new(AScope *parent) {
     AScope *newscope = malloc(sizeof(AScope));
     newscope->parent = parent;
     newscope->content = NULL;
+    if (parent == NULL) {
+        /* If parent is null, we're creating the scope for
+         * the library. So the library scope is this one! */
+        newscope->libscope = newscope;
+    } else {
+        /* Otherwise point at the library scope so we can
+         * use it to create new scopes for imports and whatnot. */
+        newscope->libscope = parent->libscope;
+    }
     return newscope;
 }
 

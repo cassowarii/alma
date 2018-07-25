@@ -129,7 +129,7 @@ char *extract_mod_prefix(const char *path, int strip_ext) {
  * (prefixing qualified declaration as appropriate.) */
 ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
             AFuncRegistry *reg, AImportStmt *decl) {
-    AScope *module_scope = scope_new(scope);
+    AScope *module_scope = scope_new(scope->libscope);
 
     int has_suffix = decl->just_string
             || !strcmp(decl->module + strlen(decl->module) - 5, ".alma");
@@ -151,7 +151,6 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
                 "(ALMA_PATH is: %s)\n", filename, ALMA_PATH);
     } else {
         result = put_file_into_scope(file_loc, symtab, module_scope, reg);
-        free(file_loc);
     }
     free(filename);
 
@@ -159,23 +158,41 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
         return result;
     }
 
-    /* Now that we have successfully compiled the module to import,
-     * we need to put it into our scope with optional prefix. */
-    char *prefix = extract_mod_prefix(decl->module, has_suffix);
-
-    /* Move all the functions from module scope into our scope,
-     * prefixing them with the module name. */
-    AScopeEntry *current, *tmp;
-    HASH_ITER(hh, module_scope->content, current, tmp) {
-        if (!current->imported) {
-            ASymbol *prefixed_name = prefix_symbol(symtab, prefix, ".", current->sym);
-            ACompileStatus stat = scope_import(scope, prefixed_name, current->func);
-            if (stat == compile_success && decl->interactive) {
-                printf("    => %s\n", prefixed_name->name);
+    if (decl->names) {
+        /* Iterate over the sequence of names, and import each of them
+         * unqualified into our scope. */
+        ANameNode *curr = decl->names->first;
+        while (curr) {
+            AScopeEntry *entry = scope_lookup(module_scope, curr->sym);
+            if (entry == NULL) {
+                fprintf(stderr, "Error: couldn't import ‘%s’ from %s: no such word defined.\n",
+                            curr->sym->name, file_loc);
+            } else {
+                ACompileStatus stat = scope_import(scope, curr->sym, entry->func);
+                if (stat == compile_success && decl->interactive) {
+                    printf("    => %s\n", curr->sym->name);
+                }
+            }
+            curr = curr->next;
+        }
+    } else {
+        /* Move all the (non-imported) functions from module scope into our scope,
+         * prefixing them with the module name. */
+        char *prefix = extract_mod_prefix(decl->module, has_suffix);
+        AScopeEntry *current, *tmp;
+        HASH_ITER(hh, module_scope->content, current, tmp) {
+            if (!current->imported) {
+                ASymbol *prefixed_name = prefix_symbol(symtab, prefix, ".", current->sym);
+                ACompileStatus stat = scope_import(scope, prefixed_name, current->func);
+                if (stat == compile_success && decl->interactive) {
+                    printf("    => %s\n", prefixed_name->name);
+                }
             }
         }
-    }
 
-    free(prefix);
+        free(prefix);
+    }
+    free(file_loc);
+
     return result;
 }
