@@ -37,6 +37,7 @@ ADeclNode *ast_newimportdecl(void) {
     }
     newnode->next = NULL;
     AImportStmt *is = malloc(sizeof(AImportStmt));
+    is->interactive = 0;
     newnode->type = import_decl;
     newnode->data.imp = is;
     return newnode;

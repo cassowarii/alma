@@ -930,6 +930,9 @@ void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
         state.beginning_line = 0;
         if (decl_leadin(state.nexttok.id)) {
             ADeclNode *result = parse_decl(&state);
+            if (result->type == import_decl) {
+                result->data.imp->interactive = 1;
+            }
             if (state.errors != 0 || result == NULL) {
                 /* If syntax error, reset */
                 state = initial_state;

@@ -131,8 +131,11 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
             AFuncRegistry *reg, AImportStmt *decl) {
     AScope *module_scope = scope_new(scope);
 
+    int has_suffix = decl->just_string
+            || !strcmp(decl->module + strlen(decl->module) - 5, ".alma");
+
     char *filename;
-    if (decl->just_string) {
+    if (has_suffix) {
         filename = malloc(strlen(decl->module)+1);
         strcpy(filename, decl->module);
     } else {
@@ -158,14 +161,17 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
 
     /* Now that we have successfully compiled the module to import,
      * we need to put it into our scope with optional prefix. */
-    char *prefix = extract_mod_prefix(decl->module, decl->just_string);
+    char *prefix = extract_mod_prefix(decl->module, has_suffix);
 
     /* Move all the functions from module scope into our scope,
      * prefixing them with the module name. */
     AScopeEntry *current, *tmp;
     HASH_ITER(hh, module_scope->content, current, tmp) {
         ASymbol *prefixed_name = prefix_symbol(symtab, prefix, ".", current->sym);
-        scope_register(scope, prefixed_name, current->func);
+        ACompileStatus stat = scope_register(scope, prefixed_name, current->func);
+        if (stat == compile_success && decl->interactive) {
+            printf(" => %s\n", prefixed_name->name);
+        }
     }
 
     free(prefix);

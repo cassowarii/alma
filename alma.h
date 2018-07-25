@@ -200,6 +200,7 @@ typedef struct AImportStmt {
     const char *module;     // name of module to import
     int just_string;        // boolean: is it imported like 'import A' or like 'import "A.al"'?
     ASymbol *as;            // qualified-import name (may be null)
+    int interactive;        // was it created interactively? (print extra stuff)
     struct ANameSeqNode *names; // names to import from module (may be null)
 } AImportStmt;
 
