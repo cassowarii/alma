@@ -101,6 +101,8 @@ void fprint_token_type(FILE *out, ATokenType type) {
             fprintf(out, "‘;’"); break;
         case '|':
             fprintf(out, "‘|’"); break;
+        case '\'':
+            fprintf(out, "‘'’"); break;
         case '\n':
             fprintf(out, "newline"); break;
         case ',':
@@ -745,9 +747,7 @@ ADeclNode *parse_decl(AParseState *state) {
         }
         EXPECT('\n');
         return ast_importdeclnode(line, just_string, module, as, names);
-    } else {
-        EXPECT(T_FUNC);
-
+    } else if (EXPECT(T_FUNC)) {
         /* Mark we're inside a function now, so we can know to
          * ask for more lines in interactive mode. */
         state->infuncs ++;
@@ -789,6 +789,8 @@ ADeclNode *parse_decl(AParseState *state) {
             ast_wordseq_prepend(param_wrapper, ast_bindnode(params->first->linenum, params, body));
             return ast_funcdeclnode(line, name, param_wrapper);
         }
+    } else {
+        return NULL;
     }
 }
 

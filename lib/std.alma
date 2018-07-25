@@ -74,8 +74,6 @@ func f curry-all [ [f curry] map ]
 func a b compose [ [ a apply b apply ] ]
 
 func val funcs apply-all [ funcs [val swap apply] map ]
-func naïve-satisfies-all [ apply-all 1 [and] fold ]
-func naïve-satisfies-any [ apply-all 0 [or] fold ]
 
 # Short-circuiting version... kinda unreadable but
 # our concern is efficiency

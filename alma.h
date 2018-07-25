@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
+#include <sys/stat.h>
 #include "uthash.h"
 
 const char *ALMA_PATH;

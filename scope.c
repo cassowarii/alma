@@ -81,12 +81,16 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
 }
 
 /* Register a new word into scope using the symbol ‘symbol’ as a key. */
-/* Only used for stdlib/primitive functions, not user functions */
+/* Used when defining stdilb/primitive functions, and when importing
+ * functions into a scope. */
 ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
 
-    assert(e == NULL && "duplicate func name. fix your dang library loading code");
+    if (e != NULL) {
+        fprintf(stderr, "Error importing function %s: Already defined.\n", symbol->name);
+        return compile_fail;
+    }
 
     /* create new entry */
     AScopeEntry *entry = scope_entry_new(symbol, func);

@@ -11,3 +11,7 @@ ACompileStatus put_file_into_scope(const char *filename, ASymbolTable *symtab,
  * (and the current directory) */
 /* NOTE: allocates a new string! Don't forget to free it. */
 char *resolve_import(const char *module_name);
+
+/* Given an import declaration, import it into the current scope
+ * (prefixing qualified declaration as appropriate.) */
+ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab, AFuncRegistry *reg, AImportStmt *decl);

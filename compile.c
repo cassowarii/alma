@@ -229,26 +229,25 @@ ACompileStatus compile(AScope *scope, ASymbolTable *symtab, AFuncRegistry *reg,
     /* (We do this in a separate pass so that functions being defined can
      * refer to functions later without fear.) */
     while (current != NULL) {
+        ACompileStatus stat;
+
         if (current->type == func_decl) {
             /* Mark that the function will be compiled later. */
-            ACompileStatus stat = scope_placehold(scope, reg,
-                    current->data.func->sym, current->linenum);
-
-            if (stat == compile_fail) {
-                errors ++;
-            } else if (stat != compile_success) {
-                /* in the future, i will probably add another status and
-                 * forget to check for it here. future proofing */
-                fprintf(stderr, "internal error: unrecognized compile status %d in pass 1.\n", stat);
-                errors ++;
-            }
+            stat = scope_placehold(scope, reg, current->data.func->sym, current->linenum);
         } else if (current->type == import_decl) {
-            //AScope *module_scope = scope_new(scope);
-            char *filename = resolve_import(current->data.imp->module);
-            put_file_into_scope(filename, symtab, scope, reg);
-            free(filename);
+            stat = handle_import(scope, symtab, reg, current->data.imp);
         } else {
             fprintf(stderr, "internal error: unrecognized declnode type %d\n", current->type);
+            stat = compile_fail;
+        }
+
+        if (stat == compile_fail) {
+            errors ++;
+        } else if (stat != compile_success) {
+            /* in the future, i will probably add another status and
+             * forget to check for it here. future proofing */
+            fprintf(stderr, "internal error: unrecognized compile status %d in pass 1.\n", stat);
+            errors ++;
         }
 
         current = current->next;
@@ -256,7 +255,7 @@ ACompileStatus compile(AScope *scope, ASymbolTable *symtab, AFuncRegistry *reg,
 
     if (errors != 0) {
         /* If we accidentally defined two functions with the same name in the
-         * same scope, bail out now. */
+         * same scope, or if an import failed, bail out now. */
         return compile_fail;
     }
 

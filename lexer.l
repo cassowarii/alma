@@ -128,9 +128,6 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 "match"                 return T_MATCH;
 "end"                   return T_END;
 \\[\r\n]                ; // allow escaping newlines
-<IMPORT>"as"            { BEGIN(INITIAL); return T_AS; }
-<IMPORT>\|              return '|';
-<IMPORT>[\r\n]          return '\n';
 
   /* Special characters. */
 \{  |
