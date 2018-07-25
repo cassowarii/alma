@@ -80,10 +80,9 @@ ACompileStatus scope_placehold(AScope *sc, AFuncRegistry *reg, ASymbol *symbol, 
     return compile_success;
 }
 
-/* Register a new word into scope using the symbol ‘symbol’ as a key. */
-/* Used when defining stdilb/primitive functions, and when importing
- * functions into a scope. */
-ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
+/* Register a thing and maybe mark it as imported. Internal only. */
+static
+ACompileStatus scope_register_import_flag(AScope *sc, ASymbol *symbol, AFunc *func, int imported) {
     AScopeEntry *e = NULL;
     HASH_FIND_PTR(sc->content, &symbol, e);
 
@@ -95,9 +94,24 @@ ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
     /* create new entry */
     AScopeEntry *entry = scope_entry_new(symbol, func);
 
+    entry->imported = imported;
+
     /* 'sym' below is the field in the struct, not the variable 'symbol' here */
     HASH_ADD_PTR(sc->content, sym, entry);
     return compile_success;
+}
+
+/* Register a new word into scope using the symbol ‘symbol’ as a key. */
+/* Used when defining stdlib/primitive functions. */
+ACompileStatus scope_register(AScope *sc, ASymbol *symbol, AFunc *func) {
+    return scope_register_import_flag(sc, symbol, func, 0);
+}
+
+/* Register a new word into scope using the symbol ‘symbol’ as a key.
+ * Also marks the word as being imported (which means code importing the current module
+ * won't get it exported to them as well.) */
+ACompileStatus scope_import(AScope *sc, ASymbol *symbol, AFunc *func) {
+    return scope_register_import_flag(sc, symbol, func, 1);
 }
 
 /* Register a new user word into scope. Requires that scope_placehold was already called. */
@@ -119,6 +133,8 @@ ACompileStatus scope_user_register(AScope *sc, ASymbol *symbol, unsigned int fre
     e->func->data.userfunc->words = words;
     e->func->data.userfunc->free_var_index = free_index;
     e->func->data.userfunc->vars_below = vars_below;
+
+    e->imported = 0;
 
     return compile_success;
 }

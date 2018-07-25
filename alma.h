@@ -361,6 +361,9 @@ typedef struct AScopeEntry {
     AFunc *func;
     UT_hash_handle hh;
     unsigned int linenum;   // where was it declared?
+    int imported;           // was it imported? (shouldn't get imported transitively)
+        /* track this so that e.g. if B imports C.x and C.y, and A imports B,
+         * A shouldn't get those ones as B.C.x and B.C.y, bc that's extremely silly */
 } AScopeEntry;
 
 /* Struct representing a (possibly nested) lexical scope. */

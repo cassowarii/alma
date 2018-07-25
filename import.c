@@ -167,10 +167,12 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
      * prefixing them with the module name. */
     AScopeEntry *current, *tmp;
     HASH_ITER(hh, module_scope->content, current, tmp) {
-        ASymbol *prefixed_name = prefix_symbol(symtab, prefix, ".", current->sym);
-        ACompileStatus stat = scope_register(scope, prefixed_name, current->func);
-        if (stat == compile_success && decl->interactive) {
-            printf(" => %s\n", prefixed_name->name);
+        if (!current->imported) {
+            ASymbol *prefixed_name = prefix_symbol(symtab, prefix, ".", current->sym);
+            ACompileStatus stat = scope_import(scope, prefixed_name, current->func);
+            if (stat == compile_success && decl->interactive) {
+                printf("    => %s\n", prefixed_name->name);
+            }
         }
     }
 
