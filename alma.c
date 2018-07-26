@@ -18,7 +18,7 @@ const char *STDLIB_MODULE = "std";
 int main (int argc, char **argv) {
     ALMA_PATH = getenv("ALMA_PATH");
 
-    char *stdlibpath = resolve_import(STDLIB_MODULE);
+    char *stdlibpath = resolve_import(STDLIB_MODULE, 1);
 
     if (stdlibpath == NULL) {
         fprintf(stderr, "Couldn't find std.alma in ALMA_PATH, aborting.\n");
@@ -32,7 +32,7 @@ int main (int argc, char **argv) {
 
     AScope *libscope = comp.scope->parent;
 
-    ACompileStatus stdlib_stat = put_file_into_scope(stdlibpath, &symtab, comp.scope, comp.reg);
+    ACompileStatus stdlib_stat = put_file_into_scope(stdlibpath, &symtab, comp.scope->libscope, comp.reg);
 
     if (stdlib_stat == compile_fail) {
         fprintf(stderr, "Failed to initialize standard library! Aborting.\n");
