@@ -744,7 +744,6 @@ ADeclNode *parse_decl(AParseState *state) {
         if (ACCEPT(':')) {
             names = parse_nameseq_opt(state);
         }
-        EXPECT('\n');
         return ast_importdeclnode(line, just_string, module, as, names);
     } else if (EXPECT(T_FUNC)) {
         /* Mark we're inside a function now, so we can know to
