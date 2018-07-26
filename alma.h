@@ -42,6 +42,7 @@ typedef ASymbolMapping* ASymbolTable;
 typedef struct AUstr {
     unsigned int capacity;
     unsigned int length;
+    unsigned int byte_length;
     uint32_t *data;
 } AUstr;
 

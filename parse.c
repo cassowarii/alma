@@ -717,13 +717,13 @@ ADeclNode *parse_decl(AParseState *state) {
     unsigned int line = LINENUM;
     if (ACCEPT(T_IMPORT)) {
         /* syntax for imports e.g.:
-         *  import time         <- imports everything qualified with 'time'
+         *  import time         <- imports everything qualified with 'time' (from file 'time.alma')
          *  import json as J    <- imports everything qualified with 'J'
          *  import math: pi cos <- imports 'pi' and 'cos' from 'math' unqualified
          *  import math as M: pi cos <- imports 'pi' and 'cos' as 'M.pi' and 'M.cos' (sort of useless)
-         *  import "my-file.alma" <- imports everything unqualified (can't import libraries this way)
+         *  import "my-file.alma" <- imports a raw file name (incl. suffix)
          *  import "my-file.alma": func <- imports 'func' unqualified */
-        /* Note these libraries don't yet exist, haha. Just examples! */
+        /* Note these libraries don't yet exist. Just examples! */
         int just_string = 0;
         char *module;
         ASymbol *as = NULL;
@@ -731,19 +731,18 @@ ADeclNode *parse_decl(AParseState *state) {
         if (ACCEPT(WORD)) {
             /* we're importing something like the first 4 */
             module = state->currtok.value.cs;
-            if (ACCEPT(T_AS)) {
-                EXPECT(WORD);
-                as = get_symbol(state->symtab, state->currtok.value.cs);
-            }
-            if (ACCEPT(':')) {
-                names = parse_nameseq_opt(state);
-            }
         } else {
             /* we're importing a raw file */
-            /* TODO we have to turn the ustring back into a regular string ugh */
             EXPECT(STRING);
-            fprintf(stderr, "this part isn't done yet!\n");
-            return NULL;
+            module = ustr_unparse(state->currtok.value.s);
+            just_string = 1;
+        }
+        if (ACCEPT(T_AS)) {
+            EXPECT(WORD);
+            as = get_symbol(state->symtab, state->currtok.value.cs);
+        }
+        if (ACCEPT(':')) {
+            names = parse_nameseq_opt(state);
         }
         EXPECT('\n');
         return ast_importdeclnode(line, just_string, module, as, names);

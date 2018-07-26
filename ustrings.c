@@ -15,6 +15,7 @@ AUstr *ustr_new(size_t initial_size) {
     }
     newstr->capacity = initial_size;
     newstr->length = 0;
+    newstr->byte_length = 0;
     return newstr;
 }
 
@@ -140,6 +141,7 @@ AUstr *parse_string(const char *bytes, unsigned int length) {
      * bytes in the string. If it's less, the extra gets clipped off
      * at the end. */
     AUstr *newstr = ustr_new(length);
+    newstr->byte_length = length;
     if (newstr == NULL) {
         fprintf(stderr, "Couldn't allocate a new ustring.\n");
         return NULL;
@@ -179,6 +181,24 @@ AUstr *parse_string(const char *bytes, unsigned int length) {
     ustr_finish(newstr);
 
     return newstr;
+}
+
+/* Turn a ustring back into a char*. Allocates a new string. */
+char *ustr_unparse(AUstr *ustr) {
+    char *result = malloc(ustr->byte_length + 1);
+
+    int char_idx = 0;
+    for (int a = 0; a < ustr->length; a++) {
+        for (int i = 3; i >= 0; i--) {
+            char byte = (((unsigned)ustr->data[a] & (0xFF << (8 * i))) >> (8 * i));
+            if (byte != '\0') {
+                result[char_idx] = byte;
+                char_idx ++;
+            }
+        }
+    }
+    result[ustr->byte_length] = '\0';
+    return result;
 }
 
 /* Compare two ustrings to see if they're equal. */

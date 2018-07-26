@@ -34,7 +34,7 @@ ACompileStatus put_file_into_scope(const char *filename, ASymbolTable *symtab,
 /* Find the filename referred to by a module by searching ALMA_PATH
  * (and the current directory) */
 /* NOTE: allocates a new string! Don't forget to free it. */
-char *resolve_import(const char *module_name) {
+char *resolve_import(const char *module_name, int append_suffix) {
     char *tokiter = malloc(strlen(ALMA_PATH)+1);
     strcpy(tokiter, ALMA_PATH);
 
@@ -50,7 +50,7 @@ char *resolve_import(const char *module_name) {
         if (token[strlen(token)-1] != '/') {
             extra_slash = 1;
         }
-        if (strcmp(module_name + (strlen(module_name) - 5), ".alma") != 0) {
+        if (append_suffix && strcmp(module_name + (strlen(module_name) - 5), ".alma") != 0) {
             extra_extension = 5;
         }
 
@@ -145,7 +145,7 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
     }
 
     ACompileStatus result = compile_fail;
-    char *file_loc = resolve_import(filename);
+    char *file_loc = resolve_import(filename, !has_suffix);
     if (file_loc == NULL) {
         fprintf(stderr, "Couldn't find ‘%s’ anywhere in ALMA_PATH\n"
                 "(ALMA_PATH is: %s)\n", filename, ALMA_PATH);
@@ -168,9 +168,15 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
                 fprintf(stderr, "Error: couldn't import ‘%s’ from %s: no such word defined.\n",
                             curr->sym->name, file_loc);
             } else {
-                ACompileStatus stat = scope_import(scope, curr->sym, entry->func);
+                ASymbol *namesym = curr->sym;
+                if (decl->as) {
+                    /* Come up with a new prefix for it, if a prefix was specified. */
+                    namesym = prefix_symbol(symtab, decl->as->name, ".", curr->sym);
+                }
+
+                ACompileStatus stat = scope_import(scope, namesym, entry->func);
                 if (stat == compile_success && decl->interactive) {
-                    printf("    => %s\n", curr->sym->name);
+                    printf("    => %s\n", namesym->name);
                 }
             }
             curr = curr->next;
@@ -178,11 +184,21 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
     } else {
         /* Move all the (non-imported) functions from module scope into our scope,
          * prefixing them with the module name. */
-        char *prefix = extract_mod_prefix(decl->module, has_suffix);
+        char *prefix;
+        if (decl->as) {
+            prefix = decl->as->name;
+        } else {
+            prefix = extract_mod_prefix(decl->module, has_suffix);
+        }
         AScopeEntry *current, *tmp;
         HASH_ITER(hh, module_scope->content, current, tmp) {
             if (!current->imported) {
-                ASymbol *prefixed_name = prefix_symbol(symtab, prefix, ".", current->sym);
+                ASymbol *prefixed_name;
+                if (prefix) {
+                    prefixed_name = prefix_symbol(symtab, prefix, ".", current->sym);
+                } else {
+                    prefixed_name = current->sym;
+                }
                 ACompileStatus stat = scope_import(scope, prefixed_name, current->func);
                 if (stat == compile_success && decl->interactive) {
                     printf("    => %s\n", prefixed_name->name);
@@ -190,7 +206,10 @@ ACompileStatus handle_import (AScope *scope, ASymbolTable *symtab,
             }
         }
 
-        free(prefix);
+        if (!decl->as) {
+            /* don't free if 'as' because then it's attached to a symbol */
+            free(prefix);
+        }
     }
     free(file_loc);
 

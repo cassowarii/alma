@@ -32,6 +32,9 @@ uint32_t char_parse(const char *utf8, unsigned int length);
 /* Parse a const char * into an AUstr using char_parse */
 AUstr   *parse_string(const char *bytes, unsigned int length);
 
+/* Turn a ustring back into a char*. Allocates a new string. */
+char *ustr_unparse(AUstr *ustr);
+
 /* Compare two ustrings to see if they're equal. */
 int ustr_eq(AUstr *str1, AUstr *str2);
 
