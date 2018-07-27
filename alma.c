@@ -7,21 +7,22 @@
 #include "compile.h"
 #include "registry.h"
 
+#define STDLIB_MODULE "std"
+
 ACompileAllocation initialize_compilation(ASymbolTable *symtab);
 ACompileStatus compile_file(ADeclSeqNode *program, ASymbolTable symtab,
         AScope *scope, AFuncRegistry *reg);
 AFunc *finalize_compilation(AScope *scope, ASymbolTable symtab, AFuncRegistry *reg);
 int run_main(AFunc *mainfunc);
 
-const char *STDLIB_MODULE = "std";
-
 int main (int argc, char **argv) {
+    /* Import standard library. */
     ALMA_PATH = getenv("ALMA_PATH");
 
     char *stdlibpath = resolve_import(STDLIB_MODULE, 1);
 
     if (stdlibpath == NULL) {
-        fprintf(stderr, "Couldn't find std.alma in ALMA_PATH, aborting.\n");
+        fprintf(stderr, "Couldn't find "STDLIB_MODULE".alma in ALMA_PATH, aborting.\n");
         fprintf(stderr, "(ALMA_PATH is: %s)\n", ALMA_PATH);
         exit(1);
     }
