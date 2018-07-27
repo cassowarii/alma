@@ -8,7 +8,7 @@ func gcd [ if*: [0 =] [drop] [swap over mod gcd] ]
 
 # The least common multiple is the product of
 # two numbers divided by their GCD.
-func lcm [ '* 'gcd '/ dfork ]
+func lcm [ '* 'gcd '/ 2fork ]
 
 # Find the LCM of all integers ≤ a given value.
 func lcm-up-to [ iota 1 [lcm] fold ]

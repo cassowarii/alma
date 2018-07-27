@@ -5,10 +5,9 @@ func nip [ swap drop ]
 func 2drop [ drop drop ]
 func 2>>2 [ 'dip dip apply ]
 func bi [ 2>>2 ]
-func 2fork [ 'bi dip apply ]
-func a b f g h dfork [ a b f apply a b g apply h apply ]
-func fork [ 'dup 3dip 2fork ]
-func 2hook [ '[] 2dip 2fork ]
+func a b f g h 2fork [ a b f apply a b g apply h apply ]
+func fork [ 'dup 3dip 'bi dip apply ]
+func 2hook [ '[] 2dip 'bi dip apply ]
 func hook [ [dup] 2dip 2hook ]
 func save [ 'dup dip dip ]
 func neg [ -1 * ]
@@ -44,7 +43,7 @@ func f fold [ swap; while*: [empty not] [uncons f dip]; drop ]
 
 # Recursive elegant versions for when we replace the call stack with an in-memory thing?
 func p recfilter [ when*: [empty not] [ shift; [p filter] dip; if*: p [&] [drop] ] ]
-func f recmap [ when*: [empty not] [unappend '(f map) '(f apply) 'append 2fork] ]
+func f recmap [ when*: [empty not] [unappend '(f map) '(f apply) bi append] ]
 
 func pred gen list-iter-upto [ while*: [pred apply not] gen ]
 func pred gen list-iter-while [ while*: pred gen; >> drop ]
@@ -78,14 +77,14 @@ func val funcs apply-all [ funcs [val swap apply] map ]
 # Short-circuiting version... kinda unreadable but
 # our concern is efficiency
 func satisfies-any [
-    0; while**: ['(empty not) 'not 'and 2fork] [
+    0; while**: ['(empty not) 'not bi and] [
         drop 'dup dip uncons 'apply dip swap
     ]
     '2drop dip
 ]
 
 func satisfies-all [
-    1; while**: ['(empty not) '() 'and 2fork] [
+    1; while**: ['(empty not) dip and] [
         drop 'dup dip uncons 'apply dip swap
     ]
     '2drop dip
