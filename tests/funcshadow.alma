@@ -5,6 +5,8 @@ func main [
         use
             func x [ 10 ]
         in
-            (x)
+            x
+        end
+    end
 ]
 

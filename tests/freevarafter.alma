@@ -12,6 +12,8 @@ func generate [
         use
             func b [[f]]
             func f [a]
-        in (b)
+        in
+            (b)
+        end
     )
 ]

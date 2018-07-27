@@ -544,7 +544,7 @@ AAstNode *parse_cmplx_word(AParseState *state) {
             return NULL;
         }
     } else if (ACCEPT(T_USE)) {
-        /* Mark that we're inside the 'let..in' for interactive mode
+        /* Mark that we're inside the 'use..in' for interactive mode
          * so we can ask for more lines. */
         state->inlets ++;
         ADeclSeqNode *decls = parse_declseq(state);
@@ -557,30 +557,17 @@ AAstNode *parse_cmplx_word(AParseState *state) {
         state->inlets --;
 
         eat_newlines(state);
-        /* We only allow a cmplx_word to be the subject of a let..in,
+        /* We only allow a cmplx_word to be the subject of a use..in,
          * because allowing single words is kind of bizarre:
-         * cf. "let func x: 0 in y x" fails because only y is in the
-         * scope of the let. By only permitting cmplx_words here,
-         * we force let-blocks that have plain words as their scope
+         * cf. "use func x: 0 in y x" fails because only y is in the
+         * scope of the use. By only permitting cmplx_words here,
+         * we force use-blocks that have plain words as their scope
          * to use parentheses. */
-        if (complex_word_leadin(state->nexttok.id)) {
-            AAstNode *content = parse_cmplx_word(state);
-            if (content != NULL) {
-                return ast_letnode(line, decls, unwrap_node(content));
-            } else {
-                return NULL;
-            }
-        } else if (state->nexttok.id == WORD) {
-            /* This means it was something like "let func c: 3 in c", which due
-             * to the above rule is illegal and should instead be "let func c: 3 in (c)". */
-            fprintf(stderr, "Syntax error at line %d: let-block cannot be scoped over "
-                            "the single word ‘%s’.\n", LINENUM, state->nexttok.value.cs);
-            fprintf(stderr, "Parentheses are required around the scope of the ‘let’; "
-                            "should be ‘let ... in (%s)’.\n", state->nexttok.value.cs);
-            state->errors ++;
-            return NULL;
+        AWordSeqNode *content = parse_block_guts(state);
+        EXPECT(T_END);
+        if (content != NULL) {
+            return ast_letnode(line, decls, content);
         } else {
-            /* Something wacky is going on, but we'll probably catch it up above? */
             return NULL;
         }
     } else {
