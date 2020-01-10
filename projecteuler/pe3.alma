@@ -5,7 +5,7 @@ func n crappy-sqrt:  1 | while*: [dup * n <] [incr] ;
 func divides:  swap multiple ;
 
 # Find the maximum (positive) integer in a list.
-func max-of-list:  0 [max] fold ] # should really be -Inf [max] fold
+func max-of-list:  0 [max] fold ; # should really be -Inf [max] fold
 
 # Given a list of integers, check whether a given integer is a multiple of any of them.
 func multiple-of-any:  'multiple curry-all satisfies-any ;
