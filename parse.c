@@ -437,6 +437,21 @@ AWordSeqNode *parse_block_guts(AParseState *state) {
 
 AAstNode *parse_word(AParseState *state);
 
+/* Check whether we're inside any type of construct,
+ * or whether we're at top level. (applies during
+ * interactive mode, where we can type commands directly
+ * into the prompt without wrapping them in a function,
+ * since all commands must be inside a function if we're
+ * running a file. */
+static
+int inside_any(AParseState *state) {
+    return state->nested_parens
+        || state->nested_brackets
+        || state->nested_curlies
+        || state->inlets
+        || state->infuncs;
+}
+
 /* Parse something that's counts as a single 'word', but
  * doesn't consist of just a name. Includes values,
  * parenthesized dealies, blocks, and let-nodes. */
@@ -467,7 +482,16 @@ AAstNode *parse_cmplx_word(AParseState *state) {
                 return bind;
             }
             return NULL;
-        } else if (ACCEPT(';') || ACCEPT('\n')) {
+        } else if (state->interactive && !inside_any(state) && ACCEPT('\n')) {
+            /* Don't allow '\n'-type bindings when in interactive mode
+             * if we're in interactive mode and not inside any other
+             * constructs, because we have no way of knowing when to
+             * close their scope. */
+            fprintf(stderr, "error: Cannot use a bare binding at top-level in interactive mode, ");
+            fprintf(stderr, "since its scope will never end.\n");
+            fprintf(stderr, "       Consider wrapping the line in parentheses, instead.\n");
+            return NULL;
+        } else if (ACCEPT('|') || ACCEPT('\n')) {
             /* The rest of the tokens will be implicitly subsumed
              * into the scope of this bind. This is just syntactic
              * sugar, so we don't have to add a superfluous set of
