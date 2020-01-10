@@ -1,1 +1,1 @@
-func main [ 1 { } cons ]
+func main: 1 { } cons ;

@@ -1,12 +1,11 @@
-func main [
+func main:
     use
-        func x [ 2 ]
+        func x: 2 ;
     in
         use
-            func x [ 10 ]
+            func x: 10 ;
         in
             x
         end
     end
-]
-
+;

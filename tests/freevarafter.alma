@@ -5,15 +5,15 @@
 # If looking at github issue #5, this is a
 # good test file
 
-func main [ generate apply ]
+func main: generate apply ;
 
-func generate [
+func generate:
     2 → a (
         use
-            func b [[f]]
-            func f [a]
+            func b: [f] ;
+            func f: a ;
         in
             (b)
         end
     )
-]
+;

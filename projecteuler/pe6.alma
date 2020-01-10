@@ -1,10 +1,11 @@
 # Find the sum of the squares of a list.
-func sum-squares [ [dup *] map sum ]
+func sum-squares:  [dup *] map sum ;
 
 # Find the square of the sum of a list.
-func square-sum [ sum dup * ]
+func square-sum:  sum dup * ;
 
 # Find the difference between the two.
-func square-diff [ 'square-sum 'sum-squares '- fork ]
+func square-diff:  'square-sum 'sum-squares '- fork ;
 
-func main [ 100 iota square-diff say ]
+func main:  100 iota square-diff say ;
+

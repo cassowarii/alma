@@ -1,21 +1,21 @@
 # 99 Bottles of Beer
 
 # prints correct pluralization of bottles, leaves number on stack
-func bottle/s [
+func bottle/s:
     " bottle" print
     when*: [1 ≠] ["s" print]
     " " print
-]
+;
 
 # prints "X bottle(s) " or "No more bottles " if 0, leaves number on stack
-func quantified-bottles [
+func quantified-bottles:
     if*: [0 >] [dup] ["No more"]
     print
     bottle/s
-]
+;
 
 # int → , sings the song for n verses
-func n bottles-of-beer [
+func n bottles-of-beer:
     n
     while*: [0 ≥] [
         quantified-bottles "of beer on the wall" say
@@ -32,6 +32,6 @@ func n bottles-of-beer [
         ]
     ]
     drop
-]
+;
 
-func main [ 99 bottles-of-beer ]
+func main: 99 bottles-of-beer ;

@@ -1,24 +1,24 @@
-func comp sort-one [
+func comp sort-one:
     shift -> first
     [first append]
     if: [first comp apply] [2dip] [dip]
-]
+;
 
-func comp partition [
+func comp partition:
     [{} {}] dip
     while*: [empty not] [comp sort-one]
     drop
-]
+;
 
-func quicksort [
+func quicksort:
     when*: [small not] [
         shift -> pivot
         [pivot <] partition
-        'quicksort [quicksort pivot &] bi '++
+        'quicksort bi@ pivot swap cons concat
     ]
-]
+;
 
-func main [
+func main:
     # Sort random numbers from 1 to 10
     { 3, 1, 6, 4, 10, 2, 5, 9, 8, 7 } quicksort say
 
@@ -33,4 +33,5 @@ func main [
        1,  7, 30, 71, 97, 38, 78, 11, 91, 50,
       82, 93, 36, 68, 14,  8, 37, 42, 39,  9,
       35, 12, 67, 13, 52, 89, 83,  2, 99, 16 } quicksort say
-]
+;
+

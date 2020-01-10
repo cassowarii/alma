@@ -1,2 +1,2 @@
-func main [ 4 5 + ]
-func also [ 9 9 9 + + ]
+func main: 4 5 + ;
+func also: 9 9 9 + + ;

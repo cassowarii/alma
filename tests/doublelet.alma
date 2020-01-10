@@ -1,9 +1,9 @@
-func main [
-    use func sum [ + ]
+func main:
+    use func sum: + ;
     in
-        use func 4sum [ dip: [dip: [sum]] ; sum sum ]
+        use func 4sum: dip: [dip: [sum]] | sum sum ;
         in
             3 4 5 6 4sum
         end
     end
-]
+;

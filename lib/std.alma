@@ -1,91 +1,97 @@
-func 2dup [ over over ]
-func 2dip [ swap 'dip dip ]
-func 3dip [ swap '2dip dip ]
-func nip [ swap drop ]
-func 2drop [ drop drop ]
-func 2>>2 [ 'dip dip apply ]
-func bi [ 2>>2 ]
-func a b f g h 2fork [ a b f apply a b g apply h apply ]
-func fork [ 'dup 3dip 'bi dip apply ]
-func 2hook [ '[] 2dip 'bi dip apply ]
-func hook [ [dup] 2dip 2hook ]
-func save [ 'dup dip dip ]
-func neg [ -1 * ]
-func abs [ 'neg 'max hook ]
+func 2dup: over over ;
+func 2dip: swap 'dip dip ;
+func 3dip: swap '2dip dip ;
+func nip: swap drop ;
+func 2drop: drop drop ;
+func 2>>: 'dup 2dip 'dip dip apply ;
+func 2>>2: 'dip dip apply ;
+func >>2: dup 2>>2 ;
+func bi: 2>> ;
+func bi*: 2>>2 ;
+func bi@: >>2 ;
+func a b f g h 2fork: a b f apply a b g apply h apply ;
+func fork: 'bi dip apply ;
+func 2hook: '[] 2dip 'bi* dip apply ;
+func hook: [dup] 2dip 2hook ;
+func save: 'dup dip dip ;
+func neg: -1 * ;
+func abs: 'neg 'max hook ;
 
-func >> [ unappend ]
-func << [ append ]
-func empty [ len 0 = ]
-func small [ len 1 ≤ ]
-func ++ [ if*: [empty] [drop] [unappend '++ dip append] ]
-func & [ swap cons ]
+func empty: len 0 = ;
+func small: len 1 ≤ ;
+func concat: if*: [empty] [drop] [unappend 'concat dip append] ;
+func put-front: swap cons ;
 
-func or [ + ] # TODO: replace this when we have real booleans
-func and [ * ] # same as above
-func both [ 'and fork ]
-func either [ 'or fork ]
+func or: + ; # TODO: replace this when we have real booleans
+func and: * ; # same as above
+func both: 'and fork ;
+func either: 'or fork ;
 
-func when [ [ ] if ]
-func when* [ [ ] if* ]
+func when: [ ] if ;
+func when*: [ ] if* ;
 
-func a b C T E if** [ if: [a b C apply] [a b T apply] [a b E apply] ]
-func a b C T when** [ if: [a b C apply] [a b T apply] [a b] ]
-func C B while** [ while: [2dup C 2dip rot] [B apply] ]
+func a b C T E if**: if: [a b C apply] [a b T apply] [a b E apply] ;
+func a b C T when**: if: [a b C apply] [a b T apply] [a b] ;
+func C B while**: while: [2dup C 2dip rot] [B apply] ;
 
-func incr [ 1 + ]
-func decr [ 1 - ]
-func factorial [ if*: [0 =] [drop 1] ['(decr factorial) '* hook] ]
-func multiple [mod 0 =]
+func incr: 1 + ;
+func decr: 1 - ;
+func factorial: if*: [0 =] [drop 1] ['(decr factorial) '* hook] ;
+func multiple: mod 0 = ;
 
-func f map [ '{} dip; while*: [empty not] [>> f apply swap '& dip]; drop ]
-func p filter [ '{} dip; while*: [empty not] [>>; if*: p [swap '& dip] [drop]]; drop ]
-func f fold [ swap; while*: [empty not] [uncons f dip]; drop ]
+func f map: '{} dip | while*: [empty not] [unappend f apply swap 'put-front dip] | drop ;
+func p filter: '{} dip | while*: [empty not] [unappend | if*: p [swap 'put-front dip] [drop]] | drop ;
+func f fold: swap | while*: [empty not] [uncons f dip] | drop ;
 
 # Recursive elegant versions for when we replace the call stack with an in-memory thing?
-func p recfilter [ when*: [empty not] [ shift; [p filter] dip; if*: p [&] [drop] ] ]
-func f recmap [ when*: [empty not] [unappend '(f map) '(f apply) bi append] ]
+func p recfilter: when*: [empty not] [ shift | [p filter] dip | if*: p [put-front] [drop] ] ;
+func f recmap: when*: [empty not] [unappend '(f map) '(f apply) bi* append] ;
 
-func pred gen list-iter-upto [ while*: [pred apply not] gen ]
-func pred gen list-iter-while [ while*: pred gen; >> drop ]
-func pred gen list-iter-until [ [pred apply not] gen list-iter-while ]
+func pred gen list-iter-upto: while*: [pred apply not] gen ;
+func pred gen list-iter-while: while*: pred gen | unappend drop ;
+func pred gen list-iter-until: [pred apply not] gen list-iter-while ;
 
-func pred gen iter-upto [ {} cons; [last pred apply] [dup last gen apply <<] list-iter-upto ]
-func pred gen iter-while [ {} cons; [last pred apply] [dup last gen apply <<] list-iter-while ]
-func pred gen iter-until [ [pred apply not] gen iter-while ]
+func pred gen iter-upto: {} cons | [last pred apply] [dup last gen apply append] list-iter-upto ;
+func pred gen iter-while: {} cons | [last pred apply] [dup last gen apply append] list-iter-while ;
+func pred gen iter-until: [pred apply not] gen iter-while ;
 
-func sum [ 0 [+] fold ]
-func product [ 1 [*] fold ]
+func sum: 0 [+] fold ;
+func product: 1 [*] fold ;
 
-func n iota [ 1; iter-until: [n >] [incr] ]
-func n range [ 0; iter-while: [n <] [incr] ]
+func n iota: 1 | iter-until: [n >] [incr] ;
+func n range: 0 | iter-while: [n <] [incr] ;
 
-func lo hi range-ends [ if: [lo hi <] [lo; iter-while: [hi <] [incr]] [{}] ]
-func range-from [ swap range-ends ]
+func lo hi range-ends: if: [lo hi <] [lo | iter-while: [hi <] [incr]] [{}] ;
+func range-from: swap range-ends ;
 
-func shift [ uncons swap ]
+func shift: uncons swap ;
 
-func max [ if**: [>] 'drop 'nip ]
-func min [ if**: [<] 'drop 'nip ]
+func max: if**: [>] 'drop 'nip ;
+func min: if**: [<] 'drop 'nip ;
 
-func a quote [ 'a ]
-func arg blk curry [ [ arg blk apply ] ]
-func f curry-all [ [f curry] map ]
-func a b compose [ [ a apply b apply ] ]
+func a quote: 'a ;
+func arg blk curry: [ arg blk apply ] ;
+func f curry-all: [f curry] map ;
+func a b compose: [ a apply b apply ] ;
 
-func val funcs apply-all [ funcs [val swap apply] map ]
+func val funcs apply-all: funcs [val swap apply] map ;
 
 # Short-circuiting version... kinda unreadable but
 # our concern is efficiency
-func satisfies-any [
-    0; while**: ['(empty not) 'not bi and] [
+func satisfies-any:
+    0 | while**: ['(empty not) 'not bi* and] [
         drop 'dup dip uncons 'apply dip swap
     ]
     '2drop dip
-]
+;
 
-func satisfies-all [
-    1; while**: ['(empty not) dip and] [
+func satisfies-all:
+    1 | while**: ['(empty not) dip and] [
         drop 'dup dip uncons 'apply dip swap
     ]
     '2drop dip
-]
+;
+
+func ?: rot rot if ;
+func ?*: rot rot if* ;
+

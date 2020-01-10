@@ -1,3 +1,3 @@
-func concat [ if*: [len 0 =] [drop] [unappend [concat] dip append] ]
+func concat: if*: [len 0 =] [drop] [unappend [concat] dip append] ;
 
-func main [ {1, 2, 3} {4, 5, 6} concat ]
+func main: {1, 2, 3} {4, 5, 6} concat ;

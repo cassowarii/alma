@@ -1,26 +1,27 @@
 # Find the integer square root but we don't have a sqrt function yet
-func n crappy-sqrt [ 1; while*: [dup * n <] [incr] ]
+func n crappy-sqrt:  1 | while*: [dup * n <] [incr] ;
 
 # a b divides -> does a divide b?
-func divides [ swap multiple ]
+func divides:  swap multiple ;
 
 # Find the maximum (positive) integer in a list.
-func max-of-list [ 0 [max] fold ] # should really be -Inf [max] fold
+func max-of-list:  0 [max] fold ] # should really be -Inf [max] fold
 
 # Given a list of integers, check whether a given integer is a multiple of any of them.
-func multiple-of-any [ 'multiple curry-all satisfies-any ]
+func multiple-of-any:  'multiple curry-all satisfies-any ;
 
 # Find the possible prime factors of a number n (2..sqrt n).
-func n prime-candidates [ range-ends: 2 n crappy-sqrt ]
+func n prime-candidates:  range-ends: 2 n crappy-sqrt ;
 
 # Check whether a number is prime (i.e. it's not 1 and it's not a multiple of
 # any of the 'prime candidates' below it.)
-func prime? [ if*: [1 =] [drop 0] [dup prime-candidates multiple-of-any not] ]
+func prime?:  if*: [1 =] [drop 0] [dup prime-candidates multiple-of-any not] ;
 
 # Find the prime factors of a number n
-func n prime-factors [ n prime-candidates [n divides] filter 'prime? filter ]
+func n prime-factors:  n prime-candidates [n divides] filter 'prime? filter ;
 
 # Find the largest prime factor of a number.
-func largest-prime-factor [ prime-factors max-of-list ]
+func largest-prime-factor:  prime-factors max-of-list ;
 
-func main [ 600851475143 largest-prime-factor say ]
+func main:  600851475143 largest-prime-factor say ;
+

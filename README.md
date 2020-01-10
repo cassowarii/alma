@@ -18,30 +18,30 @@ Simple examples
 ---------------
 
 ```
-func main [ "Hello world!" say ]
+func main: "Hello world!" say ;
 ```
 This program prints "Hello world!" to the console, followed by a newline.
 
 ```
-func comp sort-one [
+func comp sort-one:
     shift -> first
     [first append]
     if: [first comp apply] [2dip] [dip]
-]
+;
 
-func comp partition [
+func comp partition:
     [{} {}] dip
     while*: [empty not] [comp sort-one]
     drop
-]
+;
 
-func quicksort [
+func quicksort:
     when*: [small not] [
         shift -> pivot
         [pivot <] partition
-        [quicksort pivot append] [quicksort] bi ++
+        [quicksort pivot append] [quicksort] bi* ++
     ]
-]
+;
 ```
 This implements the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
 algorithm.

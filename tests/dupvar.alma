@@ -1,4 +1,4 @@
-func main [
+func main:
     4 5
     → a a (a say)
-]
+;

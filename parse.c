@@ -5,11 +5,11 @@
  *
  *      program     ::= declseq EOF
  *      declseq     ::= ø | decl declseq
- *      decl*       ::= "func" names name block
+ *      decl*       ::= "func" names name ":" words ";"
  *                    | "import" string ["as" name]
  *      names       ::= ø | names name
  *      words       ::= word-line | words separator word-line
- *      separator   ::= ";" | "\n"
+ *      separator   ::= "|" | "\n"
  *      word-line   ::= {{word}* ":"}*
  *      word        ::= name | cmplx-word
  *      cmplx-word  ::= literal | list | block
@@ -60,7 +60,7 @@ void fprint_token_type(FILE *out, ATokenType type) {
         case T_AS:
             fprintf(out, "‘as’"); break;
         case T_USE:
-            fprintf(out, "‘let’"); break;
+            fprintf(out, "‘use’"); break;
         case T_BIND:
             fprintf(out, "‘->’"); break;
         case T_FUNC:
@@ -237,7 +237,7 @@ int is_literal_type(ATokenType type) {
  * 'things that were expected'? */
 static
 int hide_try(ATokenType type) {
-    return (type == ';' || type == ':' || type == '\n');
+    return (type == '|' || type == ':' || type == '\n');
 }
 
 /* Move to the next token and return true
@@ -411,9 +411,9 @@ ANameSeqNode *parse_nameseq_opt(AParseState *state) {
     return result;
 }
 
-/* Parse either a ';' or a newline. Doesn't matter which. */
+/* Parse either a '|' or a newline. Doesn't matter which. */
 int parse_separator(AParseState *state) {
-    if (ACCEPT(';')) {
+    if (ACCEPT('|')) {
         return 1;
     } else if (ACCEPT('\n')) {
         return 1;
@@ -529,7 +529,15 @@ AAstNode *parse_cmplx_word(AParseState *state) {
          * Okay, maybe for lisp reasons. */
         AAstNode *inner_word = parse_word(state);
         AWordSeqNode *block_contents;
-        if (inner_word->type == paren_node) {
+        if (inner_word == &nonword || state->nexttok.id == '|') {
+            state->errors ++;
+            fprintf(stderr, "Syntax error at line %d: ‘'’ token cannot occur at the end of line or construct\n", LINENUM);
+            return NULL;
+        } else if (inner_word == NULL) {
+            /* we might have typed ''''' at the end of a line, or there's a syntax error
+             * inside the things we quoted */
+            return NULL;
+        } else if (inner_word->type == paren_node) {
             block_contents = inner_word->data.inside;
             free(inner_word);
         } else {
@@ -686,7 +694,7 @@ AWordSeqNode *parse_interactive_words(AParseState *state) {
         }
         ast_wordseq_concat(result, line);
         free(line);
-    } while (ACCEPT(';'));
+    } while (ACCEPT('|'));
 
     if (!EXPECT('\n')) {
         PANIC('\n');
@@ -750,11 +758,11 @@ ADeclNode *parse_decl(AParseState *state) {
         AWordSeqNode *body = NULL;
 
         /* func body */
-        EXPECT('[');
+        EXPECT(':');
 
         body = parse_block_guts(state);
 
-        EXPECT_MATCH('[', ']');
+        EXPECT(';');
 
         if (body == NULL) {
             state->infuncs --;
@@ -769,7 +777,7 @@ ADeclNode *parse_decl(AParseState *state) {
             free_nameseq_node(params);
             return ast_funcdeclnode(line, name, body);
         } else {
-            /* Convert func name a b: words ; to func name: -> a b (words) ; */
+            /* Convert func a b name: words ; to func name: -> a b (words) ; */
             AWordSeqNode *param_wrapper = ast_wordseq_new();
             ast_wordseq_prepend(param_wrapper, ast_bindnode(params->first->linenum, params, body));
             return ast_funcdeclnode(line, name, param_wrapper);
@@ -832,7 +840,7 @@ ADeclSeqNode *parse_file(FILE *infile, ASymbolTable *symtab) {
         0,          /* current index into string */
         NULL,       /* Prompt #1 */
         NULL,       /* Prompt #2 */
-        0,          /* Nested let..in */
+        0,          /* Nested use..in */
         0,          /* Nested function decls */
         0,          /* Nested comments */
         0,          /* Nested ( ) */
