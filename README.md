@@ -46,4 +46,18 @@ func quicksort:
 This implements the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
 algorithm.
 
+We can also implement the Sieve of Eratosthenes in under 10 lines:
+```
+func sieve:
+    -> n ({} n iota shift drop)
+    while*: [empty not] [
+        shift -> prime
+        [prime append]
+        [[prime multiple not] filter]
+        2>>2
+    ]
+    drop
+;
+```
+
 Check out the `examples/` directory for a few more examples.

@@ -1,0 +1,12 @@
+func sieve:
+    -> n ({} n iota shift drop)
+    while*: [empty not] [
+        shift -> prime
+        [prime append]
+        [[prime multiple not] filter]
+        2>>2
+    ]
+    drop
+;
+
+func main: 5000 sieve say ;
