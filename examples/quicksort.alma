@@ -14,7 +14,9 @@ func quicksort:
     when*: [small not] [
         shift -> pivot
         [pivot <] partition
-        'quicksort bi@ pivot swap cons concat
+        'quicksort to-both
+        pivot prefix
+        concat
     ]
 ;
 
