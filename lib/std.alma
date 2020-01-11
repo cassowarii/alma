@@ -3,24 +3,32 @@ func 2dip: swap 'dip dip ;
 func 3dip: swap '2dip dip ;
 func nip: swap drop ;
 func 2drop: drop drop ;
+
+func save: 'dup dip dip ;
+
 func 2>>: 'dup 2dip 'dip dip apply ;
 func 2>>2: 'dip dip apply ;
 func >>2: dup 2>>2 ;
+# TODO: we should add some kind of alias feature
+# to avoid this indirection for multi-named
+# functions (or just settle on one name for them, yeesh)
 func bi: 2>> ;
 func bi*: 2>>2 ;
 func bi@: >>2 ;
+func to-both: >>2 ;
+
 func a b f g h 2fork: a b f apply a b g apply h apply ;
 func fork: 'bi dip apply ;
 func 2hook: '[] 2dip 'bi* dip apply ;
 func hook: [dup] 2dip 2hook ;
-func save: 'dup dip dip ;
+
 func neg: -1 * ;
 func abs: 'neg 'max hook ;
 
 func empty: len 0 = ;
-func small: len 1 ≤ ;
 func concat: if*: [empty] [drop] [unappend 'concat dip append] ;
-func put-front: swap cons ;
+func prefix: swap cons ;
+func unshift: swap cons ;
 
 func or: + ; # TODO: replace this when we have real booleans
 func and: * ; # same as above
@@ -39,12 +47,12 @@ func decr: 1 - ;
 func factorial: if*: [0 =] [drop 1] ['(decr factorial) '* hook] ;
 func multiple: mod 0 = ;
 
-func f map: '{} dip | while*: [empty not] [unappend f apply swap 'put-front dip] | drop ;
-func p filter: '{} dip | while*: [empty not] [unappend | if*: p [swap 'put-front dip] [drop]] | drop ;
+func f map: '{} dip | while*: [empty not] [unappend f apply swap 'prefix dip] | drop ;
+func p filter: '{} dip | while*: [empty not] [unappend | if*: p [swap 'prefix dip] [drop]] | drop ;
 func f fold: swap | while*: [empty not] [uncons f dip] | drop ;
 
 # Recursive elegant versions for when we replace the call stack with an in-memory thing?
-func p recfilter: when*: [empty not] [ shift | [p filter] dip | if*: p [put-front] [drop] ] ;
+func p recfilter: when*: [empty not] [ shift | [p filter] dip | if*: p [prefix] [drop] ] ;
 func f recmap: when*: [empty not] [unappend '(f map) '(f apply) bi* append] ;
 
 func pred gen list-iter-upto: while*: [pred apply not] gen ;

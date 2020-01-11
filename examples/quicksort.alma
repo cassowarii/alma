@@ -11,10 +11,12 @@ func comp partition:
 ;
 
 func quicksort:
-    when*: [small not] [
+    when*: [len 1 >] [
         shift -> pivot
         [pivot <] partition
-        'quicksort bi@ pivot swap cons concat
+        'quicksort to-both
+        pivot prefix
+        concat
     ]
 ;
 
