@@ -60,7 +60,7 @@ typedef enum {
     T_AS,
     T_USE,
     T_BIND,
-    T_FUNC,
+    T_DEF,
     T_IN,
     T_MATCH,
     T_END,

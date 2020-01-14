@@ -123,7 +123,7 @@ IDONECH [^{}[\]()\"\' \t\n,;]|{UONLY}
 "import"                BEGIN(IMPORT); return T_IMPORT;
 "use"                   return T_USE;
 ->|→                    return T_BIND;
-"def"                   return T_FUNC;
+"def"                   return T_DEF;
 "in"                    return T_IN;
 "match"                 return T_MATCH;
 "end"                   return T_END;

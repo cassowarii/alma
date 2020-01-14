@@ -63,7 +63,7 @@ void fprint_token_type(FILE *out, ATokenType type) {
             fprintf(out, "‘use’"); break;
         case T_BIND:
             fprintf(out, "‘->’"); break;
-        case T_FUNC:
+        case T_DEF:
             fprintf(out, "‘def’"); break;
         case T_IN:
             fprintf(out, "‘in’"); break;
@@ -332,7 +332,7 @@ void do_expect_match(ATokenType match, ATokenType type, unsigned int line, APars
 /* Check if the token could represent the
  * beginning of a declaration. */
 int decl_leadin(ATokenType id) {
-    return (id == T_FUNC || id == T_IMPORT);
+    return (id == T_DEF || id == T_IMPORT);
 }
 
 /* Check if the token could represent the
@@ -764,7 +764,7 @@ ADeclNode *parse_decl(AParseState *state) {
             names = parse_nameseq_opt(state);
         }
         return ast_importdeclnode(line, just_string, module, as, names);
-    } else if (EXPECT(T_FUNC)) {
+    } else if (EXPECT(T_DEF)) {
         /* Mark we're inside a function now, so we can know to
          * ask for more lines in interactive mode. */
         state->infuncs ++;
@@ -943,9 +943,6 @@ void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
         state.beginning_line = 0;
         if (decl_leadin(state.nexttok.id)) {
             ADeclNode *result = parse_decl(&state);
-            if (result->type == import_decl) {
-                result->data.imp->interactive = 1;
-            }
             if (state.errors != 0 || result == NULL) {
                 /* If syntax error, reset */
                 state = initial_state;
@@ -958,6 +955,10 @@ void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
                  * rewrite them to fix. */
                 if (result->type == func_decl) {
                     scope_delete(scope, result->data.func->sym);
+                }
+
+                if (result->type == import_decl) {
+                    result->data.imp->interactive = 1;
                 }
 
                 ADeclSeqNode *program = ast_declseq_new();
