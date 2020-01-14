@@ -1,11 +1,11 @@
-func main:
+def main (
     use
-        func x: 2 ;
+        def x 2
     in
         use
-            func x: 10 ;
+            def x 10
         in
             x
         end
     end
-;
+)

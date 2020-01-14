@@ -1,4 +1,4 @@
-func main:
+def main (
     4
     (-> a | a 1 + -> a (a))
-;
+)

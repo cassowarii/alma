@@ -1,2 +1,2 @@
-func main: 4 5 + ;
-func also: 9 9 9 + + ;
+def main ( 4 5 + )
+def also ( 9 9 9 + + )

@@ -1,4 +1,4 @@
-func sieve:
+def sieve (
     -> n ({} n iota shift drop)
     while*: [empty not] [
         shift -> prime
@@ -7,6 +7,6 @@ func sieve:
         2>>2
     ]
     drop
-;
+)
 
-func main: 5000 sieve say ;
+def main ( 5000 sieve say )

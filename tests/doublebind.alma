@@ -1,8 +1,8 @@
-func quadruple:
+def quadruple (
     (→ a
         a a +
         (→ 2xa | 2xa 2xa +)
     )
-;
+)
 
-func main: 6 quadruple 5 quadruple ;
+def main ( 6 quadruple 5 quadruple )

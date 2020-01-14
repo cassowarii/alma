@@ -1,1 +1,1 @@
-func main: 1 { } cons ;
+def main ( 1 { } cons )

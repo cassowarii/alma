@@ -1,1 +1,1 @@
-func main: 5 [→ a | a 4 +] apply ;
+def main ( 5 [→ a | a 4 +] apply )

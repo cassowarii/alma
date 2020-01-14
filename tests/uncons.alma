@@ -1,1 +1,1 @@
-func main: { 1, 2, 3, 4 } uncons ;
+def main ( { 1, 2, 3, 4 } uncons )

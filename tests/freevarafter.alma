@@ -5,15 +5,15 @@
 # If looking at github issue #5, this is a
 # good test file
 
-func main: generate apply ;
+def main ( generate apply )
 
-func generate:
+def generate (
     2 → a (
         use
-            func b: [f] ;
-            func f: a ;
+            def b ( [f] )
+            def f ( a )
         in
-            (b)
+            b
         end
     )
-;
+)

@@ -1,7 +1,7 @@
 # result should be 12
 
-func main: 5 warble;
+def main ( 5 warble )
 
-func warble: -> x (x 1 + bloople);
+def warble ( -> x (x 1 + bloople) )
 
-func y bloople: y 2 *;
+def y bloople ( y 2 * )

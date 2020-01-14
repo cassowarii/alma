@@ -1,2 +1,2 @@
-func main: realize-the-truth ;
+def main ( realize-the-truth )
 

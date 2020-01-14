@@ -64,7 +64,7 @@ void fprint_token_type(FILE *out, ATokenType type) {
         case T_BIND:
             fprintf(out, "‘->’"); break;
         case T_FUNC:
-            fprintf(out, "‘func’"); break;
+            fprintf(out, "‘def’"); break;
         case T_IN:
             fprintf(out, "‘in’"); break;
         case T_END:
@@ -782,11 +782,7 @@ ADeclNode *parse_decl(AParseState *state) {
         AWordSeqNode *body = NULL;
 
         /* func body */
-        EXPECT(':');
-
-        body = parse_block_guts(state);
-
-        EXPECT(';');
+        body = unwrap_node(parse_cmplx_word(state));
 
         if (body == NULL) {
             state->infuncs --;

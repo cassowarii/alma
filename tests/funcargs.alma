@@ -1,3 +1,3 @@
-func main: 4 5 sum 10 20 sum ;
+def main ( 4 5 sum 10 20 sum )
 
-func a b sum: a b + ;
+def a b sum ( a b + )

@@ -1,6 +1,6 @@
 # Print the triangular numbers from 1 to 5000
 
-func trianglenum:
+def trianglenum (
     dip: [0]
     while*: [0 >] [
         dup
@@ -8,9 +8,9 @@ func trianglenum:
         1 -
     ]
     drop
-;
+)
 
-func main:
+def main (
     1
     while*: [5000 ≤] [
         "triangular number #" print
@@ -19,4 +19,4 @@ func main:
         dup trianglenum say
         1 +
     ]
-;
+)

@@ -1,3 +1,3 @@
-func main: 7 8 9 add3 ;
+def main ( 7 8 9 add3 )
 
-func add3: + + ;
+def add3 ( + + )

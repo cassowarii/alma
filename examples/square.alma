@@ -1,17 +1,17 @@
-func main:
+def main (
     use
-        func say-message [
+        def say-message [
             "The "  print
                     print
             " of "  print
             dup     print
             " is "  print
         ]
-    in (
+    in
         4 "double" say-message double println
         4 "square" say-message square println
-    )
-;
+    end
+)
 
-func double: 2 * ;
-func square: dup * ;
+def double ( 2 * )
+def square ( dup * )

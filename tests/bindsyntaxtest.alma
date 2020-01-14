@@ -1,5 +1,3 @@
-func print_three_times: → a: a print a print a say ;
+def print_three_times ( → a: a print a print a say )
 
-func main:
-    print_three_times 4
-;
+def main ( print_three_times 4 )

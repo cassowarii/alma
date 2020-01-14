@@ -18,24 +18,24 @@ Simple examples
 ---------------
 
 ```
-func main: "Hello world!" say ;
+func main ( "Hello world!" say )
 ```
 This program prints "Hello world!" to the console, followed by a newline.
 
 ```
-func comp sort-one:
+func comp sort-one (
     shift -> first
     [first append]
     if: [first comp apply] [2dip] [dip]
-;
+)
 
-func comp partition:
+func comp partition (
     [{} {}] dip
     while*: [empty not] [comp sort-one]
     drop
-;
+)
 
-func quicksort:
+func quicksort (
     when*: [len 1 >] [
         shift -> pivot
         [pivot <] partition
@@ -43,14 +43,14 @@ func quicksort:
         pivot prefix
         concat
     ]
-;
+)
 ```
 This implements the famous [quicksort](https://en.wikipedia.org/wiki/Quicksort)
 algorithm.
 
 We can also implement the Sieve of Eratosthenes in under 10 lines:
 ```
-func sieve:
+func sieve (
     -> n ({} n iota shift drop)
     while*: [empty not] [
         shift -> prime
@@ -59,7 +59,7 @@ func sieve:
         2>>2
     ]
     drop
-;
+)
 ```
 
 Check out the `examples/` directory for a few more examples.
