@@ -1,16 +1,16 @@
 # Take the two last items off a list and leave them on the stack on top of it: {a b c} -> {a} b c
-func 2unappend: unappend 'unappend dip ;
+def 2unappend ( unappend 'unappend dip )
 
 # Append two items on top of the stack to a list underneath them: {a} b c -> {a b c}
-func 2append: 'append dip append ;
+def 2append ( 'append dip append )
 
 # Same but for 3
-func 3append: '2append dip append ;
+def 3append ( '2append dip append )
 
 # Given a list of fibonacci numbers, add the next one to the list.
-func next-fib: 2unappend 2dup + 3append ;
+def next-fib ( 2unappend 2dup + 3append )
 
 # Construct a list of all fibonacci numbers below a certain value N.
-func N fibs-less-than: {1,1} | list-iter-until: [last N ≥] [next-fib] ;
+def N fibs-less-than ( {1,1} | list-iter-until: [last N ≥] [next-fib] )
 
-func main: 4000000 fibs-less-than [2 multiple] filter sum say ;
+def main ( 4000000 fibs-less-than [2 multiple] filter sum say )

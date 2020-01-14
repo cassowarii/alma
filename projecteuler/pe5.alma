@@ -4,14 +4,14 @@
 # or in postfix:
 #   a 0 gcd -> a
 #   a b gcd -> b a b mod gcd
-func gcd:  if*: [0 =] [drop] [swap over mod gcd] ;
+def gcd ( if*: [0 =] [drop] [swap over mod gcd] )
 
 # The least common multiple is the product of
 # two numbers divided by their GCD.
-func lcm:  '* 'gcd '/ 2fork ;
+def lcm ( '* 'gcd '/ 2fork )
 
 # Find the LCM of all integers ≤ a given value.
-func lcm-up-to:  iota 1 [lcm] fold ;
+def lcm-up-to ( iota 1 [lcm] fold )
 
-func main:  20 lcm-up-to say ;
+def main ( 20 lcm-up-to say )
 
