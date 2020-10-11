@@ -102,3 +102,15 @@ def satisfies-all (
 
 def ? ( rot rot if )
 def ?* ( rot rot if* )
+
+def contains (
+    -> val
+    if*: [empty] [drop 0] [
+        shift | if: [val =] [
+            drop 1
+        ] [
+            val contains
+        ]
+    ]
+)
+
