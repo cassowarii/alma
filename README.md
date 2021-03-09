@@ -9,10 +9,20 @@ Alma is a statically-typed, stack-based, functional programming language
 heavily inspired by Forth, Standard ML, and the language [Cat][cat] created
 by Christopher Diggins.
 
-Note: I'm still getting around to rewriting the type system for the new version!
-A lot of things don't work yet.
+Note: The type system actually is still languishing.
+I had written typechecking for the old version,
+but I didn't write any comments and now I am not sure how to reimplement it after I rewrote the rest of the code.
+So right now badly-typed programs will just crash the interpreter.
+Oops! Eventually I will fix this.
 
   [cat]: https://www.codeproject.com/articles/16247/cat-a-statically-typed-programming-language-interp
+
+Build
+-----
+
+In order to build this, you will need the `readline` and `subunit` libraries, as well as the `check` library for testing.
+On debian-based linux these packages are `libreadline-dev`, `libsubunit-dev` and `check`;
+I don't know how to build them on other systems right now, sorry ._.;
 
 Simple examples
 ---------------
