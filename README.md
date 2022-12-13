@@ -33,25 +33,28 @@ def main ( "Hello world!" say )
 This program prints "Hello world!" to the console, followed by a newline.
 
 ```
+; Put one element in either one list or another according to the 'comp' function.
 def comp sort-one (
-    shift -> first
-    [first append]
-    if: [first comp apply] [2dip] [dip]
+    shift -> first                      ; take element off input list and call it 'first'
+    [first append]                      ; create a closure function which will append 'first' to a list
+    if: [first comp apply] [2dip] [dip] ; apply closure to one or the other list depending on comp
 )
 
+; Partition a list into two halves according to the 'comp' function.
 def comp partition (
-    [{} {}] dip
-    while*: [empty not] [comp sort-one]
-    drop
+    [{} {}] dip                         ; create two lists to sort elements into
+    while*: [empty not] [comp sort-one] ; while the input list isn't empty, sort an element from it
+    drop                                ; remove the (now empty) input list
 )
 
+; Quicksort algorithm for linked lists.
 def quicksort (
-    when*: [len 1 >] [
-        shift -> pivot
-        [pivot <] partition
-        'quicksort to-both
-        pivot prefix
-        concat
+    when*: [len 1 >] [                  ; if our list has more than one element
+        shift -> pivot                  ; take the first element and call it 'pivot'
+        [pivot <] partition             ; partition the list according to > / < pivot
+        'quicksort to-both              ; call quicksort on both 'child' lists
+        pivot prefix                    ; place pivot at beginning of second (greater-than) list
+        concat                          ; join lists back together
     ]
 )
 ```
@@ -61,14 +64,14 @@ algorithm.
 We can also implement the Sieve of Eratosthenes in under 10 lines:
 ```
 def sieve (
-    -> n ({} n iota shift drop)
-    while*: [empty not] [
-        shift -> prime
-        [prime append]
-        [[prime multiple not] filter]
-        2>>2
+    -> n ({} n iota shift drop)         ; Juggle stack: input N becomes two lists {} {2..N}
+    while*: [empty not] [               ; while {2..N} list is not empty...
+        shift -> prime                  ; take the first entry in the {2..N} list and call it 'prime'
+        [prime append]                  ; put 'prime' in the first list
+        [[prime multiple not] filter]   ; filter out the second list to only non-multiples of 'prime'
+        2>>2                            ; execute the above two lines on the two different lists
     ]
-    drop
+    drop                                ; remove now-empty {2..N} list, leaving just list of primes
 )
 ```
 
