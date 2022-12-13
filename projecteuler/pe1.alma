@@ -1,9 +1,9 @@
-# Given a list of integers, check whether a given integer is a multiple of any of them.
-def multiple-of-any ( 'multiple curry-all satisfies-any )
+; Given a list of integers, check whether a given integer is a multiple of any of them.
+def multiple-of-any? ( 'multiple? curry-all satisfies-any )
 
-# Takes two parameters: an integer and a list of integers.
-# Returns the sum of all multiples of those integers below the
-# first integer.
-def factors sum-multiples ( range [factors multiple-of-any] filter sum )
+; Takes two parameters: an integer and a list of integers.
+; Returns the sum of all multiples of those integers below the
+; first integer.
+def factors sum-multiples ( range [factors multiple-of-any?] filter sum )
 
 def main ( 1000 {3,5} sum-multiples say )

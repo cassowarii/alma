@@ -1,4 +1,4 @@
-# result should be 12
+; result should be 12
 
 def main ( 5 warble )
 

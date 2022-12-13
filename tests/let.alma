@@ -1,2 +1,2 @@
-# Should print '12'
+; Should print '12'
 def main ( use def add3 ( + + ) in 3 4 5 add3 end )

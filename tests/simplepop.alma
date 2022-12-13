@@ -1,1 +1,1 @@
-def main ( 4 "hi" print say ) # stack should be empty
+def main ( 4 "hi" print say ) ; stack should be empty

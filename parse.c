@@ -174,7 +174,7 @@ void next(AParseState *state) {
         /* skip closing ) */
         state->nexttok = next_token(state->scan);
         state->nested_comments --;
-    } else if (state->nexttok.id == '#') {
+    } else if (state->nexttok.id == ';') {
         /* Mark we're in a comment so that the interactive prompt will change
          * if we end our comment with a \ */
         state->beginning_line = 0;

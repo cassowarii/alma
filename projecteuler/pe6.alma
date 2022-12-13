@@ -1,10 +1,10 @@
-# Find the sum of the squares of a list.
+; Find the sum of the squares of a list.
 def sum-squares ( [dup *] map sum )
 
-# Find the square of the sum of a list.
+; Find the square of the sum of a list.
 def square-sum ( sum dup * )
 
-# Find the difference between the two.
+; Find the difference between the two.
 def square-diff ( 'square-sum 'sum-squares '- fork )
 
 def main ( 100 iota square-diff say )

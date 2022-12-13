@@ -1,16 +1,16 @@
-# Take the two last items off a list and leave them on the stack on top of it: {a b c} -> {a} b c
+; Take the two last items off a list and leave them on the stack on top of it: {a b c} -> {a} b c
 def 2unappend ( unappend 'unappend dip )
 
-# Append two items on top of the stack to a list underneath them: {a} b c -> {a b c}
+; Append two items on top of the stack to a list underneath them: {a} b c -> {a b c}
 def 2append ( 'append dip append )
 
-# Same but for 3
+; Same but for 3
 def 3append ( '2append dip append )
 
-# Given a list of fibonacci numbers, add the next one to the list.
+; Given a list of fibonacci numbers, add the next one to the list.
 def next-fib ( 2unappend 2dup + 3append )
 
-# Construct a list of all fibonacci numbers below a certain value N.
+; Construct a list of all fibonacci numbers below a certain value N.
 def N fibs-less-than ( {1,1} | list-iter-until: [last N ≥] [next-fib] )
 
-def main ( 4000000 fibs-less-than [2 multiple] filter sum say )
+def main ( 4000000 fibs-less-than [2 multiple?] filter sum say )

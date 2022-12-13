@@ -1,9 +1,9 @@
-# 3 4 5
-# 3 4 5 4 over
-# 3 4 4 5 swap
-# 3 4 9   +
-# 4 9 3   rot
-# 4 9     drop
-# 36      *
+; 3 4 5
+; 3 4 5 4 over
+; 3 4 4 5 swap
+; 3 4 9   +
+; 4 9 3   rot
+; 4 9     drop
+; 36      *
 
 def main ( 3 4 5 over swap + rot drop * )

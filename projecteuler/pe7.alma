@@ -1,22 +1,22 @@
-# (Prime stuff copied from PE3)
+; (Prime stuff copied from PE3)
 
-# Find the integer square root but we don't have a sqrt function yet
+; Find the integer square root but we don't have a sqrt function yet
 def n crappy-sqrt ( 1 | while*: [dup * n <] [incr] )
 
-# Given a list of integers, check whether a given integer is a multiple of any of them.
+; Given a list of integers, check whether a given integer is a multiple of any of them.
 def multiple-of-any ( 'multiple curry-all satisfies-any )
 
-# Find the possible prime factors of a number n (2..sqrt n+1).
-# (Hack: we want to return {2} for 4, but {} for 2 (so it doesn't
-#  divide 2 by itself). So we just check for 2 explicitly.
+; Find the possible prime factors of a number n (2..sqrt n+1).
+; (Hack: we want to return {2} for 4, but {} for 2 (so it doesn't
+;  divide 2 by itself). So we just check for 2 explicitly.
 def n factor-candidates ( if: [n 2 >] [2 n crappy-sqrt 1 + range-ends] [{}] )
 
-# Check whether a number is prime (i.e. it's not 1 and it's not a multiple of
-# any of the 'prime candidates' below it.)
+; Check whether a number is prime (i.e. it's not 1 and it's not a multiple of
+; any of the 'prime candidates' below it.)
 def prime? ( if*: [1 =] [drop 0] [dup factor-candidates multiple-of-any not] )
 
-# Find the nth prime by iterating over all odd numbers and counting the prime ones.
-# There's probably a faster way to do this...
+; Find the nth prime by iterating over all odd numbers and counting the prime ones.
+; There's probably a faster way to do this...
 def n nth-prime ( 1 1 | while: [over n <] [2 + | when*: [prime?] ['incr dip]] | nip )
 
 def main (

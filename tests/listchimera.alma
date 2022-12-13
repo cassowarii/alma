@@ -1,5 +1,5 @@
-# should give { 1, 5, 6 }
+; should give { 1, 5, 6 }
 def main ( { 1, 2, 3 } { 4, 5, 6 } chimera )
 
-# given a::as and b::bs, give back a::bs
+; given a::as and b::bs, give back a::bs
 def chimera ( dip: [head] | tail cons )

@@ -1,16 +1,16 @@
-# Euclid's algorithm:
-#   gcd(a,0) = a
-#   gcd(a,b) = gcd(b, a mod b)
-# or in postfix:
-#   a 0 gcd -> a
-#   a b gcd -> b a b mod gcd
+; Euclid's algorithm:
+;   gcd(a,0) = a
+;   gcd(a,b) = gcd(b, a mod b)
+; or in postfix:
+;   a 0 gcd -> a
+;   a b gcd -> b a b mod gcd
 def gcd ( if*: [0 =] [drop] [swap over mod gcd] )
 
-# The least common multiple is the product of
-# two numbers divided by their GCD.
+; The least common multiple is the product of
+; two numbers divided by their GCD.
 def lcm ( '* 'gcd '/ 2fork )
 
-# Find the LCM of all integers ≤ a given value.
+; Find the LCM of all integers ≤ a given value.
 def lcm-up-to ( iota 1 [lcm] fold )
 
 def main ( 20 lcm-up-to say )

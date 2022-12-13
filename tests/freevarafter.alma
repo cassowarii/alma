@@ -1,9 +1,9 @@
-# This is a pretty contrived example, but it's
-# important to allow functions to be defined in
-# any order, even if they have free variables
+; This is a pretty contrived example, but it's
+; important to allow functions to be defined in
+; any order, even if they have free variables
 
-# If looking at github issue #5, this is a
-# good test file
+; If looking at github issue #5, this is a
+; good test file
 
 def main ( generate apply )
 
