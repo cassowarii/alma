@@ -1,3 +1,5 @@
+def alma> ( )
+
 def 2dup ( over over )
 def 2dip ( swap 'dip dip )
 def 3dip ( swap '2dip dip )

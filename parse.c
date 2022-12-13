@@ -986,10 +986,8 @@ void interact(ASymbolTable *symtab, AScope *scope, AFuncRegistry *reg) {
                 next(&state);
             }
         }
-        if (stack->size > 0) {
-            printf("  ");
-            print_stack(stack);
-        }
+        printf(" ; Stack:\t");
+        print_stack(stack);
         state.beginning_line = 1;
         eat_newlines(&state);
     } while (1);

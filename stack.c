@@ -59,11 +59,15 @@ void stack_pop(AStack *st, int n) {
 
 /* Print the contents of the stack. */
 void print_stack(AStack *st) {
-    for (int i = 0; i < st->size; i++) {
-        if (i != 0) printf(" ");
-        print_val(st->content[i]);
+    if (st->size > 0) {
+        for (int i = 0; i < st->size; i++) {
+            if (i != 0) printf(" ");
+            print_val(st->content[i]);
+        }
+        printf(" <- TOP\n");
+    } else {
+        printf("<empty>\n");
     }
-    printf("\n");
 }
 
 /* Clear the stack, un-referencing all the variables on it,
